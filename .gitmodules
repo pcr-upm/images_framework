@@ -1,0 +1,15 @@
+[submodule "detection/retinanet17_detection"]
+	path = detection/retinanet17_detection
+	url = git@github.com:bobetocalo/retinanet17_detection.git
+[submodule "detection/scrdet19_detection"]
+	path = detection/scrdet19_detection
+	url = git@github.com:bobetocalo/scrdet19_detection.git
+[submodule "segmentation/unet15_segmentation"]
+	path = segmentation/unet15_segmentation
+	url = git@github.com:bobetocalo/unet15_segmentation.git
+[submodule "segmentation/ocr20_segmentation"]
+	path = segmentation/ocr20_segmentation
+	url = git@github.com:bobetocalo/ocr20_segmentation.git
+[submodule "recognition/resnet15_recognition"]
+	path = recognition/resnet15_recognition
+	url = git@github.com:bobetocalo/resnet15_recognition.git
