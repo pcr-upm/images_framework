@@ -1,12 +1,14 @@
-# Satellite framework
+# Images framework
 
 #### Requisites
-- Python 3.6
+- Python 3.6.13
 - Opencv 4.2.0.32
 - Rasterio 1.2.10
-- Pillow 8.3.1
+- Pillow 8.4.0
+- Pascal-voc-writer (save detection in xml file)
+- Gdal (save detection in shapefile)
 
 #### Usage
 ```
-> python satellite_framework/test/satellite_framework_test.py
+> python images_framework/test/images_framework_test.py
 ```

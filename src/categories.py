@@ -1,9 +1,7 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 __author__ = 'Roberto Valle'
-__email__ = 'roberto.valle@geoaitech.com'
-
-import abc
+__email__ = 'roberto.valle@upm.es'
 
 
 class Name:
@@ -11,46 +9,10 @@ class Name:
         self.name = name
 
 
-class ObjCategory(object):
+class Category:
     """
-    Declare a common interface for the different categories in the object recognition task.
+    Category label.
     """
-    __metaclass__ = abc.ABCMeta
-
-    def __init__(self, part):
-        self._part = part
-
-    def get_component_class(self):
-        return self._part
-
-
-class ObjComposite(ObjCategory):
-    """
-    Store a list of object categories.
-    """
-    def __init__(self):
-        super().__init__(0)
-        self._labels = []
-        self._scores = []
-
-    def add(self, label, score=None):
-        self._labels.append(label)
-        self._scores.append(score)
-
-    def get_labels(self):
-        return self._labels
-
-    def get_scores(self):
-        return self._scores
-
-
-class ObjInstance(ObjCategory):
-    """
-    Declare an specific object class and include their category: coarse (1) or fine (2) label.
-    """
-    def __init__(self):
-        super().__init__(1)
-
     BACKGROUND = Name('Background')
     # XView
     FIXED_WING_AIRCRAFT = Name('Fixed wing aircraft')

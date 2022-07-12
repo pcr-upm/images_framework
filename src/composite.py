@@ -1,12 +1,12 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 __author__ = 'Roberto Valle'
-__email__ = 'roberto.valle@geoaitech.com'
+__email__ = 'roberto.valle@upm.es'
 
-from .component import SatelliteComponent
+from .component import Component
 
 
-class SatelliteComposite(SatelliteComponent):
+class Composite(Component):
     """
     Store child components. Implement child-related operations in the Component interface.
     """

@@ -1,35 +1,29 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 __author__ = 'Roberto Valle'
-__email__ = 'roberto.valle@geoaitech.com'
+__email__ = 'roberto.valle@upm.es'
 
-import os
 import abc
-import json
-import rasterio
 import numpy as np
-from PIL import Image
-from shapely import wkt
-from satellite_framework.src.utils import load_geoimage, geometry2numpy
-from satellite_framework.src.annotations import SatelliteSequence, SatelliteImage, SatelliteObject
-from satellite_framework.src.categories import Name, ObjInstance as Oi
+from .annotations import GenericGroup, GenericImage, GenericObject, GenericCategory
+from .categories import Name, Category as Oi
 
 
 def get_palette(n):
     """
-    Returns the default color map for visualizing the segmentation task.
+    Returns the default color map for visualizing each category.
     """
-    palette = [0] * (n * 3)
+    palette = [0] * (n*3)
     for j in range(0, n):
         lab = j
-        palette[j * 3 + 0] = 0
-        palette[j * 3 + 1] = 0
-        palette[j * 3 + 2] = 0
+        palette[j*3+0] = 0
+        palette[j*3+1] = 0
+        palette[j*3+2] = 0
         i = 0
         while lab:
-            palette[j * 3 + 0] |= (((lab >> 0) & 1) << (7 - i))
-            palette[j * 3 + 1] |= (((lab >> 1) & 1) << (7 - i))
-            palette[j * 3 + 2] |= (((lab >> 2) & 1) << (7 - i))
+            palette[j*3+0] |= (((lab >> 0) & 1) << (7-i))
+            palette[j*3+1] |= (((lab >> 1) & 1) << (7-i))
+            palette[j*3+2] |= (((lab >> 2) & 1) << (7-i))
             i += 1
             lab >>= 3
     return list(zip(*[iter(palette)]*3))
@@ -37,7 +31,7 @@ def get_palette(n):
 
 class Database(abc.ABC):
     """
-    Declare a common interface for the different data sets related to satellite imagery.
+    Declare a common interface for the different data sets.
     """
     def __init__(self):
         self._names = ''
@@ -67,22 +61,24 @@ class XView(Database):
         self._colors = get_palette(len(self._categories))
 
     def load_filename(self, path, db, line):
-        seq = SatelliteSequence()
+        from PIL import Image
+        from .annotations import AerialImage
+        seq = GenericGroup()
         parts = line.strip().split(';')
-        image = SatelliteImage(path + parts[0])
+        image = AerialImage(path + parts[0])
         num_predictions = int(parts[1])
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
         image.gsd = 0.3
         for idx in range(0, num_predictions):
-            obj = SatelliteObject()
+            obj = GenericObject()
             obj.id = int(parts[(3*idx)+2])
             pts = parts[(3*idx)+3].split(',')
             obj.bb = (int(pts[0]), int(pts[1]), int(pts[2]), int(pts[3]))
             cat = int(parts[(3*idx)+4])
             if cat not in self._mapping.keys():
                 continue
-            obj.categories.add(self._mapping[cat])
+            obj.add_category(GenericCategory(self._mapping[cat]))
             # if self._mapping[cat] is not Oi.PASSENGER_VEHICLE.SMALL_CAR:
             #     continue
             image.add_object(obj)
@@ -100,11 +96,15 @@ class XView2(Database):
         self._colors = get_palette(len(self._categories))
 
     def load_filename(self, path, db, line):
-        seq = SatelliteSequence()
+        import json
+        from shapely import wkt
+        from .utils import geometry2numpy
+        from .annotations import AerialImage
+        seq = GenericGroup()
         for time in ['pre_', 'post_']:
             filepath = line.strip()
             pos = filepath.find('pre_')
-            image = SatelliteImage(path + filepath[:pos] + time + filepath[pos+4:])
+            image = AerialImage(path + filepath[:pos] + time + filepath[pos+4:])
             pos = filepath.find('/') + 1
             mid = filepath[:pos]
             end = filepath[pos:]
@@ -120,14 +120,14 @@ class XView2(Database):
                 geom = wkt.loads(feat['wkt'])
                 if geom.is_empty:
                     continue
-                obj = SatelliteObject()
+                obj = GenericObject()
                 obj.id = feat['properties']['uid']
                 obj.bb = (int(geom.bounds[0]), int(geom.bounds[1]), int(geom.bounds[2]), int(geom.bounds[3]))
                 obj.multipolygon = [contour for contour in geometry2numpy(geom)]
                 if json_file.find('post_disaster') > -1:
-                    obj.categories.add(self._mapping[feat['properties']['subtype']])
+                    obj.add_category(GenericCategory(self._mapping[feat['properties']['subtype']]))
                 else:
-                    obj.categories.add(self._mapping[feat['properties']['feature_type']])
+                    obj.add_category(GenericCategory(self._mapping[feat['properties']['feature_type']]))
                 image.add_object(obj)
             seq.add_image(image)
         return seq
@@ -142,9 +142,11 @@ class DOTA(Database):
         self._colors = get_palette(len(self._categories))
 
     def load_filename(self, path, db, line):
-        seq = SatelliteSequence()
+        import rasterio
+        from .annotations import AerialImage
+        seq = GenericGroup()
         filepath = line.strip()
-        image = SatelliteImage(path + filepath)
+        image = AerialImage(path + filepath)
         pos = filepath.find('/')
         mid = filepath[:pos]
         end = filepath[pos:]
@@ -191,10 +193,10 @@ class DOTA(Database):
         for idx in range(len(lines_obb)):
             elem = lines_obb[idx].strip().split(' ')
             elem_hbb = lines_hbb[idx].strip().split(' ')
-            obj = SatelliteObject()
+            obj = GenericObject()
             obj.bb = (float(elem_hbb[0]), float(elem_hbb[1]), float(elem_hbb[4]), float(elem_hbb[5]))
             obj.obb = (float(elem[0]), float(elem[1]), float(elem[2]), float(elem[3]), float(elem[4]), float(elem[5]), float(elem[6]), float(elem[7]))
-            obj.categories.add(self._mapping[elem[8]])
+            obj.add_category(GenericCategory(self._mapping[elem[8]]))
             obj.confidence = 1 - int(elem[9])  # 0 represents a difficult object
             image.add_object(obj)
         seq.add_image(image)
@@ -209,9 +211,11 @@ class COWC(Database):
         self._colors = [(0, 255, 0)]
 
     def load_filename(self, path, db, line):
-        seq = SatelliteSequence()
+        import rasterio
+        from .annotations import AerialImage
+        seq = GenericGroup()
         parts = line.strip().split(',')
-        image = SatelliteImage(path + parts[0])
+        image = AerialImage(path + parts[0])
         num_vehicles = int(parts[1])
         src_raster = rasterio.open(image.filename, 'r')
         width = src_raster.width
@@ -219,12 +223,12 @@ class COWC(Database):
         image.tile = np.array([0, 0, width, height])
         image.gsd = 0.15
         for idx in range(0, num_vehicles):
-            obj = SatelliteObject()
+            obj = GenericObject()
             center = [int(parts[(3*idx)+2]), int(parts[(3*idx)+3])]
             # Bounding boxes were fixed at size 48 pixels which is the maximum length of a car
             obj.bb = (center[0]-12, center[1]-12, center[0]+12, center[1]+12)
             obj.obb = (obj.bb[0], obj.bb[1], obj.bb[2], obj.bb[1], obj.bb[2], obj.bb[3], obj.bb[0], obj.bb[3])
-            obj.categories.add(self._categories[0])
+            obj.add_category(GenericCategory(self._categories[0]))
             image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -238,9 +242,12 @@ class CARPK(Database):
         self._colors = [(0, 255, 0)]
 
     def load_filename(self, path, db, line):
-        seq = SatelliteSequence()
+        import os
+        from PIL import Image
+        from .annotations import AerialImage
+        seq = GenericGroup()
         parts = line.strip().split(';')
-        image = SatelliteImage(path + parts[0])
+        image = AerialImage(path + parts[0])
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
         image.gsd = 0.05
@@ -251,9 +258,9 @@ class CARPK(Database):
         ifs.close()
         for ln in lines:
             pts = ln.strip().split(' ')
-            obj = SatelliteObject()
+            obj = GenericObject()
             obj.bb = (int(pts[0]), int(pts[1]), int(pts[2]), int(pts[3]))
-            obj.categories.add(self._categories[0])
+            obj.add_category(GenericCategory(self._categories[0]))
             image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -268,9 +275,12 @@ class DRL(Database):
         self._colors = get_palette(len(self._categories))
 
     def load_filename(self, path, db, line):
-        seq = SatelliteSequence()
+        import os
+        from PIL import Image
+        from .annotations import AerialImage
+        seq = GenericGroup()
         parts = line.strip().split(';')
-        image = SatelliteImage(path + parts[0])
+        image = AerialImage(path + parts[0])
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
         image.gsd = 0.13
@@ -285,7 +295,7 @@ class DRL(Database):
                 elems = ln.strip().split(' ')
                 if elems[0].startswith('#') or elems[0].startswith('@'):
                     continue
-                obj = SatelliteObject()
+                obj = GenericObject()
                 obj.id = int(elems[0])
                 center = (int(elems[2]), int(elems[3]))
                 obj.bb = (center[0]-int(elems[4]), center[1]-int(elems[5]), center[0]+int(elems[4]), center[1]+int(elems[5]))
@@ -294,7 +304,7 @@ class DRL(Database):
                 rot = np.array(((np.cos(angle), np.sin(angle)), (-np.sin(angle), np.cos(angle))))
                 pts_proj = np.matmul(rot, pts)
                 obj.obb = (pts_proj[0, 0]+center[0], pts_proj[1, 0]+center[1], pts_proj[0, 1]+center[0], pts_proj[1, 1]+center[1], pts_proj[0, 2]+center[0], pts_proj[1, 2]+center[1], pts_proj[0, 3]+center[0], pts_proj[1, 3]+center[1])
-                obj.categories.add(self._mapping[category])
+                obj.add_category(GenericCategory(self._mapping[category]))
                 image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -309,9 +319,11 @@ class NWPU(Database):
         self._colors = get_palette(len(self._categories))
 
     def load_filename(self, path, db, line):
-        seq = SatelliteSequence()
+        import os
+        from PIL import Image
+        seq = GenericGroup()
         parts = line.strip().split(';')
-        image = SatelliteImage(path + parts[0])
+        image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
         root, extension = os.path.splitext(image.filename)
@@ -322,9 +334,9 @@ class NWPU(Database):
         for ln in lines:
             elem = ln.strip().split(',')
             elem = [el.replace('(', '').replace(')', '') for el in elem]
-            obj = SatelliteObject()
+            obj = GenericObject()
             obj.bb = (int(elem[0]), int(elem[1]), int(elem[2]), int(elem[3]))
-            obj.categories.add(self._mapping[int(elem[4])])
+            obj.add_category(GenericCategory(self._mapping[int(elem[4])]))
             image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -338,10 +350,14 @@ class SpaceNet(Database):
         self._colors = [(0, 255, 0)]
 
     def load_filename(self, path, db, line):
-        seq = SatelliteSequence()
+        from PIL import Image
+        from shapely import wkt
+        from .utils import geometry2numpy
+        from .annotations import AerialImage
+        seq = GenericGroup()
         parts = line.strip().split(';')
         filepath = parts[0]
-        image = SatelliteImage(path + filepath)
+        image = AerialImage(path + filepath)
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
         if len(parts) > 1:
@@ -349,11 +365,11 @@ class SpaceNet(Database):
                 geom = wkt.loads(parts[i+1])
                 if geom.is_empty:
                     continue
-                obj = SatelliteObject()
+                obj = GenericObject()
                 obj.id = str(parts[i])
                 obj.bb = (int(geom.bounds[0]), int(geom.bounds[1]), int(geom.bounds[2]), int(geom.bounds[3]))
                 obj.multipolygon = [contour for contour in geometry2numpy(geom)]
-                obj.categories.add(self._categories[0])
+                obj.add_category(GenericCategory(self._categories[0]))
                 image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -368,17 +384,18 @@ class Cityscapes(Database):
 
     def load_filename(self, path, db, line):
         import cv2
-        from satellite_framework.src.utils import mask2contours
+        from PIL import Image
+        from .utils import load_geoimage, mask2contours
         label_mapping = {0: -1, 1: -1, 2: -1, 3: -1, 4: -1, 5: -1, 6: -1, 7: 0, 8: 1, 9: -1, 10: -1, 11: 2, 12: 3, 13: 4, 14: -1, 15: -1, 16: -1, 17: 5, 18: -1, 19: 6, 20: 7, 21: 8, 22: 9, 23: 10, 24: 11, 25: 12, 26: 13, 27: 14, 28: 15, 29: -1, 30: -1, 31: 16, 32: 17, 33: 18}
-        seq = SatelliteSequence()
+        seq = GenericGroup()
         parts = line.strip().split('\t')
         filepath = parts[0]
-        image = SatelliteImage(path + filepath)
+        image = GenericImage(path + filepath)
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
         if len(parts) > 1:
             aux_filepath = parts[1]
-            aux_image = SatelliteImage(path + aux_filepath)
+            aux_image = GenericImage(path + aux_filepath)
             img, _ = load_geoimage(aux_image.filename)
             temp = img.copy()
             for key, value in label_mapping.items():
@@ -392,11 +409,11 @@ class Cityscapes(Database):
                     contours.append(contour)
                     labels.append(str(category))
             for index in range(len(contours)):
-                obj = SatelliteObject()
+                obj = GenericObject()
                 bbox = cv2.boundingRect(contours[index])
                 obj.bb = (bbox[0], bbox[1], bbox[2]+bbox[0], bbox[3]+bbox[1])
                 obj.multipolygon = [contours[index]]
-                obj.categories.add(Name(labels[index]))
+                obj.add_category(GenericCategory(Name(labels[index])))
                 image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -411,16 +428,17 @@ class LIP(Database):
 
     def load_filename(self, path, db, line):
         import cv2
-        from satellite_framework.src.utils import mask2contours
-        seq = SatelliteSequence()
+        from PIL import Image
+        from .utils import load_geoimage, mask2contours
+        seq = GenericGroup()
         parts = line.strip().split(' ')
         filepath = parts[0]
-        image = SatelliteImage(path + filepath)
+        image = GenericImage(path + filepath)
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
         if len(parts) > 1:
             aux_filepath = parts[1]
-            aux_image = SatelliteImage(path + aux_filepath)
+            aux_image = GenericImage(path + aux_filepath)
             img, _ = load_geoimage(aux_image.filename)
             categories = list(np.unique(img))
             contours, labels = [], []
@@ -430,11 +448,11 @@ class LIP(Database):
                     contours.append(contour)
                     labels.append(str(category))
             for index in range(len(contours)):
-                obj = SatelliteObject()
+                obj = GenericObject()
                 bbox = cv2.boundingRect(contours[index])
                 obj.bb = (bbox[0], bbox[1], bbox[2]+bbox[0], bbox[3]+bbox[1])
                 obj.multipolygon = [contours[index]]
-                obj.categories.add(Name(labels[index]))
+                obj.add_category(GenericCategory(Name(labels[index])))
                 image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -449,10 +467,14 @@ class SegESolarScene(Database):
         self._colors = [(0, 255, 255), (0, 255, 0)]
 
     def load_filename(self, path, db, line):
-        seq = SatelliteSequence()
+        from PIL import Image
+        from shapely import wkt
+        from .utils import geometry2numpy
+        from .annotations import AerialImage
+        seq = GenericGroup()
         parts = line.strip().split(';')
         filepath = parts[0]
-        image = SatelliteImage(path + filepath)
+        image = AerialImage(path + filepath)
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
         if len(parts) > 1:
@@ -460,10 +482,10 @@ class SegESolarScene(Database):
                 geom = wkt.loads(parts[i])
                 if geom.is_empty:
                     continue
-                obj = SatelliteObject()
+                obj = GenericObject()
                 obj.bb = (int(geom.bounds[0]), int(geom.bounds[1]), int(geom.bounds[2]), int(geom.bounds[3]))
                 obj.multipolygon = [contour for contour in geometry2numpy(geom)]
-                obj.categories.add(self._mapping[parts[i+1]])
+                obj.add_category(GenericCategory(self._mapping[parts[i+1]]))
                 image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -477,10 +499,14 @@ class SegGeoAIPanels(Database):
         self._colors = [(0, 255, 0)]
 
     def load_filename(self, path, db, line):
-        seq = SatelliteSequence()
+        from PIL import Image
+        from shapely import wkt
+        from .utils import geometry2numpy
+        from .annotations import AerialImage
+        seq = GenericGroup()
         parts = line.strip().split(';')
         filepath = parts[0]
-        image = SatelliteImage(path + filepath)
+        image = AerialImage(path + filepath)
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
         if len(parts) > 1:
@@ -488,10 +514,10 @@ class SegGeoAIPanels(Database):
                 geom = wkt.loads(parts[i])
                 if geom.is_empty:
                     continue
-                obj = SatelliteObject()
+                obj = GenericObject()
                 obj.bb = (int(geom.bounds[0]), int(geom.bounds[1]), int(geom.bounds[2]), int(geom.bounds[3]))
                 obj.multipolygon = [contour for contour in geometry2numpy(geom)]
-                obj.categories.add(self._categories[0])
+                obj.add_category(GenericCategory(self._categories[0]))
                 image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -506,10 +532,14 @@ class RecGeoAIPanels(Database):
         self._colors = get_palette(len(self._categories))
 
     def load_filename(self, path, db, line):
-        seq = SatelliteSequence()
+        from PIL import Image
+        from shapely import wkt
+        from .utils import geometry2numpy
+        from .annotations import AerialImage
+        seq = GenericGroup()
         parts = line.strip().split(';')
         filepath = parts[0]
-        image = SatelliteImage(path + filepath)
+        image = AerialImage(path + filepath)
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
         if len(parts) > 1:
@@ -517,10 +547,10 @@ class RecGeoAIPanels(Database):
                 geom = wkt.loads(parts[i])
                 if geom.is_empty:
                     continue
-                obj = SatelliteObject()
+                obj = GenericObject()
                 obj.bb = (int(geom.bounds[0]), int(geom.bounds[1]), int(geom.bounds[2]), int(geom.bounds[3]))
                 obj.multipolygon = [contour for contour in geometry2numpy(geom)]
-                obj.categories.add(self._mapping[parts[i+1]])
+                obj.add_category(GenericCategory(self._mapping[parts[i+1]]))
                 image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -535,15 +565,16 @@ class StanfordCars(Database):
         self._colors = get_palette(len(self._categories))
 
     def load_filename(self, path, db, line):
-        seq = SatelliteSequence()
+        from PIL import Image
+        seq = GenericGroup()
         parts = line.strip().split(';')
         filepath = parts[0]
-        image = SatelliteImage(path + filepath)
+        image = GenericImage(path + filepath)
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
-        obj = SatelliteObject()
+        obj = GenericObject()
         obj.bb = (int(parts[1]), int(parts[2]), int(parts[3]), int(parts[4]))
-        obj.categories.add(self._mapping[int(parts[5])])
+        obj.add_category(GenericCategory(self._mapping[int(parts[5])]))
         image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -557,10 +588,12 @@ class WorldView3(Database):
         self._colors = [(0, 255, 0)]
 
     def load_filename(self, path, db, line):
-        seq = SatelliteSequence()
+        import rasterio
+        from .annotations import AerialImage
+        seq = GenericGroup()
         parts = line.strip().split(';')
         filepath = parts[0]
-        image = SatelliteImage(path + filepath)
+        image = AerialImage(path + filepath)
         src_raster = rasterio.open(image.filename, 'r')
         width = src_raster.width
         height = src_raster.height
@@ -573,9 +606,9 @@ class WorldView3(Database):
             root = tree.getroot()
             for obj in root.findall('object'):
                 bbox = obj.find('bndbox')
-                obj = SatelliteObject()
+                obj = GenericObject()
                 obj.bb = (int(bbox.find('xmin').text), int(bbox.find('ymin').text), int(bbox.find('xmax').text), int(bbox.find('ymax').text))
-                obj.categories.add(self._categories[0])
+                obj.add_category(GenericCategory(self._categories[0]))
                 image.add_object(obj)
         seq.add_image(image)
         return seq

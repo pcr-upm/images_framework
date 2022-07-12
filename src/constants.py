@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 __author__ = 'Roberto Valle'
-__email__ = 'roberto.valle@geoaitech.com'
+__email__ = 'roberto.valle@upm.es'
 
 from enum import Enum, unique
 
@@ -41,7 +41,6 @@ class Segmentators(Enum):
     Different object segmentation algorithms.
     """
     UNET15_SEGMENTATION = 'unet15_segmentation'
-    SEGNET17_SEGMENTATION = 'segnet17_segmentation'
     OCR20_SEGMENTATION = 'ocr20_segmentation'
 
 
@@ -51,4 +50,3 @@ class Recognitors(Enum):
     Different object recognition algorithms.
     """
     RESNET15_RECOGNITION = 'resnet15_recognition'
-    HU19_RECOGNITION = 'hu19_recognition'

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 __author__ = 'Roberto Valle'
-__email__ = 'roberto.valle@geoaitech.com'
+__email__ = 'roberto.valle@upm.es'
 
 import os
 import cv2

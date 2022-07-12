@@ -1,15 +1,14 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 __author__ = 'Roberto Valle'
-__email__ = 'roberto.valle@geoaitech.com'
+__email__ = 'roberto.valle@upm.es'
 
 import abc
 
 
-class SatelliteComponent(object):
+class Component(object):
     """
-    Declare the interface for objects in the composition.
-    Implement default behavior for the interface common to all classes, as appropriate.
+    Declare the interface for detection, segmentation and recognition algorithms, as appropriate.
     """
     __metaclass__ = abc.ABCMeta
 

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 __author__ = 'Roberto Valle'
-__email__ = 'roberto.valle@geoaitech.com'
+__email__ = 'roberto.valle@upm.es'
 
 import os
 import cv2
@@ -12,7 +12,7 @@ from .utils import load_geoimage, save_geoimage, DepthMode, ChannelsMode
 
 def keygen(image):
     """
-    It generates an unique key to store different tiles from the same image.
+    It generates a unique key to store different tiles from the same image.
     """
     filename, ext = os.path.splitext(image.filename)
     return filename + '_' + '{:04d}'.format(image.tile[0]) + '_' + '{:04d}'.format(image.tile[1]) + ext
