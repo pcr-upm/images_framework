@@ -12,9 +12,10 @@ RUN ssh-keyscan github.com >> /root/.ssh/known_hosts
 RUN git clone git@github.com:bobetocalo/images_framework.git images_framework
 
 # Copy the repository from the previous image
-FROM nvcr.io/nvidia/cuda:11.2.2-cudnn8-devel-ubuntu20.04
+FROM ubuntu
+ENV TZ=Europe/Madrid
 ENV LANG=C.UTF-8
-RUN apt-get -y update && apt-get install -y build-essential wget libsm6 libxext6 libxrender-dev
+RUN apt-get -y update && apt-get install -y build-essential wget libsm6 libxext6 libxrender-dev libglib2.0-0
 RUN mkdir /home/username
 WORKDIR /home/username
 COPY --from=intermediate /images_framework /home/username/images_framework

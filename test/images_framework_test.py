@@ -8,6 +8,7 @@ import sys
 sys.path.append(os.getcwd())
 import cv2
 import numpy as np
+from pathlib import Path
 from images_framework.src.composite import Composite
 from images_framework.src.annotations import GenericGroup, AerialImage
 from images_framework.src.viewer import Viewer
@@ -32,7 +33,9 @@ def main():
     for img_pred in pred.images:
         viewer.set_image(img_pred)
     composite.show(viewer, ann, pred)
-    viewer.show(0)
+    dirname = 'output/'
+    Path(dirname).mkdir(parents=True, exist_ok=True)
+    viewer.save(dirname + os.path.basename(pred.images[0].filename))
     print('End of images_framework_test')
 
 

@@ -5,3 +5,6 @@ sudo docker run --name images_framework_container -v images_framework_volume:/ho
 sudo docker exec -w /home/username/ images_framework_container python images_framework/test/images_framework_test.py
 sudo docker stop images_framework_container
 sudo docker image prune
+echo 'Transferring data from docker container to your local machine ...'
+mkdir output
+rsync --delete -azvv -e /var/lib/docker/volumes/images_framework_volume/_data/output/ output
