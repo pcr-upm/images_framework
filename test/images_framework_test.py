@@ -33,7 +33,7 @@ def main():
     for img_pred in pred.images:
         viewer.set_image(img_pred)
     composite.show(viewer, ann, pred)
-    dirname = 'output/'
+    dirname = 'output/images/'
     Path(dirname).mkdir(parents=True, exist_ok=True)
     viewer.save(dirname + os.path.basename(pred.images[0].filename))
     print('End of images_framework_test')

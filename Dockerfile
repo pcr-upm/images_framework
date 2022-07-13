@@ -13,8 +13,9 @@ RUN git clone git@github.com:bobetocalo/images_framework.git images_framework
 
 # Copy the repository from the previous image
 FROM ubuntu
-ENV TZ=Europe/Madrid
 ENV LANG=C.UTF-8
+ENV TZ=Europe/Madrid
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN apt-get -y update && apt-get install -y build-essential wget libsm6 libxext6 libxrender-dev libglib2.0-0
 RUN mkdir /home/username
 WORKDIR /home/username
