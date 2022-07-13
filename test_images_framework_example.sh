@@ -1,3 +1,4 @@
+#!/bin/bash
 echo 'Using Docker to start the container and run tests ...'
 sudo docker build --force-rm --build-arg SSH_PRIVATE_KEY="$(cat ~/.ssh/id_rsa)" -t images_framework_image .
 sudo docker volume create --name images_framework_volume
