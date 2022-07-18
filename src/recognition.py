@@ -52,7 +52,7 @@ class Recognition(Component):
             image_idx = [np.array_equal(img_pred.filename, elem) for elem in ann_order].index(True)
             for objs_idx, objs_val in enumerate([ann.images[image_idx].objects, img_pred.objects]):
                 for obj in objs_val:
-                    values = [drawing[cat.name] if cat in categories else (0, 255, 0) for cat in obj.categories.get_labels()]
+                    values = [drawing[cat.label.name] if cat.label in categories else (0, 255, 0) for cat in obj.categories]
                     color = np.mean(values, axis=0)
                     # Draw rectangle
                     (xmin, ymin, xmax, ymax) = obj.bb
@@ -60,27 +60,27 @@ class Recognition(Component):
                     thickness = int(round(math.log(max(math.e, np.sqrt(cv2.contourArea(contour))), 2)))
                     viewer.rectangle(img_pred, (int(round(xmin)), int(round(ymin))), (int(round(xmax)), int(round(ymax))), color, thickness)
                     # Draw text
-                    num_categories = len(obj.categories.get_labels())
-                    for label_idx, label_val in enumerate(obj.categories.get_labels()):
-                        text = cv2.getTextSize(label_val.name, cv2.FONT_HERSHEY_SIMPLEX, 0.3, 1)[0]
+                    num_categories = len(obj.categories)
+                    for label_idx, label_val in enumerate(obj.categories):
+                        text = cv2.getTextSize(label_val.label.name, cv2.FONT_HERSHEY_SIMPLEX, 0.3, 1)[0]
                         pt = (int(xmin+((xmax-xmin)/2.0)-(text[0]/2.0)), int(ymin-(10*num_categories) if objs_idx == 0 else ymax+text[1]+10)+(10*label_idx))
                         viewer.rectangle(img_pred, (pt[0], pt[1]-text[1]), (pt[0]+text[0]-1, pt[1]+1), color)
-                        viewer.text(img_pred, label_val.name, pt, 0.3, (255, 255, 255) if color[0]*0.299+color[1]*0.587+color[2]*0.114 < 186 else (0, 0, 0))
+                        viewer.text(img_pred, label_val.label.name, pt, 0.3, (255, 255, 255) if color[0]*0.299+color[1]*0.587+color[2]*0.114 < 186 else (0, 0, 0))
 
     def evaluate(self, fs, ann, pred):
         # id_component;filename;num_ann;num_pred[;ann_id[;ann_label]][;pred_id[;pred_label;pred_score]]
-        ann_order = [satellite_img.filename for satellite_img in ann.images]  # same order among 'ann' and 'pred' images
-        for satellite_img in pred.images:
-            image_idx = [np.array_equal(satellite_img.filename, elem) for elem in ann_order].index(True)
-            ann_categories = list(itertools.chain.from_iterable([satellite_obj.categories.get_labels() for satellite_obj in ann.images[image_idx].objects]))
-            pred_categories = list(itertools.chain.from_iterable([satellite_obj.categories.get_labels() for satellite_obj in satellite_img.objects]))
+        ann_order = [img_ann.filename for img_ann in ann.images]  # same order among 'ann' and 'pred' images
+        for img_pred in pred.images:
+            image_idx = [np.array_equal(img_pred.filename, elem) for elem in ann_order].index(True)
+            ann_categories = list(itertools.chain.from_iterable([obj.categories for obj in ann.images[image_idx].objects]))
+            pred_categories = list(itertools.chain.from_iterable([obj.categories for obj in img_pred.objects]))
             fs.write(str(self.get_component_class()) + ';' + ann.images[image_idx].filename + ';' + str(len(ann_categories)) + ';' + str(len(pred_categories)))
-            for obj_idx, obj_val in enumerate([ann.images[image_idx].objects, satellite_img.objects]):
-                for satellite_obj in obj_val:
-                    fs.write(';' + str(satellite_obj.id))
-                    scores = satellite_obj.categories.get_scores()
-                    for label_idx, label_val in enumerate(satellite_obj.categories.get_labels()):
-                        fs.write(';' + label_val.name) if obj_idx == 0 else fs.write(';' + label_val.name + ';' + str(scores[label_idx]))
+            for obj_idx, obj_val in enumerate([ann.images[image_idx].objects, img_pred.objects]):
+                for obj in obj_val:
+                    fs.write(';' + str(obj.id))
+                    scores = obj.categories.get_scores()
+                    for label_idx, label_val in enumerate(obj.categories):
+                        fs.write(';' + label_val.label.name) if obj_idx == 0 else fs.write(';' + label_val.label.name + ';' + str(scores[label_idx]))
             fs.write('\n')
 
     def save(self, dirname, pred):
@@ -93,7 +93,7 @@ class Recognition(Component):
             output_json = dict({'images': [], 'annotations': [], 'categories': []})
             output_json['images'].append(dict({'id': 0, 'file_name': os.path.basename(img_pred.filename), 'width': int(img_pred.tile[2]-img_pred.tile[0]), 'height': int(img_pred.tile[3]-img_pred.tile[1]), 'date_captured': img_pred.timestamp}))
             for idx, obj in enumerate(img_pred.objects):
-                output_json['annotations'].append(dict({'id': idx+1, 'image_id': 0, 'category_id': int(categories.index(obj.categories.get_labels()[-1])+1), 'bbox': list(map(int, [obj.bb[0], obj.bb[1], obj.bb[2]-obj.bb[0], obj.bb[3]-obj.bb[1]])), 'iscrowd': int(len(img_pred.objects) > 1)}))
+                output_json['annotations'].append(dict({'id': idx+1, 'image_id': 0, 'category_id': int(categories.index(obj.categories[-1])+1), 'bbox': list(map(int, [obj.bb[0], obj.bb[1], obj.bb[2]-obj.bb[0], obj.bb[3]-obj.bb[1]])), 'iscrowd': int(len(img_pred.objects) > 1)}))
             for idx, label in enumerate(categories):
                 output_json['categories'].append(dict({'id': idx+1, 'name': label.name, 'supercategory': ''}))
             # Save COCO annotation file
