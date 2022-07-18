@@ -78,9 +78,8 @@ class Recognition(Component):
             for obj_idx, obj_val in enumerate([ann.images[image_idx].objects, img_pred.objects]):
                 for obj in obj_val:
                     fs.write(';' + str(obj.id))
-                    scores = obj.categories.get_scores()
-                    for label_idx, label_val in enumerate(obj.categories):
-                        fs.write(';' + label_val.label.name) if obj_idx == 0 else fs.write(';' + label_val.label.name + ';' + str(scores[label_idx]))
+                    for cat in obj.categories:
+                        fs.write(';' + cat.label.name) if obj_idx == 0 else fs.write(';' + cat.label.name + ';' + str(cat.score))
             fs.write('\n')
 
     def save(self, dirname, pred):
