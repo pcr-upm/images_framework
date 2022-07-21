@@ -66,15 +66,15 @@ class Segmentation(Component):
             # for obj in ann.images[0].objects:
             #     for contour in obj.multipolygon:
             #         ann_contours.append(contour)
-            #     for category in obj.categories.get_labels():
-            #         ann_labels.append(str(category.name))
+            #     for cat in obj.categories:
+            #         ann_labels.append(str(cat.label.name))
             # ann_mask = contours2mask(img.shape[0], img.shape[1], ann_contours, ann_labels, mapping)
             # pred_contours, pred_labels = [], []
             # for obj in pred.images[0].objects:
             #     for contour in obj.multipolygon:
             #         pred_contours.append(contour)
-            #     for category in obj.categories.get_labels():
-            #         pred_labels.append(str(category.name))
+            #     for cat in obj.categories:
+            #         pred_labels.append(str(cat.label.name))
             # pred_mask = contours2mask(img.shape[0], img.shape[1], pred_contours, pred_labels, mapping)
             # cmap = matplotlib.colors.ListedColormap(np.array(list(drawing.values()))/255.0)
             # norm = matplotlib.colors.BoundaryNorm(list(range(len(mapping)+1)), cmap.N)
@@ -92,7 +92,7 @@ class Segmentation(Component):
                 for obj in objs_val:
                     for contour in obj.multipolygon:
                         contours.append(contour)
-                        labels.append(str(obj.categories.get_labels()[0].name))
+                        labels.append(str(obj.categories[0].label.name))
                 # Draw contours to mask (draw subgroup of contours to handle connected components with holes correctly)
                 image = viewer.get_image(img_pred)
                 np_contours = np.empty((len(contours),), dtype=object)
@@ -119,9 +119,9 @@ class Segmentation(Component):
                     fs.write(';' + str(obj.id) + ';' + str(len(obj.multipolygon)))
                     for contour in obj.multipolygon:
                         fs.write(';' + str(numpy2geometry(contour)))
-                    fs.write(';' + str(len(obj.categories.get_labels())))
-                    for label in obj.categories.get_labels():
-                        fs.write(';' + str(label.name))
+                    fs.write(';' + str(len(obj.categories)))
+                    for cat in obj.categories:
+                        fs.write(';' + str(cat.label.name))
             fs.write('\n')
 
     def save(self, dirname, pred):
@@ -145,7 +145,7 @@ class Segmentation(Component):
                     continue
                 tl = [np.min([pt[:, dim] for pt in tls]) for dim in [0, 1]]
                 br = [np.max([pt[:, dim] for pt in brs]) for dim in [0, 1]]
-                output_json['annotations'].append(dict({'id': idx+1, 'image_id': 0, 'category_id': int(categories.index(obj.categories.get_labels()[-1])+1), 'segmentation': multipolygon, 'area': float(np.sum(areas)), 'bbox': list(map(int, [tl[0], tl[1], br[0]-tl[0], br[1]-tl[1]])), 'iscrowd': int(len(img_pred.objects) > 1)}))
+                output_json['annotations'].append(dict({'id': idx+1, 'image_id': 0, 'category_id': int(categories.index(obj.categories[-1])+1), 'segmentation': multipolygon, 'area': float(np.sum(areas)), 'bbox': list(map(int, [tl[0], tl[1], br[0]-tl[0], br[1]-tl[1]])), 'iscrowd': int(len(img_pred.objects) > 1)}))
             for idx, label in enumerate(categories):
                 output_json['categories'].append(dict({'id': idx+1, 'name': label.name, 'supercategory': ''}))
             # Save COCO annotation file
