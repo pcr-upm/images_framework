@@ -6,7 +6,7 @@
 - Rasterio 1.2.10
 - Pillow 8.4.0
 - Pascal-voc-writer (save detection in xml file)
-- Gdal (save detection in shapefile)
+- Gdal 2.4.4 (save detection in shapefile)
 
 #### Usage
 ```
