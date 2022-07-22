@@ -193,4 +193,4 @@ def contours2mask(height, width, contours, labels, mapping):
     #     color_mask[mask == val] = ImageColor.getcolor(colors[idx], 'RGB')
     # cv2.imshow('color_mask', color_mask.astype(np.uint8))
     # cv2.waitKey(0)
-    return ~mask
+    return mask
