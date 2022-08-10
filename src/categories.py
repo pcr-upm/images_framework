@@ -37,7 +37,7 @@ class Category:
     RAILWAY_VEHICLE.TANK_CAR = Name('Tank car')
     RAILWAY_VEHICLE.LOCOMOTIVE = Name('Locomotive')
     MARITIME_VESSEL = Name('Maritime vessel')
-    MARITIME_VESSEL.MOTOBOAT = Name('Motoboat')
+    MARITIME_VESSEL.MOTORBOAT = Name('Motorboat')
     MARITIME_VESSEL.SAILBOAT = Name('Sailboat')
     MARITIME_VESSEL.TUGBOAT = Name('Tugboat')
     MARITIME_VESSEL.BARGE = Name('Barge')
