@@ -109,7 +109,7 @@ class XView2(Database):
             pos = filepath.find('/') + 1
             mid = filepath[:pos]
             end = filepath[pos:]
-            json_file = path + mid + 'labels' + end[10:-16] + time + 'disaster.json'
+            json_file = path + mid + 'labels' + end[6:-16] + time + 'disaster.json'
             with open(json_file) as ifs:
                 json_data = json.load(ifs)
             ifs.close()
