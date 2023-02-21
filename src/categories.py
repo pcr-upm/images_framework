@@ -14,6 +14,7 @@ class Category:
     Category label.
     """
     BACKGROUND = Name('Background')
+    FACE = Name('Face')
     # XView
     FIXED_WING_AIRCRAFT = Name('Fixed wing aircraft')
     FIXED_WING_AIRCRAFT.SMALL_AIRCRAFT = Name('Small aircraft')

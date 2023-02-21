@@ -17,7 +17,7 @@ class Recognition(Component):
     Represent recognition instances in the composition.
     """
     def __init__(self):
-        super().__init__(3)
+        super().__init__(4)
         self.database = None
 
     def parse_options(self, params):

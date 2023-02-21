@@ -17,6 +17,27 @@ class GenericCategory:
         self.score = score
 
 
+class FaceAttribute:
+    """
+    Face attribute data.
+    """
+    def __init__(self, label, value, confidence=-1):
+        self.label = label
+        self.value = value
+        self.confidence = confidence
+
+
+class FaceLandmark:
+    """
+    Face landmark data.
+    """
+    def __init__(self, label, pos, visible, confidence=-1):
+        self.label = label
+        self.pos = pos  # (pt_x, pt_y)
+        self.visible = visible
+        self.confidence = confidence
+
+
 class GenericObject:
     """
     Generic object data.
@@ -31,6 +52,30 @@ class GenericObject:
     def add_category(self, category: GenericCategory):
         self.categories.append(category)
 
+    def clear(self):
+        self.categories.clear()
+
+
+class FaceObject(GenericObject):
+    """
+    Face object inherits from the generic object class.
+    """
+    def __init__(self):
+        super().__init__()
+        self.headpose = np.array([-1, -1, -1])  # np.matrix([[-1, -1, -1], [-1, -1, -1], [-1, -1, -1]])
+        self.attributes = list([])
+        self.landmarks = list([])
+
+    def add_attribute(self, att: FaceAttribute):
+        self.attributes.append(att)
+
+    def add_landmark(self, lnd: FaceLandmark):
+        self.landmarks.append(lnd)
+
+    def clear(self):
+        self.attributes.clear()
+        self.landmarks.clear()
+
 
 class GenericImage:
     """
@@ -44,6 +89,9 @@ class GenericImage:
 
     def add_object(self, obj: GenericObject):
         self.objects.append(obj)
+
+    def clear(self):
+        self.objects.clear()
 
 
 class AerialImage(GenericImage):

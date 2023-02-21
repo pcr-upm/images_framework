@@ -13,3 +13,6 @@
 [submodule "recognition/resnet15_recognition"]
 	path = recognition/resnet15_recognition
 	url = git@github.com:bobetocalo/resnet15_recognition.git
+[submodule "alignment/ciarp17_headpose"]
+	path = alignment/ciarp17_headpose
+	url = git@github.com:bobetocalo/ciarp17_headpose.git

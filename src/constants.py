@@ -22,6 +22,7 @@ class Parts(Enum):
     """
     DETECTION = 'detection'
     SEGMENTATION = 'segmentation'
+    ALIGNMENT = 'alignment'
     RECOGNITION = 'recognition'
     ALL = 'all'
 
@@ -42,6 +43,14 @@ class Segmentators(Enum):
     """
     UNET15_SEGMENTATION = 'unet15_segmentation'
     OCR20_SEGMENTATION = 'ocr20_segmentation'
+
+
+@unique
+class Aligners(Enum):
+    """
+    Different object alignment algorithms.
+    """
+    CIARP17_HEADPOSE = 'ciarp17_headpose'
 
 
 @unique
