@@ -8,6 +8,7 @@ import cv2
 import math
 import numpy as np
 from .component import Component
+from .detection import Detection
 from .datasets import Database
 
 
@@ -42,11 +43,8 @@ class Alignment(Component):
         pass
 
     def euler_to_rotation_matrix(self, headpose):
-        # http://euclideanspace.com/maths/geometry/rotations/conversions/eulerToMatrix/index.htm
-        # Change coordinates system
-        euler = np.array([-(headpose[0]-90), -headpose[1], -(headpose[2]+90)])
         # Convert to radians
-        rad = np.deg2rad(euler)
+        rad = np.deg2rad(headpose)
         cy = np.cos(rad[0])
         sy = np.sin(rad[0])
         cp = np.cos(rad[1])
@@ -54,36 +52,33 @@ class Alignment(Component):
         cr = np.cos(rad[2])
         sr = np.sin(rad[2])
         Ry = np.array([[cy, 0.0, sy], [0.0, 1.0, 0.0], [-sy, 0.0, cy]])  # yaw
-        Rp = np.array([[cp, -sp, 0.0], [sp, cp, 0.0], [0.0, 0.0, 1.0]])  # pitch
-        Rr = np.array([[1.0, 0.0, 0.0], [0.0, cr, -sr], [0.0, sr, cr]])  # roll
-        return np.matmul(np.matmul(Ry, Rp), Rr)
+        Rp = np.array([[1.0, 0.0, 0.0], [0.0, cp, -sp], [0.0, sp, cp]])  # pitch
+        Rr = np.array([[cr, -sr, 0.0], [sr, cr, 0.0], [0.0, 0.0, 1.0]])  # roll
+        return np.dot(np.dot(Ry, Rp), Rr)
 
     def show(self, viewer, ann, pred):
         axis = np.eye(3, dtype=float)
-        datasets = [db.__name__ for db in Database.__subclasses__()]
         ann_order = [img_ann.filename for img_ann in ann.images]  # same order among 'ann' and 'pred' images
         for img_pred in pred.images:
-            categories = Database.__subclasses__()[datasets.index(self.database)]().get_categories()
-            colors = Database.__subclasses__()[datasets.index(self.database)]().get_colors()
-            drawing = dict(zip([cat.name for cat in categories], colors))
+            # Detection().show(viewer, ann, pred)
             image_idx = [np.array_equal(img_pred.filename, elem) for elem in ann_order].index(True)
             for objs_idx, objs_val in enumerate([ann.images[image_idx].objects, img_pred.objects]):
                 for obj in objs_val:
-                    values = [drawing[cat.label.name] if cat.label in categories else (0, 255, 0) for cat in obj.categories]
-                    color = np.mean(values, axis=0)
-                    # Draw rectangle
+                    # Draw axis
                     (xmin, ymin, xmax, ymax) = obj.bb
                     contour = np.array([[xmin, ymin], [xmax, ymin], [xmax, ymax], [xmin, ymax]], dtype=np.int32)
                     thickness = int(round(math.log(max(math.e, np.sqrt(cv2.contourArea(contour))), 2)))
-                    viewer.rectangle(img_pred, (int(round(xmin)), int(round(ymin))), (int(round(xmax)), int(round(ymax))), color, thickness)
-                    # Draw axis
+                    # obj.headpose = (90, 0, 0)  # yaw 90
+                    obj_axis = np.dot(axis, self.euler_to_rotation_matrix(-np.array(obj.headpose)))
+                    # rvec, _ = cv2.Rodrigues(self.euler_to_rotation_matrix(-np.array(obj.headpose)))
+                    # tvec, K, dist = (0, 0, 0), np.matrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=float), (0, 0, 0, 0)
+                    # obj_axis, _ = cv2.projectPoints(axis, rvec=rvec, tvec=tvec, cameraMatrix=K, distCoeffs=dist)
+                    obj_axis *= np.sqrt(cv2.contourArea(contour))
                     mu = cv2.moments(contour)
-                    mid = (int(round(mu['m10']/mu['m00'])), int(round(mu['m01']/mu['m00'])))
-                    ann_axis = np.matmul(self.euler_to_rotation_matrix(obj.headpose), axis)
-                    face_axis = ann_axis * 5.0
-                    viewer.line(img_pred, mid, mid+face_axis[:, 0], color, thickness)
-                    viewer.line(img_pred, mid, mid+face_axis[:, 1], color, thickness)
-                    viewer.line(img_pred, mid, mid+face_axis[:, 2], color, thickness)
+                    mid = np.array([int(round(mu['m10']/mu['m00'])), int(round(mu['m01']/mu['m00']))])
+                    viewer.line(img_pred, mid, mid+obj_axis[0, :2].ravel().astype(int), (0,255,0) if objs_idx == 0 else (0,122,0), thickness)
+                    viewer.line(img_pred, mid, mid-obj_axis[1, :2].ravel().astype(int), (0,0,255) if objs_idx == 0 else (0,0,122), thickness)
+                    viewer.line(img_pred, mid, mid+obj_axis[2, :2].ravel().astype(int), (255,0,0) if objs_idx == 0 else (122,0,0), thickness)
 
     def evaluate(self, fs, ann, pred):
         # id_component;filename;num_ann;num_pred[;ann_id[;ann_label]][;pred_id[;pred_label;pred_score]]
