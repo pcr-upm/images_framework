@@ -81,13 +81,26 @@ class Alignment(Component):
                     viewer.line(img_pred, mid, mid+obj_axis[2, :2].ravel().astype(int), (255,0,0) if objs_idx == 0 else (122,0,0), thickness)
 
     def evaluate(self, fs, ann, pred):
-        # id_component;filename;num_ann;num_pred[;ann_id[;ann_label]][;pred_id[;pred_label;pred_score]]
+        # id_component;filename;num_ann;num_pred[;ann_pose][;pred_pose]
         ann_order = [img_ann.filename for img_ann in ann.images]  # same order among 'ann' and 'pred' images
         for img_pred in pred.images:
             image_idx = [np.array_equal(img_pred.filename, elem) for elem in ann_order].index(True)
-            fs.write(str(self.get_component_class()) + ';' + ann.images[image_idx].filename + ';' + ann.headpose + ';' + pred.headpose)
+            fs.write(str(self.get_component_class()) + ';' + ann.images[image_idx].filename + ';' + str(len(ann.images[image_idx].objects)) + ';' + str(len(img_pred.objects)))
+            for objs_idx, objs_val in enumerate([ann.images[image_idx].objects, img_pred.objects]):
+                for obj in objs_val:
+                    fs.write(';' + str(obj.id) + ';' + ';'.join(map(str, obj.headpose)))
             fs.write('\n')
 
     def save(self, dirname, pred):
-        datasets = [db.__name__ for db in Database.__subclasses__()]
-        categories = Database.__subclasses__()[datasets.index(self.database)]().get_categories()
+        import os
+        import json
+        for img_idx, img_pred in enumerate(pred.images):
+            # Create a blank json that matched the labeler provided jsons with default values
+            output_json = dict({'images': [], 'annotations': []})
+            output_json['images'].append(dict({'id': img_idx, 'file_name': os.path.basename(img_pred.filename), 'width': int(img_pred.tile[2]-img_pred.tile[0]), 'height': int(img_pred.tile[3]-img_pred.tile[1]), 'date_captured': img_pred.timestamp}))
+            for obj in img_pred.objects:
+                output_json['annotations'].append(dict({'id': str(obj.id), 'image_id': img_idx, 'bbox': list(map(float, [obj.bb[0], obj.bb[1], obj.bb[2]-obj.bb[0], obj.bb[3]-obj.bb[1]])), 'pose': list(map(float, obj.headpose)), 'iscrowd': int(len(img_pred.objects) > 1)}))
+            # Save COCO annotation file
+            root, extension = os.path.splitext(img_pred.filename)
+            with open(dirname + os.path.basename(root) + '.json', 'w') as ofs:
+                json.dump(output_json, ofs)

@@ -53,7 +53,7 @@ class Viewer:
             mask = np.zeros((img.shape[0], img.shape[1]), np.uint8)
             cv2.circle(mask, pt, radius, 255, thickness)
             idx = (mask == 255)
-            self._geoimages[keygen(image)].img[idx] = np.array(0.25*img[idx]+0.75*np.array(color), np.uint8)
+            self._geoimages[keygen(image)].img[idx] = np.array(0.75*img[idx]+0.25*np.array(color), np.uint8)
 
     def line(self, image, pt1, pt2, color, thickness=-1):
         img = self.get_image(image)
@@ -63,7 +63,7 @@ class Viewer:
             mask = np.zeros((img.shape[0], img.shape[1]), np.uint8)
             cv2.line(mask, pt1, pt2, 255, thickness)
             idx = (mask == 255)
-            self._geoimages[keygen(image)].img[idx] = np.array(0.25*img[idx]+0.75*np.array(color), np.uint8)
+            self._geoimages[keygen(image)].img[idx] = np.array(0.75*img[idx]+0.25*np.array(color), np.uint8)
 
     def rectangle(self, image, pt1, pt2, color, thickness=-1):
         img = self.get_image(image)
@@ -73,7 +73,7 @@ class Viewer:
             mask = np.zeros((img.shape[0], img.shape[1]), np.uint8)
             cv2.rectangle(mask, pt1, pt2, 255, thickness)
             idx = (mask == 255)
-            self._geoimages[keygen(image)].img[idx] = np.array(0.25*img[idx]+0.75*np.array(color), np.uint8)
+            self._geoimages[keygen(image)].img[idx] = np.array(0.75*img[idx]+0.25*np.array(color), np.uint8)
 
     def ellipse(self, image, major_axis_length, minor_axis_length, angle, center, color, thickness=-1):
         pts = list([])
@@ -93,7 +93,7 @@ class Viewer:
             mask = np.zeros((img.shape[0], img.shape[1]), np.uint8)
             cv2.fillPoly(mask, pts, 255)
             idx = (mask == 255)
-            self._geoimages[keygen(image)].img[idx] = np.array(0.25*img[idx]+0.75*np.array(color), np.uint8)
+            self._geoimages[keygen(image)].img[idx] = np.array(0.75*img[idx]+0.25*np.array(color), np.uint8)
 
     def polygon(self, image, pts, color, thickness=-1):
         img = self.get_image(image)
@@ -103,7 +103,7 @@ class Viewer:
             mask = np.zeros((img.shape[0], img.shape[1]), np.uint8)
             cv2.fillPoly(mask, pts, 255)
             idx = (mask == 255)
-            self._geoimages[keygen(image)].img[idx] = np.array(0.25*img[idx]+0.75*np.array(color), np.uint8)
+            self._geoimages[keygen(image)].img[idx] = np.array(0.75*img[idx]+0.25*np.array(color), np.uint8)
 
     def text(self, image, text, pt, scale, color):
         cv2.putText(self.get_image(image), text, pt, cv2.FONT_HERSHEY_SIMPLEX, scale, color)

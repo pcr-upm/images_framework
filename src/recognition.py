@@ -5,10 +5,10 @@ __email__ = 'roberto.valle@upm.es'
 
 import abc
 import cv2
-import math
 import itertools
 import numpy as np
 from .component import Component
+from .detection import Detection
 from .datasets import Database
 
 
@@ -46,6 +46,7 @@ class Recognition(Component):
         datasets = [db.__name__ for db in Database.__subclasses__()]
         ann_order = [img_ann.filename for img_ann in ann.images]  # same order among 'ann' and 'pred' images
         for img_pred in pred.images:
+            Detection().show(viewer, ann, pred)
             categories = Database.__subclasses__()[datasets.index(self.database)]().get_categories()
             colors = Database.__subclasses__()[datasets.index(self.database)]().get_colors()
             drawing = dict(zip([cat.name for cat in categories], colors))
@@ -54,12 +55,8 @@ class Recognition(Component):
                 for obj in objs_val:
                     values = [drawing[cat.label.name] if cat.label in categories else (0, 255, 0) for cat in obj.categories]
                     color = np.mean(values, axis=0)
-                    # Draw rectangle
-                    (xmin, ymin, xmax, ymax) = obj.bb
-                    contour = np.array([[xmin, ymin], [xmax, ymin], [xmax, ymax], [xmin, ymax]], dtype=np.int32)
-                    thickness = int(round(math.log(max(math.e, np.sqrt(cv2.contourArea(contour))), 2)))
-                    viewer.rectangle(img_pred, (int(round(xmin)), int(round(ymin))), (int(round(xmax)), int(round(ymax))), color, thickness)
                     # Draw text
+                    (xmin, ymin, xmax, ymax) = obj.bb
                     num_categories = len(obj.categories)
                     for label_idx, label_val in enumerate(obj.categories):
                         text = cv2.getTextSize(label_val.label.name, cv2.FONT_HERSHEY_SIMPLEX, 0.3, 1)[0]
