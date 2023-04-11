@@ -32,6 +32,7 @@ class Detectors(Enum):
     """
     Different object detectors algorithms.
     """
+    SSD16_DETECTION = 'ssd16_detection'
     RETINANET17_DETECTION = 'retinanet17_detection'
     SCRDET19_DETECTION = 'scrdet19_detection'
 

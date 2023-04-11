@@ -1,3 +1,6 @@
+[submodule "detection/ssd16_detection"]
+	path = detection/ssd16_detection
+	url = git@github.com:bobetocalo/ssd16_detection.git
 [submodule "detection/retinanet17_detection"]
 	path = detection/retinanet17_detection
 	url = git@github.com:bobetocalo/retinanet17_detection.git
