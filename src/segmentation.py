@@ -129,6 +129,7 @@ class Segmentation(Component):
         import json
         datasets = [db.__name__ for db in Database.__subclasses__()]
         categories = Database.__subclasses__()[datasets.index(self.database)]().get_categories()
+        names = [cat.name for cat in categories]
         for img_pred in pred.images:
             # Create a blank json that matched the labeler provided jsons with default values
             output_json = dict({'images': [], 'annotations': [], 'categories': []})
@@ -145,7 +146,7 @@ class Segmentation(Component):
                     continue
                 tl = [np.min([pt[:, dim] for pt in tls]) for dim in [0, 1]]
                 br = [np.max([pt[:, dim] for pt in brs]) for dim in [0, 1]]
-                output_json['annotations'].append(dict({'id': idx+1, 'image_id': 0, 'category_id': int(categories.index(obj.categories[-1])+1), 'segmentation': multipolygon, 'area': float(np.sum(areas)), 'bbox': list(map(int, [tl[0], tl[1], br[0]-tl[0], br[1]-tl[1]])), 'iscrowd': int(len(img_pred.objects) > 1)}))
+                output_json['annotations'].append(dict({'id': idx+1, 'image_id': 0, 'category_id': int(names.index(obj.categories[-1].label.name)+1), 'segmentation': multipolygon, 'area': float(np.sum(areas)), 'bbox': list(map(int, [tl[0], tl[1], br[0]-tl[0], br[1]-tl[1]])), 'iscrowd': int(len(img_pred.objects) > 1)}))
             for idx, label in enumerate(categories):
                 output_json['categories'].append(dict({'id': idx+1, 'name': label.name, 'supercategory': ''}))
             # Save COCO annotation file
