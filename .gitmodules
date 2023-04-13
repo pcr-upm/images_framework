@@ -19,3 +19,6 @@
 [submodule "alignment/ciarp17_headpose"]
 	path = alignment/ciarp17_headpose
 	url = git@github.com:bobetocalo/ciarp17_headpose.git
+[submodule "alignment/opal23_headpose"]
+	path = alignment/opal23_headpose
+	url = git@github.com:bobetocalo/opal23_headpose.git
