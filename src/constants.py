@@ -53,6 +53,7 @@ class Aligners(Enum):
     """
     CIARP17_HEADPOSE = 'ciarp17_headpose'
     OPAL23_HEADPOSE = 'opal23_headpose'
+    KAZEMI14_LANDMARKS = 'kazemi14_landmarks'
 
 
 @unique

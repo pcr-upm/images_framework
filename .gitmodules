@@ -22,3 +22,6 @@
 [submodule "alignment/opal23_headpose"]
 	path = alignment/opal23_headpose
 	url = git@github.com:bobetocalo/opal23_headpose.git
+[submodule "alignment/kazemi14_landmarks"]
+	path = alignment/kazemi14_landmarks
+	url = git@github.com:bobetocalo/kazemi14_landmarks.git
