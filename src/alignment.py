@@ -75,10 +75,10 @@ class Alignment(Component):
                     # obj_axis, _ = cv2.projectPoints(axis, rvec=rvec, tvec=tvec, cameraMatrix=K, distCoeffs=dist)
                     obj_axis *= np.sqrt(cv2.contourArea(contour))
                     mu = cv2.moments(contour)
-                    mid = np.array([int(round(mu['m10']/mu['m00'])), int(round(mu['m01']/mu['m00']))])
-                    viewer.line(img_pred, mid, mid+obj_axis[0, :2].ravel().astype(int), (0,255,0) if objs_idx == 0 else (0,122,0), thickness)
-                    viewer.line(img_pred, mid, mid-obj_axis[1, :2].ravel().astype(int), (0,0,255) if objs_idx == 0 else (0,0,122), thickness)
-                    viewer.line(img_pred, mid, mid+obj_axis[2, :2].ravel().astype(int), (255,0,0) if objs_idx == 0 else (122,0,0), thickness)
+                    mid = tuple([int(round(mu['m10']/mu['m00'])), int(round(mu['m01']/mu['m00']))])
+                    viewer.line(img_pred, mid, tuple(mid+obj_axis[0, :2].ravel().astype(int)), (0,255,0) if objs_idx == 0 else (0,122,0), thickness)
+                    viewer.line(img_pred, mid, tuple(mid-obj_axis[1, :2].ravel().astype(int)), (0,0,255) if objs_idx == 0 else (0,0,122), thickness)
+                    viewer.line(img_pred, mid, tuple(mid+obj_axis[2, :2].ravel().astype(int)), (255,0,0) if objs_idx == 0 else (122,0,0), thickness)
                     # Draw landmarks with a black border
                     for lnd in obj.landmarks:
                         color = ((0,122,255) if lnd.visible else (0,0,255)) if objs_idx == 0 else ((0,255,0) if lnd.visible else (255,0,0))

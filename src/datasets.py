@@ -83,6 +83,30 @@ class AFLW(Database):
         return seq
 
 
+class Panoptic(Database):
+    def __init__(self):
+        super().__init__()
+        self._names = ['panoptic']
+        self._categories = [Oi.FACE]
+        self._colors = [(0, 255, 0)]
+
+    def load_filename(self, path, db, line):
+        from PIL import Image
+        from .annotations import FaceObject
+        seq = GenericGroup()
+        parts = line.strip().split(';')
+        image = GenericImage(path + parts[0])
+        width, height = Image.open(image.filename).size
+        image.tile = np.array([0, 0, width, height])
+        obj = FaceObject()
+        obj.bb = (int(parts[1]), int(parts[2]), int(parts[1])+int(parts[3]), int(parts[2])+int(parts[4]))
+        obj.add_category(GenericCategory(Oi.FACE))
+        obj.headpose = (float(parts[5]), float(parts[6]), float(parts[7]))
+        image.add_object(obj)
+        seq.add_image(image)
+        return seq
+
+
 class XView(Database):
     def __init__(self):
         super().__init__()
