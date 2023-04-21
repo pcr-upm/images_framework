@@ -25,3 +25,6 @@
 [submodule "alignment/kazemi14_landmarks"]
 	path = alignment/kazemi14_landmarks
 	url = git@github.com:bobetocalo/kazemi14_landmarks.git
+[submodule "detection/orp22_detection"]
+	path = detection/orp22_detection
+	url = git@github.com:bobetocalo/orp22_detection.git
