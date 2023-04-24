@@ -86,7 +86,7 @@ class Alignment(Component):
                         viewer.circle(img_pred, (int(round(lnd.pos[0])), int(round(lnd.pos[1]))), radius=int(round(thickness*0.5)), color=(0,0,0), thickness=1)
 
     def evaluate(self, fs, ann, pred):
-        # id_component;filename;num_ann;num_pred[;ann_pose;num_ann_landmarks[;ann_label;ann_pos;ann_visible;ann_confidence]][;pred_pose;num_pred_landmarks[;pred_label;pred_pos;pred_visible;pred_confidence]]
+        # id_component;filename;num_ann;num_pred[;ann_bb;ann_pose;num_ann_landmarks[;ann_label;ann_pos;ann_visible;ann_confidence]][;pred_pose;num_pred_landmarks[;pred_label;pred_pos;pred_visible;pred_confidence]]
         ann_order = [img_ann.filename for img_ann in ann.images]  # same order among 'ann' and 'pred' images
         for img_pred in pred.images:
             image_idx = [np.array_equal(img_pred.filename, elem) for elem in ann_order].index(True)
@@ -94,7 +94,7 @@ class Alignment(Component):
             for objs_idx, objs_val in enumerate([ann.images[image_idx].objects, img_pred.objects]):
                 for obj in objs_val:
                     landmarks = map(str, [';'.join(map(str, [lnd.label, ';'.join(map(str, lnd.pos)), lnd.visible, lnd.confidence])) for lnd in obj.landmarks])
-                    fs.write(';' + str(obj.id) + ';' + ';'.join(map(str, obj.headpose)) + ';' + str(len(obj.landmarks)) + ';' + ';'.join(landmarks))
+                    fs.write(';' + str(obj.bb) + ';' + ';'.join(map(str, obj.headpose)) + ';' + str(len(obj.landmarks)) + ';' + ';'.join(landmarks))
             fs.write('\n')
 
     def save(self, dirname, pred):
