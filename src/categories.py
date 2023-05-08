@@ -3,6 +3,25 @@
 __author__ = 'Roberto Valle'
 __email__ = 'roberto.valle@upm.es'
 
+from enum import Enum, unique
+
+
+@unique
+class FaceLandmarkPart(Enum):
+    """
+    Landmark part label.
+    """
+    LEYEBROW = 'leyebrow'
+    REYEBROW = 'reyebrow'
+    LEYE = 'leye'
+    REYE = 'reye'
+    NOSE = 'nose'
+    TMOUTH = 'tmouth'
+    BMOUTH = 'bmouth'
+    LEAR = 'lear'
+    REAR = 'rear'
+    CHIN = 'chin'
+
 
 class Name:
     def __init__(self, name):

@@ -80,10 +80,11 @@ class Alignment(Component):
                     viewer.line(img_pred, mid, tuple(mid-obj_axis[1, :2].ravel().astype(int)), (0,0,255) if objs_idx == 0 else (0,0,122), thickness)
                     viewer.line(img_pred, mid, tuple(mid+obj_axis[2, :2].ravel().astype(int)), (255,0,0) if objs_idx == 0 else (122,0,0), thickness)
                     # Draw landmarks with a black border
-                    for lnd in obj.landmarks:
-                        color = ((0,122,255) if lnd.visible else (0,0,255)) if objs_idx == 0 else ((0,255,0) if lnd.visible else (255,0,0))
-                        viewer.circle(img_pred, (int(round(lnd.pos[0])), int(round(lnd.pos[1]))), radius=0, color=color, thickness=thickness-1)
-                        viewer.circle(img_pred, (int(round(lnd.pos[0])), int(round(lnd.pos[1]))), radius=int(round(thickness*0.5)), color=(0,0,0), thickness=1)
+                    for lnds in obj.landmarks.values():
+                        for lnd in lnds:
+                            color = ((0,122,255) if lnd.visible else (0,0,255)) if objs_idx == 0 else ((0,255,0) if lnd.visible else (255,0,0))
+                            viewer.circle(img_pred, (int(round(lnd.pos[0])), int(round(lnd.pos[1]))), radius=0, color=color, thickness=thickness-1)
+                            viewer.circle(img_pred, (int(round(lnd.pos[0])), int(round(lnd.pos[1]))), radius=int(round(thickness*0.5)), color=(0,0,0), thickness=1)
 
     def evaluate(self, fs, ann, pred):
         # id_component;filename;num_ann;num_pred[;ann_id;ann_bb;ann_pose;num_ann_landmarks[;ann_label;ann_pos;ann_visible;ann_confidence]][;pred_id;pred_bb;pred_pose;num_pred_landmarks[;pred_label;pred_pos;pred_visible;pred_confidence]]
@@ -93,8 +94,8 @@ class Alignment(Component):
             fs.write(str(self.get_component_class()) + ';' + ann.images[image_idx].filename + ';' + str(len(ann.images[image_idx].objects)) + ';' + str(len(img_pred.objects)))
             for objs_idx, objs_val in enumerate([ann.images[image_idx].objects, img_pred.objects]):
                 for obj in objs_val:
-                    landmarks = map(str, [';'.join(map(str, [lnd.label, ';'.join(map(str, lnd.pos)), lnd.visible, lnd.confidence])) for lnd in obj.landmarks])
-                    fs.write(';' + str(obj.id) + ';' + str(obj.bb) + ';' + str(obj.headpose) + ';' + str(len(obj.landmarks)) + ';' + ';'.join(landmarks))
+                    landmarks = map(str, [';'.join(map(str, [lnd.label, ';'.join(map(str, lnd.pos)), lnd.visible, lnd.confidence])) for lnds in obj.landmarks.values() for lnd in lnds])
+                    fs.write(';' + str(obj.id) + ';' + str(obj.bb) + ';' + str(obj.headpose) + ';' + str(len([lnd for lnds in obj.landmarks.values() for lnd in lnds])) + ';' + ';'.join(landmarks))
             fs.write('\n')
 
     def save(self, dirname, pred):
@@ -105,7 +106,7 @@ class Alignment(Component):
             output_json = dict({'images': [], 'annotations': []})
             output_json['images'].append(dict({'id': img_idx, 'file_name': os.path.basename(img_pred.filename), 'width': int(img_pred.tile[2]-img_pred.tile[0]), 'height': int(img_pred.tile[3]-img_pred.tile[1]), 'date_captured': img_pred.timestamp}))
             for obj in img_pred.objects:
-                landmarks = list(map(dict, [dict({'label': str(lnd.label), 'pos': list(map(float, lnd.pos)), 'visible': bool(lnd.visible), 'confidence': float(lnd.confidence)}) for lnd in obj.landmarks]))
+                landmarks = list(map(dict, [dict({'label': str(lnd.label), 'pos': list(map(float, lnd.pos)), 'visible': bool(lnd.visible), 'confidence': float(lnd.confidence)}) for lnds in obj.landmarks.values() for lnd in lnds]))
                 output_json['annotations'].append(dict({'id': str(obj.id), 'image_id': img_idx, 'bbox': list(map(float, [obj.bb[0], obj.bb[1], obj.bb[2]-obj.bb[0], obj.bb[3]-obj.bb[1]])), 'pose': list(map(float, obj.headpose)), 'landmarks': landmarks, 'iscrowd': int(len(img_pred.objects) > 1)}))
             # Save COCO annotation file
             root, extension = os.path.splitext(img_pred.filename)

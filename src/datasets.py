@@ -6,7 +6,7 @@ __email__ = 'roberto.valle@upm.es'
 import abc
 import numpy as np
 from .annotations import GenericGroup, GenericImage, GenericObject, GenericCategory
-from .categories import Name, Category as Oi
+from .categories import Name, FaceLandmarkPart as Lp, Category as Oi
 
 
 def get_palette(n):
@@ -56,6 +56,7 @@ class AFLW(Database):
     def __init__(self):
         super().__init__()
         self._names = ['aflw']
+        self._mapping = {Lp.LEYEBROW: (1, 2, 3), Lp.REYEBROW: (4, 5, 6), Lp.LEYE: (7, 101, 8), Lp.REYE: (11, 102, 12), Lp.NOSE: (16, 17, 18), Lp.TMOUTH: (20, 103, 21), Lp.LEAR: (15,), Lp.REAR: (19,), Lp.CHIN: (24,)}
         self._categories = [Oi.FACE]
         self._colors = [(0, 255, 0)]
 
@@ -74,10 +75,12 @@ class AFLW(Database):
         obj.add_attribute(FaceAttribute('gender', 'male' if parts[8] == 'm' else 'female'))
         obj.add_attribute(FaceAttribute('glasses', bool(parts[9])))
         num_landmarks = int(parts[10])
+        indices = [1, 2, 3, 4, 5, 6, 7, 101, 8, 11, 102, 12, 15, 16, 17, 18, 19, 20, 103, 21, 24]
         for idx in range(0, num_landmarks):
-            label = int(parts[(3*idx)+11])
+            label = indices[int(parts[(3*idx)+11])-1]
+            lp = list(self._mapping.keys())[next((ids for ids, xs in enumerate(self._mapping.values()) for x in xs if x == label), None)]
             pos = (float(parts[(3*idx)+12]), float(parts[(3*idx)+13]))
-            obj.add_landmark(FaceLandmark(label, pos, True))
+            obj.add_landmark(FaceLandmark(label, lp, pos, True))
         image.add_object(obj)
         seq.add_image(image)
         return seq
