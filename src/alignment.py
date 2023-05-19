@@ -57,6 +57,12 @@ class Alignment(Component):
         return np.dot(np.dot(Ry, Rp), Rr)
 
     def show(self, viewer, ann, pred):
+        def pairwise(iterable):
+            import itertools
+            a, b = itertools.tee(iterable)
+            next(b, None)
+            return zip(a, b)
+
         axis = np.eye(3, dtype=float)
         ann_order = [img_ann.filename for img_ann in ann.images]  # same order among 'ann' and 'pred' images
         for img_pred in pred.images:
@@ -77,11 +83,14 @@ class Alignment(Component):
                     mu = cv2.moments(contour)
                     mid = tuple([int(round(mu['m10']/mu['m00'])), int(round(mu['m01']/mu['m00']))])
                     viewer.line(img_pred, mid, tuple(mid+obj_axis[0, :2].ravel().astype(int)), (0,255,0) if objs_idx == 0 else (0,122,0), thickness)
-                    viewer.line(img_pred, mid, tuple(mid-obj_axis[1, :2].ravel().astype(int)), (0,0,255) if objs_idx == 0 else (0,0,122), thickness)
+                    viewer.line(img_pred, mid, tuple(mid+obj_axis[1, :2].ravel().astype(int)), (0,0,255) if objs_idx == 0 else (0,0,122), thickness)
                     viewer.line(img_pred, mid, tuple(mid+obj_axis[2, :2].ravel().astype(int)), (255,0,0) if objs_idx == 0 else (122,0,0), thickness)
                     # Draw landmarks with a black border
-                    for lnds in obj.landmarks.values():
-                        for lnd in lnds:
+                    for lp in obj.landmarks.values():
+                        for org, dst in pairwise(lp):
+                            color = ((0,122,255) if (org.visible and dst.visible) else (0,0,255)) if objs_idx == 0 else ((0,255,0) if (org.visible and dst.visible) else (255,0,0))
+                            viewer.line(img_pred, (int(round(org.pos[0])), int(round(org.pos[1]))), (int(round(dst.pos[0])), int(round(dst.pos[1]))), color, int(round(thickness*0.5)))
+                        for lnd in lp:
                             color = ((0,122,255) if lnd.visible else (0,0,255)) if objs_idx == 0 else ((0,255,0) if lnd.visible else (255,0,0))
                             viewer.circle(img_pred, (int(round(lnd.pos[0])), int(round(lnd.pos[1]))), radius=0, color=color, thickness=thickness-1)
                             viewer.circle(img_pred, (int(round(lnd.pos[0])), int(round(lnd.pos[1]))), radius=int(round(thickness*0.5)), color=(0,0,0), thickness=1)

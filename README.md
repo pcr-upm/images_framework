@@ -1,10 +1,10 @@
 # Images framework
 
 #### Requisites
-- Python 3.6.13
-- Opencv 4.2.0.32
-- Rasterio 1.2.10
-- Pillow 8.4.0
+- Python (>= 3.6)
+- Opencv (>= 4.2.0.32)
+- Rasterio (>= 1.2.10)
+- Pillow (>= 8.4.0)
 - Pascal-voc-writer (save detection in xml file)
 - Gdal 2.4.4 (save detection in shapefile)
 
