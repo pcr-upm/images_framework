@@ -101,13 +101,19 @@ class Alignment(Component):
     def save(self, dirname, pred):
         import os
         import json
+        datasets = [subclass().get_names() for subclass in Database.__subclasses__()]
+        idx = [datasets.index(subset) for subset in datasets if self.database.lower() in subset]
+        if len(idx) != 1:
+            raise ValueError('Database does not exist')
         for img_idx, img_pred in enumerate(pred.images):
             # Create a blank json that matched the labeler provided jsons with default values
-            output_json = dict({'images': [], 'annotations': []})
+            output_json = dict({'images': [], 'annotations': [], 'mapping': []})
             output_json['images'].append(dict({'id': img_idx, 'file_name': os.path.basename(img_pred.filename), 'width': int(img_pred.tile[2]-img_pred.tile[0]), 'height': int(img_pred.tile[3]-img_pred.tile[1]), 'date_captured': img_pred.timestamp}))
             for obj in img_pred.objects:
-                landmarks = list(map(dict, [dict({'label': str(lnd.label), 'pos': list(map(float, lnd.pos)), 'visible': bool(lnd.visible), 'confidence': float(lnd.confidence)}) for lnds in obj.landmarks.values() for lnd in lnds]))
+                landmarks = list(map(dict, [dict({'label': int(lnd.label), 'pos': list(map(float, lnd.pos)), 'visible': bool(lnd.visible), 'confidence': float(lnd.confidence)}) for lnds in obj.landmarks.values() for lnd in lnds]))
                 output_json['annotations'].append(dict({'id': str(obj.id), 'image_id': img_idx, 'bbox': list(map(float, [obj.bb[0], obj.bb[1], obj.bb[2]-obj.bb[0], obj.bb[3]-obj.bb[1]])), 'pose': list(map(float, obj.headpose)), 'landmarks': landmarks, 'iscrowd': int(len(img_pred.objects) > 1)}))
+            mapping = Database.__subclasses__()[idx[0]]().get_mapping()
+            output_json['mapping'].append(dict({str(lp.value): list(map(int, mapping[lp])) for lp in mapping}))
             # Save COCO annotation file
             root, extension = os.path.splitext(img_pred.filename)
             with open(dirname + os.path.basename(root) + '.json', 'w') as ofs:

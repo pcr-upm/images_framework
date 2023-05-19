@@ -35,6 +35,7 @@ class Database(abc.ABC):
     """
     def __init__(self):
         self._names = ''
+        self._mapping = {}
         self._categories = []
         self._colors = []
 
@@ -44,6 +45,9 @@ class Database(abc.ABC):
 
     def get_names(self):
         return self._names
+
+    def get_mapping(self):
+        return self._mapping
 
     def get_categories(self):
         return self._categories
