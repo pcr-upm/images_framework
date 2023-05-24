@@ -110,7 +110,7 @@ class COFW(Database):
             label = indices[idx]
             lp = list(self._mapping.keys())[next((ids for ids, xs in enumerate(self._mapping.values()) for x in xs if x == label), None)]
             pos = (float(parts[(3*idx)+5]), float(parts[(3*idx)+6]))
-            vis = bool(parts[(3*idx)+6])
+            vis = float(parts[(3*idx)+7]) == 0.0
             obj.add_landmark(FaceLandmark(label, lp, pos, vis))
         image.add_object(obj)
         seq.add_image(image)
