@@ -104,7 +104,7 @@ class Alignment(Component):
             for objs_idx, objs_val in enumerate([ann.images[image_idx].objects, img_pred.objects]):
                 for obj in objs_val:
                     landmarks = map(str, [';'.join(map(str, [lnd.label, ';'.join(map(str, lnd.pos)), lnd.visible, lnd.confidence])) for lnds in obj.landmarks.values() for lnd in lnds])
-                    fs.write(';' + str(obj.id) + ';' + str(obj.bb) + ';' + str(obj.headpose) + ';' + str(len([lnd for lnds in obj.landmarks.values() for lnd in lnds])) + ';' + ';'.join(landmarks))
+                    fs.write(';' + str(obj.id) + ';' + str(obj.bb) + ';' + str(obj.headpose.tolist()) + ';' + str(len([lnd for lnds in obj.landmarks.values() for lnd in lnds])) + ';' + ';'.join(landmarks))
             fs.write('\n')
 
     def save(self, dirname, pred):

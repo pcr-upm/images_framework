@@ -56,6 +56,67 @@ class Database(abc.ABC):
         return self._colors
 
 
+class D300W(Database):
+    def __init__(self):
+        super().__init__()
+        self._names = ['300w']
+        self._mapping = {Lp.LEYEBROW: (1, 119, 2, 121, 3), Lp.REYEBROW: (4, 124, 5, 126, 6), Lp.LEYE: (7, 138, 139, 8, 141, 142), Lp.REYE: (11, 144, 145, 12, 147, 148), Lp.NOSE: (128, 129, 130, 17, 16, 133, 134, 135, 18), Lp.TMOUTH: (20, 150, 151, 22, 153, 154, 21, 165, 164, 163, 162, 161), Lp.BMOUTH: (156, 157, 23, 159, 160, 168, 167, 166), Lp.LEAR: (101, 102, 103, 104, 105, 106), Lp.REAR: (112, 113, 114, 115, 116, 117), Lp.CHIN: (107, 108, 24, 110, 111)}
+        self._categories = [Oi.FACE]
+        self._colors = [(0, 255, 0)]
+
+    def load_filename(self, path, db, line):
+        from PIL import Image
+        from .annotations import FaceObject, FaceLandmark
+        seq = GenericGroup()
+        parts = line.strip().split(';')
+        image = GenericImage(path + parts[0])
+        width, height = Image.open(image.filename).size
+        image.tile = np.array([0, 0, width, height])
+        obj = FaceObject()
+        obj.bb = (int(parts[1]), int(parts[2]), int(parts[1])+int(parts[3]), int(parts[2])+int(parts[4]))
+        obj.add_category(GenericCategory(Oi.FACE))
+        indices = [101, 102, 103, 104, 105, 106, 107, 108, 24, 110, 111, 112, 113, 114, 115, 116, 117, 1, 119, 2, 121, 3, 4, 124, 5, 126, 6, 128, 129, 130, 17, 16, 133, 134, 135, 18, 7, 138, 139, 8, 141, 142, 11, 144, 145, 12, 147, 148, 20, 150, 151, 22, 153, 154, 21, 156, 157, 23, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168]
+        for idx in range(0, len(indices)):
+            label = indices[idx]
+            lp = list(self._mapping.keys())[next((ids for ids, xs in enumerate(self._mapping.values()) for x in xs if x == label), None)]
+            pos = (float(parts[(2*idx)+5]), float(parts[(2*idx)+6]))
+            obj.add_landmark(FaceLandmark(label, lp, pos, True))
+        image.add_object(obj)
+        seq.add_image(image)
+        return seq
+
+
+class COFW(Database):
+    def __init__(self):
+        super().__init__()
+        self._names = ['cofw']
+        self._mapping = {Lp.LEYEBROW: (1, 101, 3, 102), Lp.REYEBROW: (4, 103, 6, 104), Lp.LEYE: (7, 9, 8, 10, 105), Lp.REYE: (11, 13, 12, 14, 106), Lp.NOSE: (16, 17, 18, 107), Lp.TMOUTH: (20, 22, 21, 108), Lp.BMOUTH: (109, 23), Lp.CHIN: (24,)}
+        self._categories = [Oi.FACE]
+        self._colors = [(0, 255, 0)]
+
+    def load_filename(self, path, db, line):
+        from PIL import Image
+        from .annotations import FaceObject, FaceLandmark
+        seq = GenericGroup()
+        parts = line.strip().split(';')
+        image = GenericImage(path + parts[0])
+        width, height = Image.open(image.filename).size
+        image.tile = np.array([0, 0, width, height])
+        obj = FaceObject()
+        obj.bb = (float(parts[1]), float(parts[2]), float(parts[1])+float(parts[3]), float(parts[2])+float(parts[4]))
+        obj.add_category(GenericCategory(Oi.FACE))
+        indices = [1, 6, 3, 4, 101, 102, 103, 104, 7, 12, 8, 11, 9, 10, 13, 14, 105, 106, 16, 18, 17, 107, 20, 21, 22, 108, 109, 23, 24]
+        for idx in range(0, len(indices)):
+            label = indices[idx]
+            lp = list(self._mapping.keys())[next((ids for ids, xs in enumerate(self._mapping.values()) for x in xs if x == label), None)]
+            pos = (float(parts[(3*idx)+5]), float(parts[(3*idx)+6]))
+            vis = bool(parts[(3*idx)+6])
+            obj.add_landmark(FaceLandmark(label, lp, pos, vis))
+        image.add_object(obj)
+        seq.add_image(image)
+        return seq
+
+
 class AFLW(Database):
     def __init__(self):
         super().__init__()
@@ -68,14 +129,14 @@ class AFLW(Database):
         from PIL import Image
         from .annotations import FaceObject, FaceAttribute, FaceLandmark
         seq = GenericGroup()
-        parts = line.strip().split(',')
+        parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
         obj = FaceObject()
         obj.bb = (int(parts[1]), int(parts[2]), int(parts[1])+int(parts[3]), int(parts[2])+int(parts[4]))
         obj.add_category(GenericCategory(Oi.FACE))
-        obj.headpose = (float(parts[5]), float(parts[6]), float(parts[7]))
+        obj.headpose = np.array([float(parts[5]), float(parts[6]), float(parts[7])])
         obj.add_attribute(FaceAttribute('gender', 'male' if parts[8] == 'm' else 'female'))
         obj.add_attribute(FaceAttribute('glasses', bool(parts[9])))
         num_landmarks = int(parts[10])
@@ -84,6 +145,36 @@ class AFLW(Database):
             label = indices[int(parts[(3*idx)+11])-1]
             lp = list(self._mapping.keys())[next((ids for ids, xs in enumerate(self._mapping.values()) for x in xs if x == label), None)]
             pos = (float(parts[(3*idx)+12]), float(parts[(3*idx)+13]))
+            obj.add_landmark(FaceLandmark(label, lp, pos, True))
+        image.add_object(obj)
+        seq.add_image(image)
+        return seq
+
+
+class WFLW(Database):
+    def __init__(self):
+        super().__init__()
+        self._names = ['wflw']
+        self._mapping = {Lp.LEYEBROW: (1, 134, 2, 136, 3, 138, 139, 140, 141), Lp.REYEBROW: (6, 147, 148, 149, 150, 4, 143, 5, 145), Lp.LEYE: (7, 161, 9, 163, 8, 165, 10, 167, 196), Lp.REYE: (11, 169, 13, 171, 12, 173, 14, 175, 197), Lp.NOSE: (151, 152, 153, 17, 16, 156, 157, 158, 18), Lp.TMOUTH: (20, 177, 178, 22, 180, 181, 21, 192, 191, 190, 189, 188), Lp.BMOUTH: (187, 186, 23, 184, 183, 193, 194, 195), Lp.LEAR: (100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110), Lp.REAR: (122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132), Lp.CHIN: (111, 112, 113, 114, 115, 24, 117, 118, 119, 120, 121)}
+        self._categories = [Oi.FACE]
+        self._colors = [(0, 255, 0)]
+
+    def load_filename(self, path, db, line):
+        from PIL import Image
+        from .annotations import FaceObject, FaceLandmark
+        seq = GenericGroup()
+        parts = line.strip().split(';')
+        image = GenericImage(path + parts[0])
+        width, height = Image.open(image.filename).size
+        image.tile = np.array([0, 0, width, height])
+        obj = FaceObject()
+        obj.bb = (int(parts[1]), int(parts[2]), int(parts[1])+int(parts[3]), int(parts[2])+int(parts[4]))
+        obj.add_category(GenericCategory(Oi.FACE))
+        indices = [100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 24, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 1, 134, 2, 136, 3, 138, 139, 140, 141, 4, 143, 5, 145, 6, 147, 148, 149, 150, 151, 152, 153, 17, 16, 156, 157, 158, 18, 7, 161, 9, 163, 8, 165, 10, 167, 11, 169, 13, 171, 12, 173, 14, 175, 20, 177, 178, 22, 180, 181, 21, 183, 184, 23, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197]
+        for idx in range(0, len(indices)):
+            label = indices[idx]
+            lp = list(self._mapping.keys())[next((ids for ids, xs in enumerate(self._mapping.values()) for x in xs if x == label), None)]
+            pos = (float(parts[(2*idx)+11]), float(parts[(2*idx)+12]))
             obj.add_landmark(FaceLandmark(label, lp, pos, True))
         image.add_object(obj)
         seq.add_image(image)
