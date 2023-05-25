@@ -56,10 +56,10 @@ class Database(abc.ABC):
         return self._colors
 
 
-class D300W(Database):
+class PTS68(Database):
     def __init__(self):
         super().__init__()
-        self._names = ['300w']
+        self._names = ['300w_public', '300w_private']
         self._mapping = {Lp.LEYEBROW: (1, 119, 2, 121, 3), Lp.REYEBROW: (4, 124, 5, 126, 6), Lp.LEYE: (7, 138, 139, 8, 141, 142), Lp.REYE: (11, 144, 145, 12, 147, 148), Lp.NOSE: (128, 129, 130, 17, 16, 133, 134, 135, 18), Lp.TMOUTH: (20, 150, 151, 22, 153, 154, 21, 165, 164, 163, 162, 161), Lp.BMOUTH: (156, 157, 23, 159, 160, 168, 167, 166), Lp.LEAR: (101, 102, 103, 104, 105, 106), Lp.REAR: (112, 113, 114, 115, 116, 117), Lp.CHIN: (107, 108, 24, 110, 111)}
         self._categories = [Oi.FACE]
         self._colors = [(0, 255, 0)]
@@ -73,7 +73,7 @@ class D300W(Database):
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
         obj = FaceObject()
-        obj.bb = (int(parts[1]), int(parts[2]), int(parts[1])+int(parts[3]), int(parts[2])+int(parts[4]))
+        obj.bb = (float(parts[1]), float(parts[2]), float(parts[1])+float(parts[3]), float(parts[2])+float(parts[4]))
         obj.add_category(GenericCategory(Oi.FACE))
         indices = [101, 102, 103, 104, 105, 106, 107, 108, 24, 110, 111, 112, 113, 114, 115, 116, 117, 1, 119, 2, 121, 3, 4, 124, 5, 126, 6, 128, 129, 130, 17, 16, 133, 134, 135, 18, 7, 138, 139, 8, 141, 142, 11, 144, 145, 12, 147, 148, 20, 150, 151, 22, 153, 154, 21, 156, 157, 23, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168]
         for idx in range(0, len(indices)):

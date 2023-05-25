@@ -22,8 +22,9 @@ class Detection(Component):
 
     def parse_options(self, params):
         import argparse
+        import itertools
         parser = argparse.ArgumentParser(prog='Detection', add_help=False)
-        parser.add_argument('--database', required=True, choices=[db.__name__ for db in Database.__subclasses__()],
+        parser.add_argument('--database', required=True, choices=list(itertools.chain.from_iterable([db().get_names() for db in Database.__subclasses__()])),
                             help='Select database model.')
         parser.add_argument('--shapefile', dest='shapefile', action="store_true",
                             help='Save results as vector data.')
