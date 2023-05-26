@@ -73,7 +73,7 @@ class PTS68(Database):
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
         obj = FaceObject()
-        obj.bb = (float(parts[1]), float(parts[2]), float(parts[1])+float(parts[3]), float(parts[2])+float(parts[4]))
+        obj.bb = (float(parts[1]), float(parts[2]), float(parts[3]), float(parts[4]))
         obj.add_category(GenericCategory(Oi.FACE))
         indices = [101, 102, 103, 104, 105, 106, 107, 108, 24, 110, 111, 112, 113, 114, 115, 116, 117, 1, 119, 2, 121, 3, 4, 124, 5, 126, 6, 128, 129, 130, 17, 16, 133, 134, 135, 18, 7, 138, 139, 8, 141, 142, 11, 144, 145, 12, 147, 148, 20, 150, 151, 22, 153, 154, 21, 156, 157, 23, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168]
         for idx in range(0, len(indices)):
