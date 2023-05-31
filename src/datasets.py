@@ -127,6 +127,7 @@ class AFLW(Database):
 
     def load_filename(self, path, db, line):
         from PIL import Image
+        from scipy.spatial.transform import Rotation
         from .annotations import FaceObject, FaceAttribute, FaceLandmark
         seq = GenericGroup()
         parts = line.strip().split(';')
@@ -136,7 +137,7 @@ class AFLW(Database):
         obj = FaceObject()
         obj.bb = (int(parts[1]), int(parts[2]), int(parts[1])+int(parts[3]), int(parts[2])+int(parts[4]))
         obj.add_category(GenericCategory(Oi.FACE))
-        obj.headpose = np.array([float(parts[5]), float(parts[6]), float(parts[7])])
+        obj.headpose = Rotation.from_euler('ZYX', [float(parts[5]), float(parts[6]), float(parts[7])], degrees=True).as_matrix()
         obj.add_attribute(FaceAttribute('gender', 'male' if parts[8] == 'm' else 'female'))
         obj.add_attribute(FaceAttribute('glasses', bool(parts[9])))
         num_landmarks = int(parts[10])
@@ -181,6 +182,41 @@ class WFLW(Database):
         return seq
 
 
+class AFLW2000(Database):
+    def __init__(self):
+        super().__init__()
+        self._names = ['300wlp', 'aflw2000']
+        self._mapping = {Lp.LEYEBROW: (1, 119, 2, 121, 3), Lp.REYEBROW: (4, 124, 5, 126, 6), Lp.LEYE: (7, 138, 139, 8, 141, 142), Lp.REYE: (11, 144, 145, 12, 147, 148), Lp.NOSE: (128, 129, 130, 17, 16, 133, 134, 135, 18), Lp.TMOUTH: (20, 150, 151, 22, 153, 154, 21, 165, 164, 163, 162, 161), Lp.BMOUTH: (156, 157, 23, 159, 160, 168, 167, 166), Lp.LEAR: (101, 102, 103, 104, 105, 106), Lp.REAR: (112, 113, 114, 115, 116, 117), Lp.CHIN: (107, 108, 24, 110, 111)}
+        self._categories = [Oi.FACE]
+        self._colors = [(0, 255, 0)]
+
+    def load_filename(self, path, db, line):
+        import cv2
+        import itertools
+        from PIL import Image
+        from scipy.spatial.transform import Rotation
+        from .annotations import FaceObject, FaceLandmark
+        seq = GenericGroup()
+        parts = line.strip().split(';')
+        image = GenericImage(path + parts[0])
+        width, height = Image.open(image.filename).size
+        image.tile = np.array([0, 0, width, height])
+        obj = FaceObject()
+        obj.add_category(GenericCategory(Oi.FACE))
+        obj.headpose = Rotation.from_euler('YZX', [float(parts[1]), float(parts[2]), float(parts[3])], degrees=True).as_matrix()
+        indices = [101, 102, 103, 104, 105, 106, 107, 108, 24, 110, 111, 112, 113, 114, 115, 116, 117, 1, 119, 2, 121, 3, 4, 124, 5, 126, 6, 128, 129, 130, 17, 16, 133, 134, 135, 18, 7, 138, 139, 8, 141, 142, 11, 144, 145, 12, 147, 148, 20, 150, 151, 22, 153, 154, 21, 156, 157, 23, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168]
+        for idx in range(0, len(indices)):
+            label = indices[idx]
+            lp = list(self._mapping.keys())[next((ids for ids, xs in enumerate(self._mapping.values()) for x in xs if x == label), None)]
+            pos = (int(round(float(parts[(2*idx)+4]))), int(round(float(parts[(2*idx)+5]))))
+            obj.add_landmark(FaceLandmark(label, lp, pos, True))
+        obj.bb = cv2.boundingRect(np.array([[pt.pos for pt in list(itertools.chain.from_iterable(obj.landmarks.values()))]]))
+        obj.bb = (obj.bb[0], obj.bb[1], obj.bb[0]+obj.bb[2], obj.bb[1]+obj.bb[3])
+        image.add_object(obj)
+        seq.add_image(image)
+        return seq
+
+
 class Panoptic(Database):
     def __init__(self):
         super().__init__()
@@ -190,6 +226,7 @@ class Panoptic(Database):
 
     def load_filename(self, path, db, line):
         from PIL import Image
+        from scipy.spatial.transform import Rotation
         from .annotations import FaceObject
         seq = GenericGroup()
         parts = line.strip().split(';')
@@ -199,7 +236,7 @@ class Panoptic(Database):
         obj = FaceObject()
         obj.bb = (int(parts[1]), int(parts[2]), int(parts[1])+int(parts[3]), int(parts[2])+int(parts[4]))
         obj.add_category(GenericCategory(Oi.FACE))
-        obj.headpose = (float(parts[5]), float(parts[6]), float(parts[7]))
+        obj.headpose = Rotation.from_euler('YZX', [float(parts[5]), float(parts[6]), float(parts[7])], degrees=True).as_matrix()
         image.add_object(obj)
         seq.add_image(image)
         return seq

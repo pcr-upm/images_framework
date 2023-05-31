@@ -43,20 +43,6 @@ class Alignment(Component):
     def process(self, ann, pred):
         pass
 
-    def euler_to_rotation_matrix(self, headpose):
-        # Convert to radians
-        rad = np.deg2rad(headpose)
-        cy = np.cos(rad[0])
-        sy = np.sin(rad[0])
-        cp = np.cos(rad[1])
-        sp = np.sin(rad[1])
-        cr = np.cos(rad[2])
-        sr = np.sin(rad[2])
-        Ry = np.array([[cy, 0.0, sy], [0.0, 1.0, 0.0], [-sy, 0.0, cy]])  # yaw
-        Rp = np.array([[1.0, 0.0, 0.0], [0.0, cp, -sp], [0.0, sp, cp]])  # pitch
-        Rr = np.array([[cr, -sr, 0.0], [sr, cr, 0.0], [0.0, 0.0, 1.0]])  # roll
-        return np.dot(np.dot(Ry, Rp), Rr)
-
     def show(self, viewer, ann, pred):
         def pairwise(iterable):
             import itertools
@@ -64,7 +50,7 @@ class Alignment(Component):
             next(b, None)
             return zip(a, b)
 
-        axis = np.eye(3, dtype=float)
+        axis = np.array([[0, 0, 1], [-1, 0, 0], [0, 1, 0]])  # from object to image coordinate systems
         ann_order = [img_ann.filename for img_ann in ann.images]  # same order among 'ann' and 'pred' images
         for img_pred in pred.images:
             # Detection().show(viewer, ann, pred)
@@ -75,17 +61,13 @@ class Alignment(Component):
                     (xmin, ymin, xmax, ymax) = obj.bb
                     contour = np.array([[xmin, ymin], [xmax, ymin], [xmax, ymax], [xmin, ymax]], dtype=np.int32)
                     thickness = int(round(math.log(max(math.e, np.sqrt(cv2.contourArea(contour))), 2)))
-                    # obj.headpose = (90, 0, 0)  # yaw 90
-                    obj_axis = np.dot(axis, self.euler_to_rotation_matrix(-np.array(obj.headpose)))
-                    # rvec, _ = cv2.Rodrigues(self.euler_to_rotation_matrix(-np.array(obj.headpose)))
-                    # tvec, K, dist = (0, 0, 0), np.matrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=float), (0, 0, 0, 0)
-                    # obj_axis, _ = cv2.projectPoints(axis, rvec=rvec, tvec=tvec, cameraMatrix=K, distCoeffs=dist)
+                    obj_axis = obj.headpose @ axis
                     obj_axis *= np.sqrt(cv2.contourArea(contour))
                     mu = cv2.moments(contour)
                     mid = tuple([int(round(mu['m10']/mu['m00'])), int(round(mu['m01']/mu['m00']))])
-                    viewer.line(img_pred, mid, tuple(mid+obj_axis[0, :2].ravel().astype(int)), (0,255,0) if objs_idx == 0 else (0,122,0), thickness)
-                    viewer.line(img_pred, mid, tuple(mid+obj_axis[1, :2].ravel().astype(int)), (0,0,255) if objs_idx == 0 else (0,0,122), thickness)
-                    viewer.line(img_pred, mid, tuple(mid+obj_axis[2, :2].ravel().astype(int)), (255,0,0) if objs_idx == 0 else (122,0,0), thickness)
+                    viewer.line(img_pred, mid, tuple(mid+obj_axis[0, :2].ravel().astype(int)), (0,255,0) if objs_idx == 0 else (0,122,0), thickness)  # green: roll (x-axis)
+                    viewer.line(img_pred, mid, tuple(mid-obj_axis[1, :2].ravel().astype(int)), (0,0,255) if objs_idx == 0 else (0,0,122), thickness)  # blue: pitch (y-axis)
+                    viewer.line(img_pred, mid, tuple(mid+obj_axis[2, :2].ravel().astype(int)), (255,0,0) if objs_idx == 0 else (122,0,0), thickness)  # red: yaw (z-axis)
                     # Draw landmarks with a black border
                     for lp in obj.landmarks.values():
                         for org, dst in pairwise(lp):
@@ -111,6 +93,7 @@ class Alignment(Component):
     def save(self, dirname, pred):
         import os
         import json
+        from scipy.spatial.transform import Rotation
         datasets = [subclass().get_names() for subclass in Database.__subclasses__()]
         idx = [datasets.index(subset) for subset in datasets if self.database in subset]
         for img_idx, img_pred in enumerate(pred.images):
@@ -119,7 +102,7 @@ class Alignment(Component):
             output_json['images'].append(dict({'id': img_idx, 'file_name': os.path.basename(img_pred.filename), 'width': int(img_pred.tile[2]-img_pred.tile[0]), 'height': int(img_pred.tile[3]-img_pred.tile[1]), 'date_captured': img_pred.timestamp}))
             for obj in img_pred.objects:
                 landmarks = list(map(dict, [dict({'label': int(lnd.label), 'pos': list(map(float, lnd.pos)), 'visible': bool(lnd.visible), 'confidence': float(lnd.confidence)}) for lnds in obj.landmarks.values() for lnd in lnds]))
-                output_json['annotations'].append(dict({'id': str(obj.id), 'image_id': img_idx, 'bbox': list(map(float, [obj.bb[0], obj.bb[1], obj.bb[2]-obj.bb[0], obj.bb[3]-obj.bb[1]])), 'pose': list(map(float, obj.headpose)), 'landmarks': landmarks, 'iscrowd': int(len(img_pred.objects) > 1)}))
+                output_json['annotations'].append(dict({'id': str(obj.id), 'image_id': img_idx, 'bbox': list(map(float, [obj.bb[0], obj.bb[1], obj.bb[2]-obj.bb[0], obj.bb[3]-obj.bb[1]])), 'pose': list(map(float, Rotation.from_matrix(obj.headpose).as_euler('ZYX', degrees=True))), 'landmarks': landmarks, 'iscrowd': int(len(img_pred.objects) > 1)}))
             mapping = Database.__subclasses__()[idx[0]]().get_mapping()
             output_json['mapping'].append(dict({str(lp.value): list(map(int, mapping[lp])) for lp in mapping}))
             # Save COCO annotation file

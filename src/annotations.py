@@ -63,7 +63,7 @@ class FaceObject(GenericObject):
     """
     def __init__(self):
         super().__init__()
-        self.headpose = np.array([-1, -1, -1])  # np.matrix([[-1, -1, -1], [-1, -1, -1], [-1, -1, -1]])
+        self.headpose = np.array([[-1, -1, -1], [-1, -1, -1], [-1, -1, -1]])
         self.attributes = list([])
         self.landmarks = {part.name: list([]) for part in FaceLandmarkPart}
 
