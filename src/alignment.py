@@ -7,6 +7,7 @@ import abc
 import cv2
 import math
 import numpy as np
+from scipy.spatial.transform import Rotation
 from .component import Component
 from .detection import Detection
 from .datasets import Database
@@ -61,7 +62,8 @@ class Alignment(Component):
                     (xmin, ymin, xmax, ymax) = obj.bb
                     contour = np.array([[xmin, ymin], [xmax, ymin], [xmax, ymax], [xmin, ymax]], dtype=np.int32)
                     thickness = int(round(math.log(max(math.e, np.sqrt(cv2.contourArea(contour))), 2)))
-                    obj_axis = obj.headpose @ axis
+                    euler = Rotation.from_matrix(obj.headpose).as_euler('ZYX', degrees=True)
+                    obj_axis = Rotation.from_euler('ZYX', [euler[0], -euler[1], euler[2]], degrees=True).as_matrix() @ axis
                     obj_axis *= np.sqrt(cv2.contourArea(contour))
                     mu = cv2.moments(contour)
                     mid = tuple([int(round(mu['m10']/mu['m00'])), int(round(mu['m01']/mu['m00']))])
@@ -93,7 +95,6 @@ class Alignment(Component):
     def save(self, dirname, pred):
         import os
         import json
-        from scipy.spatial.transform import Rotation
         datasets = [subclass().get_names() for subclass in Database.__subclasses__()]
         idx = [datasets.index(subset) for subset in datasets if self.database in subset]
         for img_idx, img_pred in enumerate(pred.images):
