@@ -28,3 +28,6 @@
 [submodule "detection/orp22_detection"]
 	path = detection/orp22_detection
 	url = git@github.com:bobetocalo/orp22_detection.git
+[submodule "alignment/dad22_landmarks"]
+	path = alignment/dad22_landmarks
+	url = git@github.com:bobetocalo/dad22_landmarks.git
