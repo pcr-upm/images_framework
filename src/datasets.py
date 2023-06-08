@@ -137,7 +137,7 @@ class AFLW(Database):
         obj = FaceObject()
         obj.bb = (int(parts[1]), int(parts[2]), int(parts[1])+int(parts[3]), int(parts[2])+int(parts[4]))
         obj.add_category(GenericCategory(Oi.FACE))
-        obj.headpose = Rotation.from_euler('ZYX', [float(parts[5]), float(parts[6]), float(parts[7])], degrees=True).as_matrix()
+        obj.headpose = Rotation.from_euler('YXZ', [float(parts[5]), float(parts[6]), float(parts[7])], degrees=True).as_matrix()
         obj.add_attribute(FaceAttribute('gender', 'male' if parts[8] == 'm' else 'female'))
         obj.add_attribute(FaceAttribute('glasses', bool(parts[9])))
         num_landmarks = int(parts[10])

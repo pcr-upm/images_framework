@@ -51,7 +51,7 @@ class Alignment(Component):
             next(b, None)
             return zip(a, b)
 
-        axis = np.array([[0, 0, 1], [-1, 0, 0], [0, 1, 0]])  # from object to image coordinate systems
+        axis = np.eye(3)
         ann_order = [img_ann.filename for img_ann in ann.images]  # same order among 'ann' and 'pred' images
         for img_pred in pred.images:
             # Detection().show(viewer, ann, pred)
@@ -62,13 +62,14 @@ class Alignment(Component):
                     (xmin, ymin, xmax, ymax) = obj.bb
                     contour = np.array([[xmin, ymin], [xmax, ymin], [xmax, ymax], [xmin, ymax]], dtype=np.int32)
                     thickness = int(round(math.log(max(math.e, np.sqrt(cv2.contourArea(contour))), 2)))
-                    euler = Rotation.from_matrix(obj.headpose).as_euler('ZYX', degrees=True)
-                    obj_axis = Rotation.from_euler('ZYX', [euler[0], -euler[1], euler[2]], degrees=True).as_matrix() @ axis
+                    # From right-hand rule to left-hand rule
+                    euler = Rotation.from_matrix(obj.headpose).as_euler('YXZ', degrees=True)
+                    obj_axis = axis @ Rotation.from_euler('YXZ', [-euler[0], -euler[1], -euler[2]], degrees=True).as_matrix()
                     obj_axis *= np.sqrt(cv2.contourArea(contour))
                     mu = cv2.moments(contour)
                     mid = tuple([int(round(mu['m10']/mu['m00'])), int(round(mu['m01']/mu['m00']))])
                     viewer.line(img_pred, mid, tuple(mid+obj_axis[0, :2].ravel().astype(int)), (0,255,0) if objs_idx == 0 else (0,122,0), thickness)  # green: roll (x-axis)
-                    viewer.line(img_pred, mid, tuple(mid-obj_axis[1, :2].ravel().astype(int)), (0,0,255) if objs_idx == 0 else (0,0,122), thickness)  # blue: pitch (y-axis)
+                    viewer.line(img_pred, mid, tuple(mid+obj_axis[1, :2].ravel().astype(int)), (0,0,255) if objs_idx == 0 else (0,0,122), thickness)  # blue: pitch (y-axis)
                     viewer.line(img_pred, mid, tuple(mid+obj_axis[2, :2].ravel().astype(int)), (255,0,0) if objs_idx == 0 else (122,0,0), thickness)  # red: yaw (z-axis)
                     # Draw landmarks with a black border
                     for lp in obj.landmarks.values():
