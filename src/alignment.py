@@ -90,7 +90,10 @@ class Alignment(Component):
             for objs_idx, objs_val in enumerate([ann.images[image_idx].objects, img_pred.objects]):
                 for obj in objs_val:
                     landmarks = map(str, [';'.join(map(str, [lnd.label, ';'.join(map(str, lnd.pos)), lnd.visible, lnd.confidence])) for lnds in obj.landmarks.values() for lnd in lnds])
-                    fs.write(';' + str(obj.id) + ';' + str(obj.bb) + ';' + str(obj.headpose.tolist()) + ';' + str(len([lnd for lnds in obj.landmarks.values() for lnd in lnds])) + ';' + ';'.join(landmarks))
+                    num_landmarks = len([lnd for lnds in obj.landmarks.values() for lnd in lnds])
+                    fs.write(';' + str(obj.id) + ';' + str(obj.bb) + ';' + str(obj.headpose.tolist()) + ';' + str(num_landmarks))
+                    if num_landmarks > 0:
+                        fs.write(';' + ';'.join(landmarks))
             fs.write('\n')
 
     def save(self, dirname, pred):
@@ -104,7 +107,7 @@ class Alignment(Component):
             output_json['images'].append(dict({'id': img_idx, 'file_name': os.path.basename(img_pred.filename), 'width': int(img_pred.tile[2]-img_pred.tile[0]), 'height': int(img_pred.tile[3]-img_pred.tile[1]), 'date_captured': img_pred.timestamp}))
             for obj in img_pred.objects:
                 landmarks = list(map(dict, [dict({'label': int(lnd.label), 'pos': list(map(float, lnd.pos)), 'visible': bool(lnd.visible), 'confidence': float(lnd.confidence)}) for lnds in obj.landmarks.values() for lnd in lnds]))
-                output_json['annotations'].append(dict({'id': str(obj.id), 'image_id': img_idx, 'bbox': list(map(float, [obj.bb[0], obj.bb[1], obj.bb[2]-obj.bb[0], obj.bb[3]-obj.bb[1]])), 'pose': list(map(float, Rotation.from_matrix(obj.headpose).as_euler('ZYX', degrees=True))), 'landmarks': landmarks, 'iscrowd': int(len(img_pred.objects) > 1)}))
+                output_json['annotations'].append(dict({'id': str(obj.id), 'image_id': img_idx, 'bbox': list(map(float, [obj.bb[0], obj.bb[1], obj.bb[2]-obj.bb[0], obj.bb[3]-obj.bb[1]])), 'pose': list(map(float, Rotation.from_matrix(obj.headpose).as_euler('YXZ', degrees=True))), 'landmarks': landmarks, 'iscrowd': int(len(img_pred.objects) > 1)}))
             mapping = Database.__subclasses__()[idx[0]]().get_mapping()
             output_json['mapping'].append(dict({str(lp.value): list(map(int, mapping[lp])) for lp in mapping}))
             # Save COCO annotation file
