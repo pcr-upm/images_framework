@@ -194,7 +194,7 @@ class AFLW2000(Database):
         import cv2
         import itertools
         from PIL import Image
-        from scipy.spatial.transform import Rotation
+        import images_framework.alignment.opal23_headpose.test.utils as utils
         from .annotations import FaceObject, FaceLandmark
         seq = GenericGroup()
         parts = line.strip().split(';')
@@ -203,7 +203,11 @@ class AFLW2000(Database):
         image.tile = np.array([0, 0, width, height])
         obj = FaceObject()
         obj.add_category(GenericCategory(Oi.FACE))
-        obj.headpose = Rotation.from_euler('YXZ', [float(parts[1]), float(parts[2]), float(parts[3])], degrees=True).as_matrix()
+        euler = [float(parts[1]), float(parts[2]), float(parts[3])]
+        obj.headpose = utils.convert_rotation(euler, 'matrix', use_pyr_format=True)
+        # Skip images with angles outside the range (-99, 99)
+        if np.any(np.abs(euler) > 99):
+            return seq
         indices = [101, 102, 103, 104, 105, 106, 107, 108, 24, 110, 111, 112, 113, 114, 115, 116, 117, 1, 119, 2, 121, 3, 4, 124, 5, 126, 6, 128, 129, 130, 17, 16, 133, 134, 135, 18, 7, 138, 139, 8, 141, 142, 11, 144, 145, 12, 147, 148, 20, 150, 151, 22, 153, 154, 21, 156, 157, 23, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168]
         for idx in range(0, len(indices)):
             label = indices[idx]
@@ -226,7 +230,7 @@ class Biwi(Database):
 
     def load_filename(self, path, db, line):
         from PIL import Image
-        from scipy.spatial.transform import Rotation
+        import images_framework.alignment.opal23_headpose.test.utils as utils
         from .annotations import FaceObject
         seq = GenericGroup()
         parts = line.strip().split(';')
@@ -236,7 +240,7 @@ class Biwi(Database):
         obj = FaceObject()
         obj.bb = (int(parts[1]), int(parts[2]), int(parts[3]), int(parts[4]))
         obj.add_category(GenericCategory(Oi.FACE))
-        obj.headpose = Rotation.from_euler('YXZ', [-float(parts[5]), -float(parts[6]), -float(parts[7])], degrees=True).as_matrix()
+        obj.headpose = utils.convert_rotation([float(parts[5]), float(parts[6]), float(parts[7])], 'matrix', use_pyr_format=True)
         image.add_object(obj)
         seq.add_image(image)
         return seq
