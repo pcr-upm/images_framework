@@ -194,7 +194,7 @@ class AFLW2000(Database):
         import cv2
         import itertools
         from PIL import Image
-        import images_framework.alignment.opal23_headpose.test.utils as utils
+        from scipy.spatial.transform import Rotation
         from .annotations import FaceObject, FaceLandmark
         seq = GenericGroup()
         parts = line.strip().split(';')
@@ -203,8 +203,8 @@ class AFLW2000(Database):
         image.tile = np.array([0, 0, width, height])
         obj = FaceObject()
         obj.add_category(GenericCategory(Oi.FACE))
-        euler = [float(parts[1]), float(parts[2]), float(parts[3])]
-        obj.headpose = utils.convert_rotation(euler, 'matrix', use_pyr_format=True)
+        euler = [float(parts[2]), float(parts[1]), float(parts[3])]
+        obj.headpose = Rotation.from_euler('XYZ', euler, degrees=True).as_matrix().transpose()
         # Skip images with angles outside the range (-99, 99)
         if np.any(np.abs(euler) > 99):
             return seq
@@ -230,7 +230,7 @@ class Biwi(Database):
 
     def load_filename(self, path, db, line):
         from PIL import Image
-        import images_framework.alignment.opal23_headpose.test.utils as utils
+        from scipy.spatial.transform import Rotation
         from .annotations import FaceObject
         seq = GenericGroup()
         parts = line.strip().split(';')
@@ -240,7 +240,7 @@ class Biwi(Database):
         obj = FaceObject()
         obj.bb = (int(parts[1]), int(parts[2]), int(parts[3]), int(parts[4]))
         obj.add_category(GenericCategory(Oi.FACE))
-        obj.headpose = utils.convert_rotation([float(parts[5]), float(parts[6]), float(parts[7])], 'matrix', use_pyr_format=True)
+        obj.headpose = Rotation.from_euler('XYZ', [float(parts[6]), float(parts[5]), float(parts[7])], degrees=True).as_matrix().transpose()
         image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -265,7 +265,7 @@ class Panoptic(Database):
         obj = FaceObject()
         obj.bb = (int(parts[1]), int(parts[2]), int(parts[1])+int(parts[3]), int(parts[2])+int(parts[4]))
         obj.add_category(GenericCategory(Oi.FACE))
-        obj.headpose = Rotation.from_euler('YXZ', [float(parts[5]), float(parts[6]), float(parts[7])], degrees=True).as_matrix()
+        obj.headpose = Rotation.from_euler('XYZ', [float(parts[6]), float(parts[5]), float(parts[7])], degrees=True).as_matrix().transpose()
         image.add_object(obj)
         seq.add_image(image)
         return seq
