@@ -204,7 +204,7 @@ class AFLW2000(Database):
         obj = FaceObject()
         obj.add_category(GenericCategory(Oi.FACE))
         euler = [float(parts[2]), float(parts[1]), float(parts[3])]
-        obj.headpose = Rotation.from_euler('XYZ', euler, degrees=True).as_matrix().transpose()
+        obj.headpose = Rotation.from_euler('XYZ', euler, degrees=True).as_matrix()
         # Skip images with angles outside the range (-99, 99)
         if np.any(np.abs(euler) > 99):
             return seq
@@ -240,7 +240,7 @@ class Biwi(Database):
         obj = FaceObject()
         obj.bb = (int(parts[1]), int(parts[2]), int(parts[3]), int(parts[4]))
         obj.add_category(GenericCategory(Oi.FACE))
-        obj.headpose = Rotation.from_euler('XYZ', [float(parts[6]), float(parts[5]), float(parts[7])], degrees=True).as_matrix().transpose()
+        obj.headpose = Rotation.from_euler('XYZ', [float(parts[6]), float(parts[5]), float(parts[7])], degrees=True).as_matrix()
         image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -265,7 +265,7 @@ class Panoptic(Database):
         obj = FaceObject()
         obj.bb = (int(parts[1]), int(parts[2]), int(parts[1])+int(parts[3]), int(parts[2])+int(parts[4]))
         obj.add_category(GenericCategory(Oi.FACE))
-        obj.headpose = Rotation.from_euler('XYZ', [float(parts[6]), float(parts[5]), float(parts[7])], degrees=True).as_matrix().transpose()
+        obj.headpose = Rotation.from_euler('XYZ', [float(parts[6]), float(parts[5]), float(parts[7])], degrees=True).as_matrix()
         image.add_object(obj)
         seq.add_image(image)
         return seq
