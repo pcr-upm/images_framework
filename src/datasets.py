@@ -240,7 +240,8 @@ class Biwi(Database):
         obj = FaceObject()
         obj.bb = (int(parts[1]), int(parts[2]), int(parts[3]), int(parts[4]))
         obj.add_category(GenericCategory(Oi.FACE))
-        obj.headpose = Rotation.from_euler('XYZ', [float(parts[6]), float(parts[5]), float(parts[7])], degrees=True).as_matrix()
+        obj.headpose = Rotation.from_euler('XYZ', [float(parts[6]), float(parts[5]), float(parts[7])], degrees=True).as_matrix()  # biwi_ann_mtcnn.txt
+        # obj.headpose = Rotation.from_euler('XYZ', [-float(parts[6]), float(parts[5]), float(parts[7])], degrees=True).as_matrix().transpose() * np.array([[1, -1, 1], [-1, 1, -1], [1, -1, 1]])  # biwi_ann_test.txt
         image.add_object(obj)
         seq.add_image(image)
         return seq
