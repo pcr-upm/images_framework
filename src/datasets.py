@@ -193,6 +193,7 @@ class DAD(Database):
     def load_filename(self, path, db, line):
         import itertools
         from PIL import Image
+        from scipy.spatial.transform import Rotation
         from .annotations import FaceObject, FaceAttribute, FaceLandmark
         seq = GenericGroup()
         parts = line.strip().split(';')
@@ -206,8 +207,8 @@ class DAD(Database):
             flame_vertices3d = np.reshape(np.matrix(parts[5], dtype=np.float32), (5023, 3))
             model_view_matrix = np.reshape(np.matrix(parts[6], dtype=np.float32), (4, 4))
             projection_matrix = np.reshape(np.matrix(parts[7], dtype=np.float32), (4, 4))
-            rot = np.array([[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]]) @ model_view_matrix
-            obj.headpose = rot[:3, :3]
+            euler = Rotation.from_matrix(model_view_matrix[:3, :3]).as_euler('YXZ', degrees=True)
+            obj.headpose = Rotation.from_euler('YXZ', [euler[0], -euler[1], -euler[2]], degrees=True).as_matrix()
             flame_vertices3d_homo = np.concatenate((flame_vertices3d, np.ones_like(flame_vertices3d[:, [0]])), -1)
             flame_vertices3d_world_homo = np.transpose(np.matmul(model_view_matrix, np.transpose(flame_vertices3d_homo)))
             flame_vertices2d_homo = np.transpose(np.matmul(projection_matrix, np.transpose(flame_vertices3d_world_homo)))
