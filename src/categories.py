@@ -21,6 +21,7 @@ class FaceLandmarkPart(Enum):
     LEAR = 'lear'
     REAR = 'rear'
     CHIN = 'chin'
+    FOREHEAD = 'forehead'
 
 
 class Name:
