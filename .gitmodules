@@ -31,3 +31,6 @@
 [submodule "alignment/dad22_landmarks"]
 	path = alignment/dad22_landmarks
 	url = git@github.com:bobetocalo/dad22_landmarks.git
+[submodule "alignment/efficientnet21_reconstruction"]
+	path = alignment/efficientnet21_reconstruction
+	url = git@github.com:bobetocalo/efficientnet21_reconstruction.git
