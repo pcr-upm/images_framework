@@ -34,3 +34,6 @@
 [submodule "alignment/efficientnet21_reconstruction"]
 	path = alignment/efficientnet21_reconstruction
 	url = git@github.com:bobetocalo/efficientnet21_reconstruction.git
+[submodule "alignment/openpose_landmarks"]
+	path = alignment/openpose_landmarks
+	url = git@github.com:bobetocalo/openpose_landmarks.git
