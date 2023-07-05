@@ -52,10 +52,11 @@ class Aligners(Enum):
     """
     Different object alignment algorithms.
     """
-    KAZEMI14_LANDMARKS = 'kazemi14_landmarks'
     CIARP17_HEADPOSE = 'ciarp17_headpose'
-    DAD22_LANDMARKS = 'dad22_landmarks'
     OPAL23_HEADPOSE = 'opal23_headpose'
+    KAZEMI14_LANDMARKS = 'kazemi14_landmarks'
+    DAD22_LANDMARKS = 'dad22_landmarks'
+    OPENPOSE_LANDMARKS = 'openpose_landmarks'
     EFFICIENTNET21_RECONSTRUCTION = 'efficientnet21_reconstruction'
 
 
