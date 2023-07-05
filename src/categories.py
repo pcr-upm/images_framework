@@ -3,6 +3,7 @@
 __author__ = 'Roberto Valle'
 __email__ = 'roberto.valle@upm.es'
 
+import abc
 from enum import Enum, unique
 
 
@@ -29,10 +30,11 @@ class Name:
         self.name = name
 
 
-class Category:
+class Category(object):
     """
     Category label.
     """
+    __metaclass__ = abc.ABCMeta
     BACKGROUND = Name('Background')
     FACE = Name('Face')
     # XView
