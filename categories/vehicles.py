@@ -16,6 +16,7 @@ class Vehicle(Oi):
     Oi.VEHICLE.BICYCLE = Name('Bicycle')
     Oi.VEHICLE.MOTORCYCLE = Name('Motorcycle')
     Oi.VEHICLE.AIRPLANE = Name('Airplane')
+    Oi.VEHICLE.TRAIN = Name('Train')
     Oi.VEHICLE.BOAT = Name('Boat')
     # DOTA
     Oi.VEHICLE.LARGE_VEHICLE = Name('Large vehicle')
