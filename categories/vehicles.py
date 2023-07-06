@@ -12,6 +12,11 @@ class Vehicle(Oi):
     Oi.VEHICLE.PLANE = Name('Plane')
     Oi.VEHICLE.SHIP = Name('Ship')
     Oi.VEHICLE.HELICOPTER = Name('Helicopter')
+    # COCO
+    Oi.VEHICLE.BICYCLE = Name('Bicycle')
+    Oi.VEHICLE.MOTORCYCLE = Name('Motorcycle')
+    Oi.VEHICLE.AIRPLANE = Name('Airplane')
+    Oi.VEHICLE.BOAT = Name('Boat')
     # DOTA
     Oi.VEHICLE.LARGE_VEHICLE = Name('Large vehicle')
     Oi.VEHICLE.SMALL_VEHICLE = Name('Small vehicle')

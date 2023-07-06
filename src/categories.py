@@ -10,7 +10,7 @@ from enum import Enum, unique
 @unique
 class FaceLandmarkPart(Enum):
     """
-    Landmark part label.
+    Face landmark part label.
     """
     LEYEBROW = 'leyebrow'
     REYEBROW = 'reyebrow'
@@ -25,6 +25,30 @@ class FaceLandmarkPart(Enum):
     FOREHEAD = 'forehead'
 
 
+@unique
+class PersonLandmarkPart(Enum):
+    """
+    Person landmark part label.
+    """
+    NOSE = 'nose'
+    LEYE = 'leye'
+    REYE = 'reye'
+    LEAR = 'lear'
+    REAR = 'rear'
+    LSHOULDER = 'lshoulder'
+    RSHOULDER = 'rshoulder'
+    LELBOW = 'lelbow'
+    RELBOW = 'relbow'
+    LWRIST = 'lwrist'
+    RWRIST = 'rwrist'
+    LHIP = 'lhip'
+    RHIP = 'rhip'
+    LKNEE = 'lknee'
+    RKNEE = 'rknee'
+    LANKLE = 'lankle'
+    RANKLE = 'rankle'
+
+
 class Name:
     def __init__(self, name):
         self.name = name
@@ -36,10 +60,22 @@ class Category(object):
     """
     __metaclass__ = abc.ABCMeta
     BACKGROUND = Name('Background')
+    PERSON = Name('Person')
+    ANIMAL = Name('Animal')
     FACE = Name('Face')
     BUILDING = Name('Building')
     SOLAR_PANEL = Name('Solar panel')
     VEHICLE = Name('Vehicle')
+    # COCO
+    ACCESSORY = Name('Accessory')
+    INDOOR = Name('Indoor')
+    OUTDOOR = Name('Outdoor')
+    SPORTS = Name('Sports')
+    KITCHEN = Name('Kitchen')
+    FOOD = Name('Food')
+    FURNITURE = Name('Furniture')
+    ELECTRONIC = Name('Electronic')
+    APPLIANCE = Name('Appliance')
     # DOTA
     STORAGE_TANK = Name('Storage tank')
     BASEBALL_DIAMOND = Name('Baseball diamond')
