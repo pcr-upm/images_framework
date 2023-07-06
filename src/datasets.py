@@ -85,7 +85,7 @@ class COCO(Database):
         width, height = Image.open(image.filename).size
         image_id = int(parts[1])
         image.tile = np.array([0, 0, width, height])
-        image.timestamp = datetime.strptime(parts[2], '%Y-%m-%d %I:%M:%S')
+        image.timestamp = datetime.strptime(parts[2], '%Y-%m-%d %H:%M:%S')
         with open(path + 'annotations/instances_train2017.json') as ifs:
             json_data = json.load(ifs)
         ifs.close()
@@ -96,7 +96,8 @@ class COCO(Database):
             elem = next(ann for ann in anns if ann['id'] == obj_id)
             obj = GenericObject()
             obj.id = obj_id
-            obj.bb = tuple(elem['bbox'])
+            bbox = elem['bbox']
+            obj.bb = (bbox[0], bbox[1], bbox[0]+bbox[2], bbox[1]+bbox[3])
             obj.add_category(GenericCategory(self._mapping[elem['category_id']]))
             image.add_object(obj)
         seq.add_image(image)
