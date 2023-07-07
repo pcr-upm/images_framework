@@ -98,6 +98,7 @@ class COCO(Database):
             obj.id = obj_id
             bbox = elem['bbox']
             obj.bb = (bbox[0], bbox[1], bbox[0]+bbox[2], bbox[1]+bbox[3])
+            obj.multipolygon = [np.array([[[pt[0], pt[1]]] for pt in list(zip(elem['segmentation'][0][::2], elem['segmentation'][0][1::2]))], dtype=int)]
             obj.add_category(GenericCategory(self._mapping[elem['category_id']]))
             image.add_object(obj)
         seq.add_image(image)
@@ -702,7 +703,7 @@ class SpaceNet(Database):
 class Cityscapes(Database):
     def __init__(self):
         super().__init__()
-        self._names = ['cityscapes']
+        self._names = ['cityscapes', 'Cityscapes']
         self._categories = [Name(str(num)) for num in range(19)]
         self._colors = [(128, 64, 128), (244, 35, 232), (70, 70, 70), (102, 102, 156), (190, 153, 153), (153, 153, 153), (250, 170, 30), (220, 220, 0), (107, 142, 35), (152, 251, 152), (70, 130, 180), (220, 20, 60), (255, 0, 0), (0, 0, 142), (0, 0, 70), (0, 60, 100), (0, 80, 100), (0, 0, 230), (119, 11, 32)]
 
@@ -818,7 +819,7 @@ class SegESolarScene(Database):
 class SegGeoAIPanels(Database):
     def __init__(self):
         super().__init__()
-        self._names = ['seg_geoai_panels']
+        self._names = ['seg_geoai_panels', 'SegGeoAIPanels']
         self._categories = [Oi.SOLAR_PANEL]
         self._colors = [(0, 255, 0)]
 
