@@ -5,7 +5,8 @@ __email__ = 'roberto.valle@upm.es'
 
 import uuid
 import numpy as np
-from .categories import PersonLandmarkPart, Category
+from enum import Enum
+from .categories import Category
 
 
 class GenericCategory:
@@ -31,7 +32,7 @@ class GenericLandmark:
     """
     Generic landmark data.
     """
-    def __init__(self, label: int, part: PersonLandmarkPart, pos: tuple, visible: bool, confidence=-1):
+    def __init__(self, label: int, part: Enum, pos: tuple, visible: bool, confidence=-1):
         self.label = label
         self.part = part
         self.pos = pos  # (pt_x, pt_y)
@@ -62,6 +63,7 @@ class FaceObject(GenericObject):
     Face object inherits from the generic object class.
     """
     def __init__(self):
+        from images_framework.alignment.landmarks import FaceLandmarkPart
         super().__init__()
         self.headpose = np.array([[-1, -1, -1], [-1, -1, -1], [-1, -1, -1]])
         self.attributes = list([])
