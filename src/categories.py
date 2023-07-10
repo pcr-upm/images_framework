@@ -26,15 +26,10 @@ class FaceLandmarkPart(Enum):
 
 
 @unique
-class PersonLandmarkPart(Enum):
+class PersonLandmarkPart(FaceLandmarkPart):
     """
     Person landmark part label.
     """
-    NOSE = 'nose'
-    LEYE = 'leye'
-    REYE = 'reye'
-    LEAR = 'lear'
-    REAR = 'rear'
     LSHOULDER = 'lshoulder'
     RSHOULDER = 'rshoulder'
     LELBOW = 'lelbow'

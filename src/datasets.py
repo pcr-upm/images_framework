@@ -5,8 +5,8 @@ __email__ = 'roberto.valle@upm.es'
 
 import abc
 import numpy as np
-from .annotations import GenericGroup, GenericImage, GenericObject, GenericCategory
-from .categories import Name, FaceLandmarkPart as Lp, Category as Oi
+from .annotations import GenericGroup, GenericImage, GenericObject, GenericCategory, GenericAttribute, GenericLandmark
+from .categories import Name, Category as Oi
 
 
 def get_palette(n):
@@ -58,6 +58,7 @@ class Database(abc.ABC):
 
 class COCO(Database):
     def __init__(self):
+        from .categories import PersonLandmarkPart as Lp
         from images_framework.categories.vehicles import Vehicle as Ov
         from images_framework.categories.outdoor import Outdoor as Oo
         from images_framework.categories.animals import Animal as Oa
@@ -76,30 +77,25 @@ class COCO(Database):
         self._colors = get_palette(len(self._categories))
 
     def load_filename(self, path, db, line):
-        import json
         from PIL import Image
         from datetime import datetime
         seq = GenericGroup()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
-        image_id = int(parts[1])
         image.tile = np.array([0, 0, width, height])
         image.timestamp = datetime.strptime(parts[2], '%Y-%m-%d %H:%M:%S')
-        with open(path + 'annotations/instances_train2017.json') as ifs:
-            json_data = json.load(ifs)
-        ifs.close()
-        if int(parts[3]) == 0:
-            return seq
-        anns = [ann for ann in json_data['annotations'] if ann['image_id'] == image_id]
-        for obj_id in np.array(json.loads(parts[4])):
-            elem = next(ann for ann in anns if ann['id'] == obj_id)
+        for idx in range(0, int(parts[3])):
             obj = GenericObject()
-            obj.id = obj_id
-            bbox = elem['bbox']
+            obj.id = int(parts[(5*idx)+4])
+            bbox = np.array(parts[(5*idx)+5])
             obj.bb = (bbox[0], bbox[1], bbox[0]+bbox[2], bbox[1]+bbox[3])
-            obj.multipolygon = [np.array([[[pt[0], pt[1]]] for pt in list(zip(elem['segmentation'][0][::2], elem['segmentation'][0][1::2]))], dtype=int)]
-            obj.add_category(GenericCategory(self._mapping[elem['category_id']]))
+            segm = np.array(parts[(5*idx)+6])
+            obj.multipolygon = [np.array([[[pt[0], pt[1]]] for pt in list(zip(segm[::2], segm[1::2]))], dtype=int)]
+            obj.add_category(GenericCategory(self._mapping[parts[(5*idx)+7]]))
+            landmarks = np.array(parts[(5*idx)+8])
+            for lnd in landmarks:
+                obj.add_landmark(GenericLandmark(label, lp, pos, True))
             image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -107,6 +103,7 @@ class COCO(Database):
 
 class PTS68(Database):
     def __init__(self):
+        from .categories import FaceLandmarkPart as Lp
         super().__init__()
         self._names = ['300w_public', '300w_private']
         self._mapping = {Lp.LEYEBROW: (1, 119, 2, 121, 3), Lp.REYEBROW: (4, 124, 5, 126, 6), Lp.LEYE: (7, 138, 139, 8, 141, 142), Lp.REYE: (11, 144, 145, 12, 147, 148), Lp.NOSE: (128, 129, 130, 17, 16, 133, 134, 135, 18), Lp.TMOUTH: (20, 150, 151, 22, 153, 154, 21, 165, 164, 163, 162, 161), Lp.BMOUTH: (156, 157, 23, 159, 160, 168, 167, 166), Lp.LEAR: (101, 102, 103, 104, 105, 106), Lp.REAR: (112, 113, 114, 115, 116, 117), Lp.CHIN: (107, 108, 24, 110, 111)}
@@ -115,7 +112,7 @@ class PTS68(Database):
 
     def load_filename(self, path, db, line):
         from PIL import Image
-        from .annotations import FaceObject, FaceLandmark
+        from .annotations import FaceObject
         seq = GenericGroup()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
@@ -129,7 +126,7 @@ class PTS68(Database):
             label = indices[idx]
             lp = list(self._mapping.keys())[next((ids for ids, xs in enumerate(self._mapping.values()) for x in xs if x == label), None)]
             pos = (float(parts[(2*idx)+5]), float(parts[(2*idx)+6]))
-            obj.add_landmark(FaceLandmark(label, lp, pos, True))
+            obj.add_landmark(GenericLandmark(label, lp, pos, True))
         image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -137,6 +134,7 @@ class PTS68(Database):
 
 class COFW(Database):
     def __init__(self):
+        from .categories import FaceLandmarkPart as Lp
         super().__init__()
         self._names = ['cofw']
         self._mapping = {Lp.LEYEBROW: (1, 101, 3, 102), Lp.REYEBROW: (4, 103, 6, 104), Lp.LEYE: (7, 9, 8, 10, 105), Lp.REYE: (11, 13, 12, 14, 106), Lp.NOSE: (16, 17, 18, 107), Lp.TMOUTH: (20, 22, 21, 108), Lp.BMOUTH: (109, 23), Lp.CHIN: (24,)}
@@ -145,7 +143,7 @@ class COFW(Database):
 
     def load_filename(self, path, db, line):
         from PIL import Image
-        from .annotations import FaceObject, FaceLandmark
+        from .annotations import FaceObject
         seq = GenericGroup()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
@@ -160,7 +158,7 @@ class COFW(Database):
             lp = list(self._mapping.keys())[next((ids for ids, xs in enumerate(self._mapping.values()) for x in xs if x == label), None)]
             pos = (float(parts[(3*idx)+5]), float(parts[(3*idx)+6]))
             vis = float(parts[(3*idx)+7]) == 0.0
-            obj.add_landmark(FaceLandmark(label, lp, pos, vis))
+            obj.add_landmark(GenericLandmark(label, lp, pos, vis))
         image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -168,6 +166,7 @@ class COFW(Database):
 
 class AFLW(Database):
     def __init__(self):
+        from .categories import FaceLandmarkPart as Lp
         super().__init__()
         self._names = ['aflw']
         self._mapping = {Lp.LEYEBROW: (1, 2, 3), Lp.REYEBROW: (4, 5, 6), Lp.LEYE: (7, 101, 8), Lp.REYE: (11, 102, 12), Lp.NOSE: (16, 17, 18), Lp.TMOUTH: (20, 103, 21), Lp.LEAR: (15,), Lp.REAR: (19,), Lp.CHIN: (24,)}
@@ -177,7 +176,7 @@ class AFLW(Database):
     def load_filename(self, path, db, line):
         from PIL import Image
         from scipy.spatial.transform import Rotation
-        from .annotations import FaceObject, FaceAttribute, FaceLandmark
+        from .annotations import FaceObject
         seq = GenericGroup()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
@@ -187,15 +186,15 @@ class AFLW(Database):
         obj.bb = (int(parts[1]), int(parts[2]), int(parts[1])+int(parts[3]), int(parts[2])+int(parts[4]))
         obj.add_category(GenericCategory(Oi.FACE))
         obj.headpose = Rotation.from_euler('YXZ', [float(parts[5]), float(parts[6]), float(parts[7])], degrees=True).as_matrix()
-        obj.add_attribute(FaceAttribute('gender', 'male' if parts[8] == 'm' else 'female'))
-        obj.add_attribute(FaceAttribute('glasses', bool(parts[9])))
+        obj.add_attribute(GenericAttribute('gender', 'male' if parts[8] == 'm' else 'female'))
+        obj.add_attribute(GenericAttribute('glasses', bool(parts[9])))
         num_landmarks = int(parts[10])
         indices = [1, 2, 3, 4, 5, 6, 7, 101, 8, 11, 102, 12, 15, 16, 17, 18, 19, 20, 103, 21, 24]
         for idx in range(0, num_landmarks):
             label = indices[int(parts[(3*idx)+11])-1]
             lp = list(self._mapping.keys())[next((ids for ids, xs in enumerate(self._mapping.values()) for x in xs if x == label), None)]
             pos = (float(parts[(3*idx)+12]), float(parts[(3*idx)+13]))
-            obj.add_landmark(FaceLandmark(label, lp, pos, True))
+            obj.add_landmark(GenericLandmark(label, lp, pos, True))
         image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -203,6 +202,7 @@ class AFLW(Database):
 
 class WFLW(Database):
     def __init__(self):
+        from .categories import FaceLandmarkPart as Lp
         super().__init__()
         self._names = ['wflw']
         self._mapping = {Lp.LEYEBROW: (1, 134, 2, 136, 3, 138, 139, 140, 141), Lp.REYEBROW: (6, 147, 148, 149, 150, 4, 143, 5, 145), Lp.LEYE: (7, 161, 9, 163, 8, 165, 10, 167, 196), Lp.REYE: (11, 169, 13, 171, 12, 173, 14, 175, 197), Lp.NOSE: (151, 152, 153, 17, 16, 156, 157, 158, 18), Lp.TMOUTH: (20, 177, 178, 22, 180, 181, 21, 192, 191, 190, 189, 188), Lp.BMOUTH: (187, 186, 23, 184, 183, 193, 194, 195), Lp.LEAR: (100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110), Lp.REAR: (122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132), Lp.CHIN: (111, 112, 113, 114, 115, 24, 117, 118, 119, 120, 121)}
@@ -211,7 +211,7 @@ class WFLW(Database):
 
     def load_filename(self, path, db, line):
         from PIL import Image
-        from .annotations import FaceObject, FaceLandmark
+        from .annotations import FaceObject
         seq = GenericGroup()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
@@ -225,7 +225,7 @@ class WFLW(Database):
             label = indices[idx]
             lp = list(self._mapping.keys())[next((ids for ids, xs in enumerate(self._mapping.values()) for x in xs if x == label), None)]
             pos = (float(parts[(2*idx)+11]), float(parts[(2*idx)+12]))
-            obj.add_landmark(FaceLandmark(label, lp, pos, True))
+            obj.add_landmark(GenericLandmark(label, lp, pos, True))
         image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -233,6 +233,7 @@ class WFLW(Database):
 
 class DAD(Database):
     def __init__(self):
+        from .categories import FaceLandmarkPart as Lp
         super().__init__()
         self._names = ['dad']
         self._mapping = {Lp.LEYEBROW: (1983, 2189, 3708, 336, 335, 3153, 3705, 2178, 3684, 3741, 3148, 3696, 2585, 2565, 2567, 3764), Lp.REYEBROW: (570, 694, 3865, 17, 16, 2134, 3863, 673, 3851, 3880, 2121, 3859, 1448, 1428, 1430, 3893), Lp.LEYE: (2441, 2446, 2382, 2381, 2383, 2496, 3690, 2493, 2491, 2465, 3619, 3632, 2505, 2273, 2276, 2355, 2295, 2359, 2267, 2271, 2403, 2437), Lp.REYE: (1183, 1194, 1033, 1023, 1034, 1345, 3856, 1342, 1340, 1243, 3827, 3833, 1354, 824, 827, 991, 883, 995, 814, 822, 1096, 1175), Lp.NOSE: (3540, 3704, 3555, 3560, 3561, 3501, 3526, 3563, 2793, 2751, 3092, 3099, 3102, 2205, 2193, 2973, 2868, 2921, 2920, 1676, 1623, 2057, 2064, 2067, 723, 702, 1895, 1757, 1818, 1817, 3515, 3541), Lp.TMOUTH: (2828, 2832, 2833, 2850, 2813, 2811, 2774, 3546, 1657, 1694, 1696, 1735, 1716, 1715, 1711, 1719, 1748, 1740, 1667, 1668, 3533, 2785, 2784, 2855, 2863, 2836), Lp.BMOUTH: (2891, 2890, 2892, 2928, 2937, 3509, 1848, 1826, 1789, 1787, 1788, 1579, 1773, 1774, 1795, 1802, 1865, 3503, 2948, 2905, 2898, 2881, 2880, 2715), Lp.LEAR: (3386, 3381, 1962, 2213, 2259, 2257, 2954, 3171, 2003), Lp.REAR: (3554, 576, 2159, 1872, 798, 802, 731, 567, 3577, 3582), Lp.CHIN: (3390, 3391, 3396, 3400, 3599, 3593, 3588), Lp.FOREHEAD: (3068, 2196, 2091, 3524, 628, 705, 2030)}
@@ -243,7 +244,7 @@ class DAD(Database):
         import itertools
         from PIL import Image
         from scipy.spatial.transform import Rotation
-        from .annotations import FaceObject, FaceAttribute, FaceLandmark
+        from .annotations import FaceObject
         seq = GenericGroup()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
@@ -265,15 +266,15 @@ class DAD(Database):
             for idx in list(itertools.chain.from_iterable(self._mapping.values())):
                 lp = list(self._mapping.keys())[next((ids for ids, xs in enumerate(self._mapping.values()) for x in xs if x == idx), None)]
                 pos = (float(flame_vertices2d[idx, 0]), height-float(flame_vertices2d[idx, 1]))
-                obj.add_landmark(FaceLandmark(idx, lp, pos, True))
+                obj.add_landmark(GenericLandmark(idx, lp, pos, True))
         if len(parts) != 8:  # train, test
-            obj.add_attribute(FaceAttribute('quality', parts[len(parts)-7]))
-            obj.add_attribute(FaceAttribute('gender',  parts[len(parts)-6]))
-            obj.add_attribute(FaceAttribute('expression', bool(parts[len(parts)-5] == 'True')))
-            obj.add_attribute(FaceAttribute('age', parts[len(parts)-4]))
-            obj.add_attribute(FaceAttribute('occlusions', bool(parts[len(parts)-3] == 'True')))
-            obj.add_attribute(FaceAttribute('pose', parts[len(parts)-2]))
-            obj.add_attribute(FaceAttribute('standard_light', bool(parts[len(parts)-1] == 'True')))
+            obj.add_attribute(GenericAttribute('quality', parts[len(parts)-7]))
+            obj.add_attribute(GenericAttribute('gender',  parts[len(parts)-6]))
+            obj.add_attribute(GenericAttribute('expression', bool(parts[len(parts)-5] == 'True')))
+            obj.add_attribute(GenericAttribute('age', parts[len(parts)-4]))
+            obj.add_attribute(GenericAttribute('occlusions', bool(parts[len(parts)-3] == 'True')))
+            obj.add_attribute(GenericAttribute('pose', parts[len(parts)-2]))
+            obj.add_attribute(GenericAttribute('standard_light', bool(parts[len(parts)-1] == 'True')))
         image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -281,6 +282,7 @@ class DAD(Database):
 
 class AFLW2000(Database):
     def __init__(self):
+        from .categories import FaceLandmarkPart as Lp
         super().__init__()
         self._names = ['300wlp', 'aflw2000']
         self._mapping = {Lp.LEYEBROW: (1, 119, 2, 121, 3), Lp.REYEBROW: (4, 124, 5, 126, 6), Lp.LEYE: (7, 138, 139, 8, 141, 142), Lp.REYE: (11, 144, 145, 12, 147, 148), Lp.NOSE: (128, 129, 130, 17, 16, 133, 134, 135, 18), Lp.TMOUTH: (20, 150, 151, 22, 153, 154, 21, 165, 164, 163, 162, 161), Lp.BMOUTH: (156, 157, 23, 159, 160, 168, 167, 166), Lp.LEAR: (101, 102, 103, 104, 105, 106), Lp.REAR: (112, 113, 114, 115, 116, 117), Lp.CHIN: (107, 108, 24, 110, 111)}
@@ -292,7 +294,7 @@ class AFLW2000(Database):
         import itertools
         from PIL import Image
         from scipy.spatial.transform import Rotation
-        from .annotations import FaceObject, FaceLandmark
+        from .annotations import FaceObject
         seq = GenericGroup()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
@@ -310,7 +312,7 @@ class AFLW2000(Database):
             label = indices[idx]
             lp = list(self._mapping.keys())[next((ids for ids, xs in enumerate(self._mapping.values()) for x in xs if x == label), None)]
             pos = (int(round(float(parts[(2*idx)+4]))), int(round(float(parts[(2*idx)+5]))))
-            obj.add_landmark(FaceLandmark(label, lp, pos, True))
+            obj.add_landmark(GenericLandmark(label, lp, pos, True))
         obj.bb = cv2.boundingRect(np.array([[pt.pos for pt in list(itertools.chain.from_iterable(obj.landmarks.values()))]]))
         obj.bb = (obj.bb[0], obj.bb[1], obj.bb[0]+obj.bb[2], obj.bb[1]+obj.bb[3])
         image.add_object(obj)
@@ -528,7 +530,7 @@ class COWC(Database):
     def __init__(self):
         from images_framework.categories.vehicles import Vehicle as Ov
         super().__init__()
-        self._names = ['cowc']
+        self._names = ['cowc', 'COWC']
         self._categories = [Ov.VEHICLE.CAR]
         self._colors = [(0, 255, 0)]
 

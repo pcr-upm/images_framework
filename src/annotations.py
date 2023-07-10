@@ -5,7 +5,7 @@ __email__ = 'roberto.valle@upm.es'
 
 import uuid
 import numpy as np
-from .categories import FaceLandmarkPart, Category
+from .categories import PersonLandmarkPart, Category
 
 
 class GenericCategory:
@@ -17,9 +17,9 @@ class GenericCategory:
         self.score = score
 
 
-class FaceAttribute:
+class GenericAttribute:
     """
-    Face attribute data.
+    Generic attribute data.
     """
     def __init__(self, label, value, confidence=-1):
         self.label = label
@@ -27,11 +27,11 @@ class FaceAttribute:
         self.confidence = confidence
 
 
-class FaceLandmark:
+class GenericLandmark:
     """
-    Face landmark data.
+    Generic landmark data.
     """
-    def __init__(self, label: int, part: FaceLandmarkPart, pos: tuple, visible: bool, confidence=-1):
+    def __init__(self, label: int, part: PersonLandmarkPart, pos: tuple, visible: bool, confidence=-1):
         self.label = label
         self.part = part
         self.pos = pos  # (pt_x, pt_y)
@@ -67,10 +67,10 @@ class FaceObject(GenericObject):
         self.attributes = list([])
         self.landmarks = {part.name: list([]) for part in FaceLandmarkPart}
 
-    def add_attribute(self, att: FaceAttribute):
+    def add_attribute(self, att: GenericAttribute):
         self.attributes.append(att)
 
-    def add_landmark(self, lnd: FaceLandmark):
+    def add_landmark(self, lnd: GenericLandmark):
         self.landmarks.setdefault(lnd.part.name, list([])).append(lnd)
 
     def clear(self):
