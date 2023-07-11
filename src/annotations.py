@@ -58,6 +58,22 @@ class GenericObject:
         self.categories.clear()
 
 
+class PersonObject(GenericObject):
+    """
+    Person object inherits from the generic object class.
+    """
+    def __init__(self):
+        from images_framework.alignment.landmarks import PersonLandmarkPart
+        super().__init__()
+        self.landmarks = {part.name: list([]) for part in PersonLandmarkPart}
+
+    def add_landmark(self, lnd: GenericLandmark):
+        self.landmarks.setdefault(lnd.part.name, list([])).append(lnd)
+
+    def clear(self):
+        self.landmarks.clear()
+
+
 class FaceObject(GenericObject):
     """
     Face object inherits from the generic object class.
