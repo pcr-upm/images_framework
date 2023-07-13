@@ -50,7 +50,7 @@ class Detection(Component):
         datasets = [db.__name__ for db in Database.__subclasses__()]
         ann_order = [img_ann.filename for img_ann in ann.images]  # same order among 'ann' and 'pred' images
         for img_pred in pred.images:
-            categories = Database.__subclasses__()[datasets.index(self.database)]().get_categories() if self.database else []
+            categories = Database.__subclasses__()[datasets.index(self.database)]().get_categories().values() if self.database else []
             colors = Database.__subclasses__()[datasets.index(self.database)]().get_colors() if self.database else []
             drawing = dict(zip([cat.name for cat in categories], colors))
             image_idx = [np.array_equal(img_pred.filename, elem) for elem in ann_order].index(True)
