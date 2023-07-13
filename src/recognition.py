@@ -48,7 +48,7 @@ class Recognition(Component):
         ann_order = [img_ann.filename for img_ann in ann.images]  # same order among 'ann' and 'pred' images
         for img_pred in pred.images:
             Detection().show(viewer, ann, pred)
-            categories = Database.__subclasses__()[datasets.index(self.database)]().get_categories()
+            categories = Database.__subclasses__()[datasets.index(self.database)]().get_categories().values() if self.database else []
             colors = Database.__subclasses__()[datasets.index(self.database)]().get_colors()
             drawing = dict(zip([cat.name for cat in categories], colors))
             image_idx = [np.array_equal(img_pred.filename, elem) for elem in ann_order].index(True)

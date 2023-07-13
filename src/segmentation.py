@@ -46,7 +46,7 @@ class Segmentation(Component):
         datasets = [db.__name__ for db in Database.__subclasses__()]
         ann_order = [img_ann.filename for img_ann in ann.images]  # same order among 'ann' and 'pred' images
         for img_pred in pred.images:
-            categories = Database.__subclasses__()[datasets.index(self.database)]().get_categories()
+            categories = Database.__subclasses__()[datasets.index(self.database)]().get_categories().values() if self.database else []
             colors = Database.__subclasses__()[datasets.index(self.database)]().get_colors()
             mapping = dict(zip([cat.name for cat in categories], range(len(categories))))
             drawing = dict(zip(range(len(categories)), colors))
