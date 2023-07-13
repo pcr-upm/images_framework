@@ -80,7 +80,7 @@ class COCO(Database):
         import json
         import itertools
         from PIL import Image
-        from ast import literal_eval
+        # from ast import literal_eval
         from datetime import datetime
         from .annotations import PersonObject
         seq = GenericGroup()
@@ -94,8 +94,8 @@ class COCO(Database):
             obj.id = int(parts[(5*idx)+4])
             bbox = np.array(json.loads(parts[(5*idx)+5]), dtype=float)
             obj.bb = (bbox[0], bbox[1], bbox[0]+bbox[2], bbox[1]+bbox[3])
-            contours = literal_eval(parts[(5*idx)+6])
-            obj.multipolygon = [np.array([[[pt[0], pt[1]]] for pt in list(zip(contour[::2], contour[1::2]))], dtype=float) for contour in contours]
+            # contours = literal_eval(parts[(5*idx)+6])
+            # obj.multipolygon = [np.array([[[pt[0], pt[1]]] for pt in list(zip(contour[::2], contour[1::2]))], dtype=float) for contour in contours]
             obj.add_category(GenericCategory(list(self._categories.values())[int(parts[(5*idx)+7])]))
             landmarks = np.array(json.loads(parts[(5*idx)+8]), dtype=int)
             for label in list(itertools.chain.from_iterable(self._landmarks.values())):
@@ -179,7 +179,7 @@ class AFLW(Database):
     def __init__(self):
         from images_framework.alignment.landmarks import FaceLandmarkPart as Lp
         super().__init__()
-        self._names = ['aflw']
+        self._names = ['aflw', 'AFLW']
         self._landmarks = {Lp.LEYEBROW: (1, 2, 3), Lp.REYEBROW: (4, 5, 6), Lp.LEYE: (7, 101, 8), Lp.REYE: (11, 102, 12), Lp.NOSE: (16, 17, 18), Lp.TMOUTH: (20, 103, 21), Lp.LEAR: (15,), Lp.REAR: (19,), Lp.CHIN: (24,)}
         self._categories = {0: Oi.FACE}
         self._colors = [(0, 255, 0)]
