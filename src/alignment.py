@@ -108,8 +108,8 @@ class Alignment(Component):
             for obj in img_pred.objects:
                 landmarks = list(map(dict, [dict({'label': int(lnd.label), 'pos': list(map(float, lnd.pos)), 'visible': bool(lnd.visible), 'confidence': float(lnd.confidence)}) for lnds in obj.landmarks.values() for lnd in lnds]))
                 output_json['annotations'].append(dict({'id': str(obj.id), 'image_id': img_idx, 'bbox': list(map(float, [obj.bb[0], obj.bb[1], obj.bb[2]-obj.bb[0], obj.bb[3]-obj.bb[1]])), 'pose': list(map(float, Rotation.from_matrix(obj.headpose).as_euler('YXZ', degrees=True))), 'landmarks': landmarks, 'iscrowd': int(len(img_pred.objects) > 1)}))
-            mapping = Database.__subclasses__()[idx[0]]().get_mapping()
-            output_json['mapping'].append(dict({str(lp.value): list(map(int, mapping[lp])) for lp in mapping}))
+            parts = Database.__subclasses__()[idx[0]]().get_landmarks()
+            output_json['mapping'].append(dict({str(lp.value): list(map(int, parts[lp])) for lp in parts}))
             # Save COCO annotation file
             root, extension = os.path.splitext(img_pred.filename)
             with open(dirname + os.path.basename(root) + '.json', 'w') as ofs:
