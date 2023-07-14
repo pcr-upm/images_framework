@@ -84,7 +84,7 @@ class Recognition(Component):
         import os
         import json
         datasets = [db.__name__ for db in Database.__subclasses__()]
-        categories = Database.__subclasses__()[datasets.index(self.database)]().get_categories()
+        categories = Database.__subclasses__()[datasets.index(self.database)]().get_categories().values()
         for img_pred in pred.images:
             # Create a blank json that matched the labeler provided jsons with default values
             output_json = dict({'images': [], 'annotations': [], 'categories': []})
