@@ -129,7 +129,7 @@ class Segmentation(Component):
         import os
         import json
         datasets = [db.__name__ for db in Database.__subclasses__()]
-        categories = Database.__subclasses__()[datasets.index(self.database)]().get_categories()
+        categories = Database.__subclasses__()[datasets.index(self.database)]().get_categories().values() if self.database else []
         names = [cat.name for cat in categories]
         for img_pred in pred.images:
             # Create a blank json that matched the labeler provided jsons with default values
