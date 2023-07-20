@@ -30,6 +30,7 @@ class PersonLandmarkPart(Enum):
     Person landmark part label.
     """
     NOSE = 'nose'
+    NECK = 'neck'
     LEYE = 'leye'
     REYE = 'reye'
     LEAR = 'lear'
@@ -42,7 +43,15 @@ class PersonLandmarkPart(Enum):
     RWRIST = 'rwrist'
     LHIP = 'lhip'
     RHIP = 'rhip'
+    MIDHIP = 'midhip'
     LKNEE = 'lknee'
     RKNEE = 'rknee'
     LANKLE = 'lankle'
     RANKLE = 'rankle'
+    LBIGTOE = 'lbigtoe'
+    RBIGTOE = 'rbigtoe'
+    LSMALLTOE = 'lsmalltoe'
+    RSMALLTOE = 'rsmalltoe'
+    LHEEL = 'lheel'
+    RHEEL = 'rheel'
+    BACKGROUND = 'background'

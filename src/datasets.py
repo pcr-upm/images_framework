@@ -96,7 +96,7 @@ class COCO(Database):
             obj.bb = (bbox[0], bbox[1], bbox[0]+bbox[2], bbox[1]+bbox[3])
             # contours = literal_eval(parts[(5*idx)+6])
             # obj.multipolygon = [np.array([[[pt[0], pt[1]]] for pt in list(zip(contour[::2], contour[1::2]))], dtype=float) for contour in contours]
-            obj.add_category(GenericCategory(list(self._categories.values())[int(parts[(5*idx)+7])]))
+            obj.add_category(GenericCategory(list(self._categories.values())[int(parts[(5*idx)+7])-1]))
             landmarks = np.array(json.loads(parts[(5*idx)+8]), dtype=int)
             for label in list(itertools.chain.from_iterable(self._landmarks.values())):
                 if landmarks.size == 0:  # object without landmarks
