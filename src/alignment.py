@@ -101,7 +101,7 @@ class Alignment(Component):
         import os
         import json
         datasets = [subclass().get_names() for subclass in Database.__subclasses__()]
-        idx = [datasets.index(subset) for subset in datasets if self.database in subset]
+        parts = Database.__subclasses__()[next((idx for idx, subset in enumerate(datasets) if self.database in subset), None)]().get_landmarks()
         for img_idx, img_pred in enumerate(pred.images):
             # Create a blank json that matched the labeler provided jsons with default values
             output_json = dict({'images': [], 'annotations': [], 'mapping': []})
@@ -109,7 +109,6 @@ class Alignment(Component):
             for obj in img_pred.objects:
                 landmarks = list(map(dict, [dict({'label': int(lnd.label), 'pos': list(map(float, lnd.pos)), 'visible': bool(lnd.visible), 'confidence': float(lnd.confidence)}) for lnds in obj.landmarks.values() for lnd in lnds]))
                 output_json['annotations'].append(dict({'id': str(obj.id), 'image_id': img_idx, 'bbox': list(map(float, [obj.bb[0], obj.bb[1], obj.bb[2]-obj.bb[0], obj.bb[3]-obj.bb[1]])), 'pose': list(map(float, Rotation.from_matrix(obj.headpose).as_euler('YXZ', degrees=True) if hasattr(obj, 'headpose') else [-1.0, -1.0, -1.0])), 'landmarks': landmarks, 'iscrowd': int(len(img_pred.objects) > 1)}))
-            parts = Database.__subclasses__()[idx[0]]().get_landmarks()
             output_json['mapping'].append(dict({str(lp.value): list(map(int, parts[lp])) for lp in parts}))
             # Save COCO annotation file
             root, extension = os.path.splitext(img_pred.filename)

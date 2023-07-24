@@ -43,13 +43,13 @@ class Segmentation(Component):
         pass
 
     def show(self, viewer, ann, pred):
-        datasets = [db.__name__ for db in Database.__subclasses__()]
+        datasets = [subclass().get_names() for subclass in Database.__subclasses__()]
+        categories = Database.__subclasses__()[next((idx for idx, subset in enumerate(datasets) if self.database in subset), None)]().get_categories().values()
+        colors = Database.__subclasses__()[next((idx for idx, subset in enumerate(datasets) if self.database in subset), None)]().get_colors()
+        mapping = dict(zip([cat.name for cat in categories], range(len(categories))))
+        drawing = dict(zip(range(len(categories)), colors))
         ann_order = [img_ann.filename for img_ann in ann.images]  # same order among 'ann' and 'pred' images
         for img_pred in pred.images:
-            categories = Database.__subclasses__()[datasets.index(self.database)]().get_categories().values() if self.database else []
-            colors = Database.__subclasses__()[datasets.index(self.database)]().get_colors()
-            mapping = dict(zip([cat.name for cat in categories], range(len(categories))))
-            drawing = dict(zip(range(len(categories)), colors))
             image_idx = [np.array_equal(img_pred.filename, elem) for elem in ann_order].index(True)
             # mapping['Background'] = 255
             # drawing[255] = (255, 255, 255)
@@ -128,8 +128,8 @@ class Segmentation(Component):
     def save(self, dirname, pred):
         import os
         import json
-        datasets = [db.__name__ for db in Database.__subclasses__()]
-        categories = Database.__subclasses__()[datasets.index(self.database)]().get_categories().values() if self.database else []
+        datasets = [subclass().get_names() for subclass in Database.__subclasses__()]
+        categories = Database.__subclasses__()[next((idx for idx, subset in enumerate(datasets) if self.database in subset), None)]().get_categories().values()
         names = [cat.name for cat in categories]
         for img_pred in pred.images:
             # Create a blank json that matched the labeler provided jsons with default values
