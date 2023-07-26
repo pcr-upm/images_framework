@@ -794,7 +794,7 @@ class LIP(Database):
 class SegESolarScene(Database):
     def __init__(self):
         super().__init__()
-        self._names = ['seg_esolar_scene', 'SegESolarScene']
+        self._names = ['SegESolarScene']
         self._categories = {'bg': Oi.BACKGROUND, 'fg': Oi.SOLAR_PANEL}
         self._colors = [(0, 255, 255), (0, 255, 0)]
 
@@ -826,7 +826,7 @@ class SegESolarScene(Database):
 class SegGeoAIPanels(Database):
     def __init__(self):
         super().__init__()
-        self._names = ['seg_geoai_panels', 'SegGeoAIPanels']
+        self._names = ['SegGeoAIPanels']
         self._categories = {0: Oi.SOLAR_PANEL}
         self._colors = [(0, 255, 0)]
 
@@ -859,7 +859,7 @@ class RecGeoAIPanels(Database):
     def __init__(self):
         from images_framework.categories.panels import Panel as Op
         super().__init__()
-        self._names = ['rec_geoai_panels', 'RecGeoAIPanels']
+        self._names = ['RecGeoAIPanels']
         self._categories = {'1CC': Op.SOLAR_PANEL.HOT_CELL, 'SMC': Op.SOLAR_PANEL.HOT_CELL_CHAIN, 'CCS': Op.SOLAR_PANEL.SEVERAL_HOT_CELLS, '1PC': Op.SOLAR_PANEL.HOT_SPOT, 'PCS': Op.SOLAR_PANEL.SEVERAL_HOT_SPOTS, 'PID': Op.SOLAR_PANEL.POTENTIAL_INDUCED_DEGRADATION, 'DRT': Op.SOLAR_PANEL.DIRTY_PANEL, 'BRK': Op.SOLAR_PANEL.BROKEN_PANEL, 'DSC': Op.SOLAR_PANEL.DISCONNECTED_PANEL, 'SDW': Op.SOLAR_PANEL.SHADES, 'SDWD': Op.SOLAR_PANEL.SHADES_HOT_CELL_CHAIN, 'NDM': Op.SOLAR_PANEL.NO_DAMAGE}
         self._colors = get_palette(len(self._categories))
 

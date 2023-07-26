@@ -9,7 +9,7 @@ RUN chmod 400 /root/.ssh/id_rsa
 RUN touch /root/.ssh/known_hosts
 RUN ssh-keyscan github.com >> /root/.ssh/known_hosts
 # Download the computer vision framework
-RUN git clone git@github.com:bobetocalo/images_framework.git images_framework
+RUN git clone git@github.com:pcr-upm/images_framework.git images_framework
 
 # Copy the repository from the previous image
 FROM ubuntu
