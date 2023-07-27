@@ -90,17 +90,17 @@ class COCO(Database):
         image.tile = np.array([0, 0, width, height])
         image.timestamp = datetime.strptime(parts[2], '%Y-%m-%d %H:%M:%S')
         for idx in range(0, int(parts[3])):
-            obj = PersonObject()
-            obj.id = int(parts[(5*idx)+4])
             bbox = np.array(json.loads(parts[(5*idx)+5]), dtype=float)
-            obj.bb = (bbox[0], bbox[1], bbox[0]+bbox[2], bbox[1]+bbox[3])
             # contours = literal_eval(parts[(5*idx)+6])
+            landmarks = np.array(json.loads(parts[(5*idx)+8]), dtype=int)
+            obj = GenericObject() if landmarks.size == 0 else PersonObject()
+            obj.id = int(parts[(5*idx)+4])
+            obj.bb = (bbox[0], bbox[1], bbox[0]+bbox[2], bbox[1]+bbox[3])
             # obj.multipolygon = [np.array([[[pt[0], pt[1]]] for pt in list(zip(contour[::2], contour[1::2]))], dtype=float) for contour in contours]
             obj.add_category(GenericCategory(list(self._categories.values())[int(parts[(5*idx)+7])-1]))
-            landmarks = np.array(json.loads(parts[(5*idx)+8]), dtype=int)
+            if not isinstance(obj, PersonObject):
+                continue
             for label in list(itertools.chain.from_iterable(self._landmarks.values())):
-                if landmarks.size == 0:  # object without landmarks
-                    continue
                 lp = list(self._landmarks.keys())[next((ids for ids, xs in enumerate(self._landmarks.values()) for x in xs if x == label), None)]
                 pos = (int(landmarks[(3*label)]), int(landmarks[(3*label)+1]))
                 vis = int(landmarks[(3*label)+2])

@@ -11,6 +11,8 @@ from scipy.spatial.transform import Rotation
 from .component import Component
 from .detection import Detection
 from .datasets import Database
+from .annotations import PersonObject
+from images_framework.alignment.landmarks import PersonLandmarkPart as Lp
 
 
 class Alignment(Component):
@@ -72,12 +74,25 @@ class Alignment(Component):
                         viewer.line(img_pred, mid, tuple(mid+obj_axis[0, :2].ravel().astype(int)), (0,255,0) if objs_idx == 0 else (0,122,0), thickness)  # green: roll (x-axis)
                         viewer.line(img_pred, mid, tuple(mid+obj_axis[1, :2].ravel().astype(int)), (0,0,255) if objs_idx == 0 else (0,0,122), thickness)  # blue: pitch (y-axis)
                         viewer.line(img_pred, mid, tuple(mid+obj_axis[2, :2].ravel().astype(int)), (255,0,0) if objs_idx == 0 else (122,0,0), thickness)  # red: yaw (z-axis)
+                    # Draw skeleton for person objects
+                    if isinstance(obj, PersonObject):
+                        skeleton = [[Lp.LEAR, Lp.LEYE, Lp.NOSE, Lp.REYE, Lp.REAR], [Lp.LWRIST, Lp.LELBOW, Lp.LSHOULDER], [Lp.RWRIST, Lp.RELBOW, Lp.RSHOULDER], [Lp.LANKLE, Lp.LKNEE, Lp.LHIP], [Lp.RANKLE, Lp.RKNEE, Lp.RHIP]]
+                        skeleton.extend([[Lp.LHIP, Lp.LSHOULDER, Lp.NOSE, Lp.RSHOULDER, Lp.RHIP]])  # kinematic
+                        # skeleton.extend([[Lp.LEYE, Lp.REYE], [Lp.LSHOULDER, Lp.RSHOULDER], [Lp.LHIP, Lp.RHIP], [Lp.LHIP, Lp.LSHOULDER, Lp.LEAR], [Lp.RHIP, Lp.RSHOULDER, Lp.REAR]])  # coco
+                        for part in skeleton:
+                            for part_org, part_dst in pairwise(part):
+                                if part_org.name not in obj.landmarks.keys() or part_dst.name not in obj.landmarks.keys() or obj.landmarks[part_org.name] == [] or obj.landmarks[part_dst.name] == []:
+                                    continue
+                                # Connection between parts using the last index of each part
+                                org, dst = obj.landmarks[part_org.name][-1], obj.landmarks[part_dst.name][-1]
+                                color = ((0,122,255) if (org.visible and dst.visible) else (0,0,255)) if objs_idx == 0 else ((0,255,0) if (org.visible and dst.visible) else (255,0,0))
+                                viewer.line(img_pred, (int(round(org.pos[0])), int(round(org.pos[1]))), (int(round(dst.pos[0])), int(round(dst.pos[1]))), color, int(round(thickness*0.5)))
                     # Draw landmarks with a black border
-                    for lp in obj.landmarks.values():
-                        for org, dst in pairwise(lp):
+                    for lnds in obj.landmarks.values():
+                        for org, dst in pairwise(lnds):
                             color = ((0,122,255) if (org.visible and dst.visible) else (0,0,255)) if objs_idx == 0 else ((0,255,0) if (org.visible and dst.visible) else (255,0,0))
                             viewer.line(img_pred, (int(round(org.pos[0])), int(round(org.pos[1]))), (int(round(dst.pos[0])), int(round(dst.pos[1]))), color, int(round(thickness*0.5)))
-                        for lnd in lp:
+                        for lnd in lnds:
                             color = ((0,122,255) if lnd.visible else (0,0,255)) if objs_idx == 0 else ((0,255,0) if lnd.visible else (255,0,0))
                             viewer.circle(img_pred, (int(round(lnd.pos[0])), int(round(lnd.pos[1]))), radius=0, color=color, thickness=thickness-1)
                             viewer.circle(img_pred, (int(round(lnd.pos[0])), int(round(lnd.pos[1]))), radius=int(round(thickness*0.5)), color=(0,0,0), thickness=1)
