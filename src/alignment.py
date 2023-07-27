@@ -107,7 +107,7 @@ class Alignment(Component):
                 for obj in objs_val:
                     landmarks = map(str, [';'.join(map(str, [lnd.label, ';'.join(map(str, lnd.pos)), lnd.visible, lnd.confidence])) for lnds in obj.landmarks.values() for lnd in lnds])
                     num_landmarks = len([lnd for lnds in obj.landmarks.values() for lnd in lnds])
-                    fs.write(';' + str(obj.id) + ';' + str(obj.bb) + ';' + str(obj.headpose.tolist() if hasattr(obj, 'headpose') else np.array([])) + ';' + str(num_landmarks))
+                    fs.write(';' + str(obj.id) + ';' + str(obj.bb) + ';' + str(obj.headpose.tolist() if hasattr(obj, 'headpose') else np.eye(3).tolist()) + ';' + str(num_landmarks))
                     if num_landmarks > 0:
                         fs.write(';' + ';'.join(landmarks))
             fs.write('\n')
