@@ -40,3 +40,6 @@
 [submodule "recognition/ricardo24_recognition"]
 	path = recognition/ricardo24_recognition
 	url = git@github.com:pcr-upm/ricardo24_recognition.git
+[submodule "generation/controlnet23_generation"]
+	path = generation/controlnet23_generation
+	url = git@github.com:bobetocalo/controlnet23_generation.git

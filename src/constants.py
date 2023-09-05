@@ -24,6 +24,7 @@ class Parts(Enum):
     SEGMENTATION = 'segmentation'
     ALIGNMENT = 'alignment'
     RECOGNITION = 'recognition'
+    GENERATION = 'generation'
     ALL = 'all'
 
 
@@ -66,3 +67,11 @@ class Recognitors(Enum):
     Different object recognition algorithms.
     """
     RESNET15_RECOGNITION = 'resnet15_recognition'
+
+
+@unique
+class Generators(Enum):
+    """
+    Different image generation algorithms.
+    """
+    CONTROLNET23_GENERATION = 'controlnet23_generation'
