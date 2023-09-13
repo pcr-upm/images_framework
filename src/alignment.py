@@ -11,8 +11,6 @@ from scipy.spatial.transform import Rotation
 from .component import Component
 from .detection import Detection
 from .datasets import Database
-from .annotations import PersonObject
-from images_framework.alignment.landmarks import PersonLandmarkPart as Lp
 
 
 class Alignment(Component):
@@ -47,6 +45,8 @@ class Alignment(Component):
         pass
 
     def show(self, viewer, ann, pred):
+        from images_framework.alignment.landmarks import PersonLandmarkPart as Pl, FaceLandmarkPart as Pf, BodyLandmarkPart as Pb
+
         def pairwise(iterable):
             import itertools
             a, b = itertools.tee(iterable)
@@ -64,7 +64,7 @@ class Alignment(Component):
                     (xmin, ymin, xmax, ymax) = obj.bb
                     contour = np.array([[xmin, ymin], [xmax, ymin], [xmax, ymax], [xmin, ymax]], dtype=np.int32)
                     thickness = int(round(math.log(max(math.e, np.sqrt(cv2.contourArea(contour))), 2)))
-                    if hasattr(obj, 'headpose'):
+                    if (obj.headpose != -1).any():
                         # From right-hand rule to left-hand rule
                         euler = Rotation.from_matrix(obj.headpose).as_euler('YXZ', degrees=True)
                         obj_axis = axis @ Rotation.from_euler('YXZ', [-euler[0], -euler[1], -euler[2]], degrees=True).as_matrix()
@@ -75,20 +75,20 @@ class Alignment(Component):
                         viewer.line(img_pred, mid, tuple(mid+obj_axis[1, :2].ravel().astype(int)), (0,0,255) if objs_idx == 0 else (0,0,122), thickness)  # blue: pitch (y-axis)
                         viewer.line(img_pred, mid, tuple(mid+obj_axis[2, :2].ravel().astype(int)), (255,0,0) if objs_idx == 0 else (122,0,0), thickness)  # red: yaw (z-axis)
                     # Draw skeleton for person objects
-                    if isinstance(obj, PersonObject):
-                        skeleton = [[Lp.LEAR, Lp.LEYE, Lp.NOSE, Lp.REYE, Lp.REAR], [Lp.LWRIST, Lp.LELBOW, Lp.LSHOULDER], [Lp.RWRIST, Lp.RELBOW, Lp.RSHOULDER], [Lp.LANKLE, Lp.LKNEE, Lp.LHIP], [Lp.RANKLE, Lp.RKNEE, Lp.RHIP]]
-                        skeleton.extend([[Lp.LHIP, Lp.LSHOULDER, Lp.NOSE, Lp.RSHOULDER, Lp.RHIP]])  # kinematic
-                        # skeleton.extend([[Lp.LEYE, Lp.REYE], [Lp.LSHOULDER, Lp.RSHOULDER], [Lp.LHIP, Lp.RHIP], [Lp.LHIP, Lp.LSHOULDER, Lp.LEAR], [Lp.RHIP, Lp.RSHOULDER, Lp.REAR]])  # coco
+                    if any(obj.landmarks[Pl.BODY.value].values()):
+                        skeleton = [[Pf.LEAR, Pf.LEYE, Pf.NOSE, Pf.REYE, Pf.REAR], [Pb.LWRIST, Pb.LELBOW, Pb.LSHOULDER], [Pb.RWRIST, Pb.RELBOW, Pb.RSHOULDER], [Pb.LANKLE, Pb.LKNEE, Pb.LHIP], [Pb.RANKLE, Pb.RKNEE, Pb.RHIP]]
+                        skeleton.extend([[Pb.LHIP, Pb.LSHOULDER, Pf.NOSE, Pb.RSHOULDER, Pb.RHIP]])  # kinematic
+                        # skeleton.extend([[Pf.LEYE, Pf.REYE], [Pb.LSHOULDER, Pb.RSHOULDER], [Pb.LHIP, Pb.RHIP], [Pb.LHIP, Pb.LSHOULDER, Pf.LEAR], [Pb.RHIP, Pb.RSHOULDER, Pf.REAR]])  # coco
                         for part in skeleton:
                             for part_org, part_dst in pairwise(part):
-                                if part_org.name not in obj.landmarks.keys() or part_dst.name not in obj.landmarks.keys() or obj.landmarks[part_org.name] == [] or obj.landmarks[part_dst.name] == []:
+                                if part_org.value not in obj.landmarks[Pl.BODY.value].keys() or part_dst.value not in obj.landmarks[Pl.BODY.value].keys() or obj.landmarks[Pl.BODY.value][part_org.value] == [] or obj.landmarks[Pl.BODY.value][part_dst.value] == []:
                                     continue
                                 # Connection between parts using the last index of each part
-                                org, dst = obj.landmarks[part_org.name][-1], obj.landmarks[part_dst.name][-1]
+                                org, dst = obj.landmarks[Pl.BODY.value][part_org.value][-1], obj.landmarks[Pl.BODY.value][part_dst.value][-1]
                                 color = ((0,122,255) if (org.visible and dst.visible) else (0,0,255)) if objs_idx == 0 else ((0,255,0) if (org.visible and dst.visible) else (255,0,0))
                                 viewer.line(img_pred, (int(round(org.pos[0])), int(round(org.pos[1]))), (int(round(dst.pos[0])), int(round(dst.pos[1]))), color, int(round(thickness*0.5)))
                     # Draw landmarks with a black border
-                    for lnds in obj.landmarks.values():
+                    for lnds in [landmarks for lps in obj.landmarks.values() for landmarks in lps.values()]:
                         for org, dst in pairwise(lnds):
                             color = ((0,122,255) if (org.visible and dst.visible) else (0,0,255)) if objs_idx == 0 else ((0,255,0) if (org.visible and dst.visible) else (255,0,0))
                             viewer.line(img_pred, (int(round(org.pos[0])), int(round(org.pos[1]))), (int(round(dst.pos[0])), int(round(dst.pos[1]))), color, int(round(thickness*0.5)))
@@ -105,8 +105,8 @@ class Alignment(Component):
             fs.write(str(self.get_component_class()) + ';' + ann.images[image_idx].filename + ';' + str(len(ann.images[image_idx].objects)) + ';' + str(len(img_pred.objects)))
             for objs_idx, objs_val in enumerate([ann.images[image_idx].objects, img_pred.objects]):
                 for obj in objs_val:
-                    landmarks = map(str, [';'.join(map(str, [lnd.label, ';'.join(map(str, lnd.pos)), lnd.visible, lnd.confidence])) for lnds in obj.landmarks.values() for lnd in lnds])
-                    num_landmarks = len([lnd for lnds in obj.landmarks.values() for lnd in lnds])
+                    landmarks = map(str, [';'.join(map(str, [lnd.label, ';'.join(map(str, lnd.pos)), lnd.visible, lnd.confidence])) for lnds in [landmarks for lps in obj.landmarks.values() for landmarks in lps.values()] for lnd in lnds])
+                    num_landmarks = len([lnd for lnds in [landmarks for lps in obj.landmarks.values() for landmarks in lps.values()] for lnd in lnds])
                     fs.write(';' + str(obj.id) + ';' + str(obj.bb) + ';' + str(obj.headpose.tolist() if hasattr(obj, 'headpose') else np.eye(3).tolist()) + ';' + str(num_landmarks))
                     if num_landmarks > 0:
                         fs.write(';' + ';'.join(landmarks))
@@ -122,7 +122,7 @@ class Alignment(Component):
             output_json = dict({'images': [], 'annotations': [], 'mapping': []})
             output_json['images'].append(dict({'id': img_idx, 'file_name': os.path.basename(img_pred.filename), 'width': int(img_pred.tile[2]-img_pred.tile[0]), 'height': int(img_pred.tile[3]-img_pred.tile[1]), 'date_captured': img_pred.timestamp}))
             for obj in img_pred.objects:
-                landmarks = list(map(dict, [dict({'label': int(lnd.label), 'pos': list(map(float, lnd.pos)), 'visible': bool(lnd.visible), 'confidence': float(lnd.confidence)}) for lnds in obj.landmarks.values() for lnd in lnds]))
+                landmarks = list(map(dict, [dict({'label': int(lnd.label), 'pos': list(map(float, lnd.pos)), 'visible': bool(lnd.visible), 'confidence': float(lnd.confidence)}) for lnds in [landmarks for lps in obj.landmarks.values() for landmarks in lps.values()] for lnd in lnds]))
                 output_json['annotations'].append(dict({'id': str(obj.id), 'image_id': img_idx, 'bbox': list(map(float, [obj.bb[0], obj.bb[1], obj.bb[2]-obj.bb[0], obj.bb[3]-obj.bb[1]])), 'pose': list(map(float, Rotation.from_matrix(obj.headpose).as_euler('YXZ', degrees=True) if hasattr(obj, 'headpose') else [-1.0, -1.0, -1.0])), 'landmarks': landmarks, 'iscrowd': int(len(img_pred.objects) > 1)}))
             output_json['mapping'].append(dict({str(lp.value): list(map(int, parts[lp])) for lp in parts}))
             # Save COCO annotation file

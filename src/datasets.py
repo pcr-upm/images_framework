@@ -58,7 +58,8 @@ class Database(abc.ABC):
 
 class COCO(Database):
     def __init__(self):
-        from images_framework.alignment.landmarks import PersonLandmarkPart as Lp
+        from images_framework.alignment.landmarks import FaceLandmarkPart as Pf
+        from images_framework.alignment.landmarks import BodyLandmarkPart as Pb
         from images_framework.categories.vehicles import Vehicle as Ov
         from images_framework.categories.outdoor import Outdoor as Oo
         from images_framework.categories.animals import Animal as Oa
@@ -72,7 +73,7 @@ class COCO(Database):
         from images_framework.categories.indoor import Indoor as Oy
         super().__init__()
         self._names = ['coco']
-        self._landmarks = {Lp.NOSE: (0,), Lp.LEYE: (1,), Lp.REYE: (2,), Lp.LEAR: (3,), Lp.REAR: (4,), Lp.LSHOULDER: (5,), Lp.RSHOULDER: (6,), Lp.LELBOW: (7,), Lp.RELBOW: (8,), Lp.LWRIST: (9,), Lp.RWRIST: (10,), Lp.LHIP: (11,), Lp.RHIP: (12,), Lp.LKNEE: (13,), Lp.RKNEE: (14,), Lp.LANKLE: (15,), Lp.RANKLE: (16,)}
+        self._landmarks = {Pf.NOSE: (0,), Pf.LEYE: (1,), Pf.REYE: (2,), Pf.LEAR: (3,), Pf.REAR: (4,), Pb.LSHOULDER: (5,), Pb.RSHOULDER: (6,), Pb.LELBOW: (7,), Pb.RELBOW: (8,), Pb.LWRIST: (9,), Pb.RWRIST: (10,), Pb.LHIP: (11,), Pb.RHIP: (12,), Pb.LKNEE: (13,), Pb.RKNEE: (14,), Pb.LANKLE: (15,), Pb.RANKLE: (16,)}
         self._categories = {1: Oi.PERSON, 2: Ov.VEHICLE.BICYCLE, 3: Ov.VEHICLE.CAR, 4: Ov.VEHICLE.MOTORCYCLE, 5: Ov.VEHICLE.AIRPLANE, 6: Ov.VEHICLE.BUS, 7: Ov.VEHICLE.TRAIN, 8: Ov.VEHICLE.TRUCK, 9: Ov.VEHICLE.BOAT, 10: Oo.OUTDOOR.TRAFFIC_LIGHT, 11: Oo.OUTDOOR.FIRE_HYDRANT, 12: Oo.OUTDOOR.STREET_SIGN, 13: Oo.OUTDOOR.STOP_SIGN, 14: Oo.OUTDOOR.PARKING_METER, 15: Oo.OUTDOOR.BENCH, 16: Oa.ANIMAL.BIRD, 17: Oa.ANIMAL.CAT, 18: Oa.ANIMAL.DOG, 19: Oa.ANIMAL.HORSE, 20: Oa.ANIMAL.SHEEP, 21: Oa.ANIMAL.COW, 22: Oa.ANIMAL.ELEPHANT, 23: Oa.ANIMAL.BEAR, 24: Oa.ANIMAL.ZEBRA, 25: Oa.ANIMAL.GIRAFFE, 26: Oq.ACCESSORY.HAT, 27: Oq.ACCESSORY.BACKPACK, 28: Oq.ACCESSORY.UMBRELLA, 29: Oq.ACCESSORY.SHOE, 30: Oq.ACCESSORY.EYE_GLASSES, 31: Oq.ACCESSORY.HANDBAG, 32: Oq.ACCESSORY.TIE, 33: Oq.ACCESSORY.SUITCASE, 34: Os.SPORTS.FRISBEE, 35: Os.SPORTS.SKIS, 36: Os.SPORTS.SNOWBOARD, 37: Os.SPORTS.SPORTS_BALL, 38: Os.SPORTS.KITE, 39: Os.SPORTS.BASEBALL_BAT, 40: Os.SPORTS.BASEBALL_GLOVE, 41: Os.SPORTS.SKATEBOARD, 42: Os.SPORTS.SURFBOARD, 43: Os.SPORTS.TENNIS_RACKET, 44: Ok.KITCHEN.BOTTLE, 45: Ok.KITCHEN.PLATE, 46: Ok.KITCHEN.WINE_GLASS, 47: Ok.KITCHEN.CUP, 48: Ok.KITCHEN.FORK, 49: Ok.KITCHEN.KNIFE, 50: Ok.KITCHEN.SPOON, 51: Ok.KITCHEN.BOWL, 52: Of.FOOD.BANANA, 53: Of.FOOD.APPLE, 54: Of.FOOD.SANDWICH, 55: Of.FOOD.ORANGE, 56: Of.FOOD.BROCCOLI, 57: Of.FOOD.CARROT, 58: Of.FOOD.HOT_DOG, 59: Of.FOOD.PIZZA, 60: Of.FOOD.DONUT, 61: Of.FOOD.CAKE, 62: Ow.FURNITURE.CHAIR, 63: Ow.FURNITURE.COUCH, 64: Ow.FURNITURE.POTTED_PLANT, 65: Ow.FURNITURE.BED, 66: Ow.FURNITURE.MIRROR, 67: Ow.FURNITURE.DINING_TABLE, 68: Ow.FURNITURE.WINDOW, 69: Ow.FURNITURE.DESK, 70: Ow.FURNITURE.TOILET, 71: Ow.FURNITURE.DOOR, 72: Oe.ELECTRONIC.TV, 73: Oe.ELECTRONIC.LAPTOP, 74: Oe.ELECTRONIC.MOUSE, 75: Oe.ELECTRONIC.REMOTE, 76: Oe.ELECTRONIC.KEYBOARD, 77: Oe.ELECTRONIC.CELL_PHONE, 78: Oj.APPLIANCE.MICROWAVE, 79: Oj.APPLIANCE.OVEN, 80: Oj.APPLIANCE.TOASTER, 81: Oj.APPLIANCE.SINK, 82: Oj.APPLIANCE.REFRIGERATOR, 83: Oj.APPLIANCE.BLENDER, 84: Oy.INDOOR.BOOK, 85: Oy.INDOOR.CLOCK, 86: Oy.INDOOR.VASE, 87: Oy.INDOOR.SCISSORS, 88: Oy.INDOOR.TEDDY_BEAR, 89: Oy.INDOOR.HAIR_DRIER, 90: Oy.INDOOR.TOOTHBRUSH, 91: Oy.INDOOR.HAIR_BRUSH}
         self._colors = get_palette(len(self._categories))
 
@@ -83,6 +84,7 @@ class COCO(Database):
         # from ast import literal_eval
         from datetime import datetime
         from .annotations import PersonObject
+        from images_framework.alignment.landmarks import lps
         seq = GenericGroup()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
@@ -106,7 +108,7 @@ class COCO(Database):
                 vis = int(landmarks[(3*label)+2])
                 if vis == 0:  # landmark is not in the image
                     continue
-                obj.add_landmark(GenericLandmark(label, lp, pos, bool(vis == 2)))
+                obj.add_landmark(GenericLandmark(label, lp, pos, bool(vis == 2)), lps[type(lp)])
             image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -114,22 +116,23 @@ class COCO(Database):
 
 class PTS68(Database):
     def __init__(self):
-        from images_framework.alignment.landmarks import FaceLandmarkPart as Lp
+        from images_framework.alignment.landmarks import FaceLandmarkPart as Pf
         super().__init__()
         self._names = ['300w_public', '300w_private']
-        self._landmarks = {Lp.LEYEBROW: (1, 119, 2, 121, 3), Lp.REYEBROW: (4, 124, 5, 126, 6), Lp.LEYE: (7, 138, 139, 8, 141, 142), Lp.REYE: (11, 144, 145, 12, 147, 148), Lp.NOSE: (128, 129, 130, 17, 16, 133, 134, 135, 18), Lp.TMOUTH: (20, 150, 151, 22, 153, 154, 21, 165, 164, 163, 162, 161), Lp.BMOUTH: (156, 157, 23, 159, 160, 168, 167, 166), Lp.LEAR: (101, 102, 103, 104, 105, 106), Lp.REAR: (112, 113, 114, 115, 116, 117), Lp.CHIN: (107, 108, 24, 110, 111)}
+        self._landmarks = {Pf.LEYEBROW: (1, 119, 2, 121, 3), Pf.REYEBROW: (4, 124, 5, 126, 6), Pf.LEYE: (7, 138, 139, 8, 141, 142), Pf.REYE: (11, 144, 145, 12, 147, 148), Pf.NOSE: (128, 129, 130, 17, 16, 133, 134, 135, 18), Pf.TMOUTH: (20, 150, 151, 22, 153, 154, 21, 165, 164, 163, 162, 161), Pf.BMOUTH: (156, 157, 23, 159, 160, 168, 167, 166), Pf.LEAR: (101, 102, 103, 104, 105, 106), Pf.REAR: (112, 113, 114, 115, 116, 117), Pf.CHIN: (107, 108, 24, 110, 111)}
         self._categories = {0: Oi.FACE}
         self._colors = [(0, 255, 0)]
 
     def load_filename(self, path, db, line):
         from PIL import Image
-        from .annotations import FaceObject
+        from .annotations import PersonObject
+        from images_framework.alignment.landmarks import lps
         seq = GenericGroup()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
-        obj = FaceObject()
+        obj = PersonObject()
         obj.bb = (float(parts[1]), float(parts[2]), float(parts[3]), float(parts[4]))
         obj.add_category(GenericCategory(Oi.FACE))
         indices = [101, 102, 103, 104, 105, 106, 107, 108, 24, 110, 111, 112, 113, 114, 115, 116, 117, 1, 119, 2, 121, 3, 4, 124, 5, 126, 6, 128, 129, 130, 17, 16, 133, 134, 135, 18, 7, 138, 139, 8, 141, 142, 11, 144, 145, 12, 147, 148, 20, 150, 151, 22, 153, 154, 21, 156, 157, 23, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168]
@@ -137,7 +140,7 @@ class PTS68(Database):
             label = indices[idx]
             lp = list(self._landmarks.keys())[next((ids for ids, xs in enumerate(self._landmarks.values()) for x in xs if x == label), None)]
             pos = (float(parts[(2*idx)+5]), float(parts[(2*idx)+6]))
-            obj.add_landmark(GenericLandmark(label, lp, pos, True))
+            obj.add_landmark(GenericLandmark(label, lp, pos, True), lps[type(lp)])
         image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -145,22 +148,23 @@ class PTS68(Database):
 
 class COFW(Database):
     def __init__(self):
-        from images_framework.alignment.landmarks import FaceLandmarkPart as Lp
+        from images_framework.alignment.landmarks import FaceLandmarkPart as Pf
         super().__init__()
         self._names = ['cofw']
-        self._landmarks = {Lp.LEYEBROW: (1, 101, 3, 102), Lp.REYEBROW: (4, 103, 6, 104), Lp.LEYE: (7, 9, 8, 10, 105), Lp.REYE: (11, 13, 12, 14, 106), Lp.NOSE: (16, 17, 18, 107), Lp.TMOUTH: (20, 22, 21, 108), Lp.BMOUTH: (109, 23), Lp.CHIN: (24,)}
+        self._landmarks = {Pf.LEYEBROW: (1, 101, 3, 102), Pf.REYEBROW: (4, 103, 6, 104), Pf.LEYE: (7, 9, 8, 10, 105), Pf.REYE: (11, 13, 12, 14, 106), Pf.NOSE: (16, 17, 18, 107), Pf.TMOUTH: (20, 22, 21, 108), Pf.BMOUTH: (109, 23), Pf.CHIN: (24,)}
         self._categories = {0: Oi.FACE}
         self._colors = [(0, 255, 0)]
 
     def load_filename(self, path, db, line):
         from PIL import Image
-        from .annotations import FaceObject
+        from .annotations import PersonObject
+        from images_framework.alignment.landmarks import lps
         seq = GenericGroup()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
-        obj = FaceObject()
+        obj = PersonObject()
         obj.bb = (float(parts[1]), float(parts[2]), float(parts[1])+float(parts[3]), float(parts[2])+float(parts[4]))
         obj.add_category(GenericCategory(Oi.FACE))
         indices = [1, 6, 3, 4, 101, 102, 103, 104, 7, 12, 8, 11, 9, 10, 13, 14, 105, 106, 16, 18, 17, 107, 20, 21, 22, 108, 109, 23, 24]
@@ -169,7 +173,7 @@ class COFW(Database):
             lp = list(self._landmarks.keys())[next((ids for ids, xs in enumerate(self._landmarks.values()) for x in xs if x == label), None)]
             pos = (float(parts[(3*idx)+5]), float(parts[(3*idx)+6]))
             vis = float(parts[(3*idx)+7]) == 0.0
-            obj.add_landmark(GenericLandmark(label, lp, pos, vis))
+            obj.add_landmark(GenericLandmark(label, lp, pos, vis), lps[type(lp)])
         image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -177,23 +181,24 @@ class COFW(Database):
 
 class AFLW(Database):
     def __init__(self):
-        from images_framework.alignment.landmarks import FaceLandmarkPart as Lp
+        from images_framework.alignment.landmarks import FaceLandmarkPart as Pf
         super().__init__()
         self._names = ['aflw', 'AFLW']
-        self._landmarks = {Lp.LEYEBROW: (1, 2, 3), Lp.REYEBROW: (4, 5, 6), Lp.LEYE: (7, 101, 8), Lp.REYE: (11, 102, 12), Lp.NOSE: (16, 17, 18), Lp.TMOUTH: (20, 103, 21), Lp.LEAR: (15,), Lp.REAR: (19,), Lp.CHIN: (24,)}
+        self._landmarks = {Pf.LEYEBROW: (1, 2, 3), Pf.REYEBROW: (4, 5, 6), Pf.LEYE: (7, 101, 8), Pf.REYE: (11, 102, 12), Pf.NOSE: (16, 17, 18), Pf.TMOUTH: (20, 103, 21), Pf.LEAR: (15,), Pf.REAR: (19,), Pf.CHIN: (24,)}
         self._categories = {0: Oi.FACE}
         self._colors = [(0, 255, 0)]
 
     def load_filename(self, path, db, line):
         from PIL import Image
         from scipy.spatial.transform import Rotation
-        from .annotations import FaceObject
+        from .annotations import PersonObject
+        from images_framework.alignment.landmarks import lps
         seq = GenericGroup()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
-        obj = FaceObject()
+        obj = PersonObject()
         obj.bb = (int(parts[1]), int(parts[2]), int(parts[1])+int(parts[3]), int(parts[2])+int(parts[4]))
         obj.add_category(GenericCategory(Oi.FACE))
         obj.headpose = Rotation.from_euler('YXZ', [float(parts[5]), float(parts[6]), float(parts[7])], degrees=True).as_matrix()
@@ -205,7 +210,7 @@ class AFLW(Database):
             label = indices[int(parts[(3*idx)+11])-1]
             lp = list(self._landmarks.keys())[next((ids for ids, xs in enumerate(self._landmarks.values()) for x in xs if x == label), None)]
             pos = (float(parts[(3*idx)+12]), float(parts[(3*idx)+13]))
-            obj.add_landmark(GenericLandmark(label, lp, pos, True))
+            obj.add_landmark(GenericLandmark(label, lp, pos, True), lps[type(lp)])
         image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -213,22 +218,23 @@ class AFLW(Database):
 
 class WFLW(Database):
     def __init__(self):
-        from images_framework.alignment.landmarks import FaceLandmarkPart as Lp
+        from images_framework.alignment.landmarks import FaceLandmarkPart as Pf
         super().__init__()
         self._names = ['wflw']
-        self._landmarks = {Lp.LEYEBROW: (1, 134, 2, 136, 3, 138, 139, 140, 141), Lp.REYEBROW: (6, 147, 148, 149, 150, 4, 143, 5, 145), Lp.LEYE: (7, 161, 9, 163, 8, 165, 10, 167, 196), Lp.REYE: (11, 169, 13, 171, 12, 173, 14, 175, 197), Lp.NOSE: (151, 152, 153, 17, 16, 156, 157, 158, 18), Lp.TMOUTH: (20, 177, 178, 22, 180, 181, 21, 192, 191, 190, 189, 188), Lp.BMOUTH: (187, 186, 23, 184, 183, 193, 194, 195), Lp.LEAR: (100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110), Lp.REAR: (122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132), Lp.CHIN: (111, 112, 113, 114, 115, 24, 117, 118, 119, 120, 121)}
+        self._landmarks = {Pf.LEYEBROW: (1, 134, 2, 136, 3, 138, 139, 140, 141), Pf.REYEBROW: (6, 147, 148, 149, 150, 4, 143, 5, 145), Pf.LEYE: (7, 161, 9, 163, 8, 165, 10, 167, 196), Pf.REYE: (11, 169, 13, 171, 12, 173, 14, 175, 197), Pf.NOSE: (151, 152, 153, 17, 16, 156, 157, 158, 18), Pf.TMOUTH: (20, 177, 178, 22, 180, 181, 21, 192, 191, 190, 189, 188), Pf.BMOUTH: (187, 186, 23, 184, 183, 193, 194, 195), Pf.LEAR: (100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110), Pf.REAR: (122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132), Pf.CHIN: (111, 112, 113, 114, 115, 24, 117, 118, 119, 120, 121)}
         self._categories = {0: Oi.FACE}
         self._colors = [(0, 255, 0)]
 
     def load_filename(self, path, db, line):
         from PIL import Image
-        from .annotations import FaceObject
+        from .annotations import PersonObject
+        from images_framework.alignment.landmarks import lps
         seq = GenericGroup()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
-        obj = FaceObject()
+        obj = PersonObject()
         obj.bb = (int(parts[1]), int(parts[2]), int(parts[1])+int(parts[3]), int(parts[2])+int(parts[4]))
         obj.add_category(GenericCategory(Oi.FACE))
         indices = [100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 24, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 1, 134, 2, 136, 3, 138, 139, 140, 141, 4, 143, 5, 145, 6, 147, 148, 149, 150, 151, 152, 153, 17, 16, 156, 157, 158, 18, 7, 161, 9, 163, 8, 165, 10, 167, 11, 169, 13, 171, 12, 173, 14, 175, 20, 177, 178, 22, 180, 181, 21, 183, 184, 23, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197]
@@ -236,7 +242,7 @@ class WFLW(Database):
             label = indices[idx]
             lp = list(self._landmarks.keys())[next((ids for ids, xs in enumerate(self._landmarks.values()) for x in xs if x == label), None)]
             pos = (float(parts[(2*idx)+11]), float(parts[(2*idx)+12]))
-            obj.add_landmark(GenericLandmark(label, lp, pos, True))
+            obj.add_landmark(GenericLandmark(label, lp, pos, True), lps[type(lp)])
         image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -244,10 +250,10 @@ class WFLW(Database):
 
 class DAD(Database):
     def __init__(self):
-        from images_framework.alignment.landmarks import FaceLandmarkPart as Lp
+        from images_framework.alignment.landmarks import FaceLandmarkPart as Pf
         super().__init__()
         self._names = ['dad']
-        self._landmarks = {Lp.LEYEBROW: (1983, 2189, 3708, 336, 335, 3153, 3705, 2178, 3684, 3741, 3148, 3696, 2585, 2565, 2567, 3764), Lp.REYEBROW: (570, 694, 3865, 17, 16, 2134, 3863, 673, 3851, 3880, 2121, 3859, 1448, 1428, 1430, 3893), Lp.LEYE: (2441, 2446, 2382, 2381, 2383, 2496, 3690, 2493, 2491, 2465, 3619, 3632, 2505, 2273, 2276, 2355, 2295, 2359, 2267, 2271, 2403, 2437), Lp.REYE: (1183, 1194, 1033, 1023, 1034, 1345, 3856, 1342, 1340, 1243, 3827, 3833, 1354, 824, 827, 991, 883, 995, 814, 822, 1096, 1175), Lp.NOSE: (3540, 3704, 3555, 3560, 3561, 3501, 3526, 3563, 2793, 2751, 3092, 3099, 3102, 2205, 2193, 2973, 2868, 2921, 2920, 1676, 1623, 2057, 2064, 2067, 723, 702, 1895, 1757, 1818, 1817, 3515, 3541), Lp.TMOUTH: (2828, 2832, 2833, 2850, 2813, 2811, 2774, 3546, 1657, 1694, 1696, 1735, 1716, 1715, 1711, 1719, 1748, 1740, 1667, 1668, 3533, 2785, 2784, 2855, 2863, 2836), Lp.BMOUTH: (2891, 2890, 2892, 2928, 2937, 3509, 1848, 1826, 1789, 1787, 1788, 1579, 1773, 1774, 1795, 1802, 1865, 3503, 2948, 2905, 2898, 2881, 2880, 2715), Lp.LEAR: (3386, 3381, 1962, 2213, 2259, 2257, 2954, 3171, 2003), Lp.REAR: (3554, 576, 2159, 1872, 798, 802, 731, 567, 3577, 3582), Lp.CHIN: (3390, 3391, 3396, 3400, 3599, 3593, 3588), Lp.FOREHEAD: (3068, 2196, 2091, 3524, 628, 705, 2030)}
+        self._landmarks = {Pf.LEYEBROW: (1983, 2189, 3708, 336, 335, 3153, 3705, 2178, 3684, 3741, 3148, 3696, 2585, 2565, 2567, 3764), Pf.REYEBROW: (570, 694, 3865, 17, 16, 2134, 3863, 673, 3851, 3880, 2121, 3859, 1448, 1428, 1430, 3893), Pf.LEYE: (2441, 2446, 2382, 2381, 2383, 2496, 3690, 2493, 2491, 2465, 3619, 3632, 2505, 2273, 2276, 2355, 2295, 2359, 2267, 2271, 2403, 2437), Pf.REYE: (1183, 1194, 1033, 1023, 1034, 1345, 3856, 1342, 1340, 1243, 3827, 3833, 1354, 824, 827, 991, 883, 995, 814, 822, 1096, 1175), Pf.NOSE: (3540, 3704, 3555, 3560, 3561, 3501, 3526, 3563, 2793, 2751, 3092, 3099, 3102, 2205, 2193, 2973, 2868, 2921, 2920, 1676, 1623, 2057, 2064, 2067, 723, 702, 1895, 1757, 1818, 1817, 3515, 3541), Pf.TMOUTH: (2828, 2832, 2833, 2850, 2813, 2811, 2774, 3546, 1657, 1694, 1696, 1735, 1716, 1715, 1711, 1719, 1748, 1740, 1667, 1668, 3533, 2785, 2784, 2855, 2863, 2836), Pf.BMOUTH: (2891, 2890, 2892, 2928, 2937, 3509, 1848, 1826, 1789, 1787, 1788, 1579, 1773, 1774, 1795, 1802, 1865, 3503, 2948, 2905, 2898, 2881, 2880, 2715), Pf.LEAR: (3386, 3381, 1962, 2213, 2259, 2257, 2954, 3171, 2003), Pf.REAR: (3554, 576, 2159, 1872, 798, 802, 731, 567, 3577, 3582), Pf.CHIN: (3390, 3391, 3396, 3400, 3599, 3593, 3588), Pf.FOREHEAD: (3068, 2196, 2091, 3524, 628, 705, 2030)}
         self._categories = {0: Oi.FACE}
         self._colors = [(0, 255, 0)]
 
@@ -255,13 +261,14 @@ class DAD(Database):
         import itertools
         from PIL import Image
         from scipy.spatial.transform import Rotation
-        from .annotations import FaceObject
+        from .annotations import PersonObject
+        from images_framework.alignment.landmarks import lps
         seq = GenericGroup()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
-        obj = FaceObject()
+        obj = PersonObject()
         obj.bb = (int(round(float(parts[1]))), int(round(float(parts[2]))), int(round(float(parts[1])))+int(round(float(parts[3]))), int(round(float(parts[2])))+int(round(float(parts[4]))))
         obj.add_category(GenericCategory(Oi.FACE))
         if len(parts) != 12:  # train, val
@@ -277,7 +284,7 @@ class DAD(Database):
             for idx in list(itertools.chain.from_iterable(self._landmarks.values())):
                 lp = list(self._landmarks.keys())[next((ids for ids, xs in enumerate(self._landmarks.values()) for x in xs if x == idx), None)]
                 pos = (float(flame_vertices2d[idx, 0]), height-float(flame_vertices2d[idx, 1]))
-                obj.add_landmark(GenericLandmark(idx, lp, pos, True))
+                obj.add_landmark(GenericLandmark(idx, lp, pos, True), lps[type(lp)])
         if len(parts) != 8:  # train, test
             obj.add_attribute(GenericAttribute('quality', parts[len(parts)-7]))
             obj.add_attribute(GenericAttribute('gender',  parts[len(parts)-6]))
@@ -293,10 +300,10 @@ class DAD(Database):
 
 class AFLW2000(Database):
     def __init__(self):
-        from images_framework.alignment.landmarks import FaceLandmarkPart as Lp
+        from images_framework.alignment.landmarks import FaceLandmarkPart as Pf
         super().__init__()
         self._names = ['300wlp', 'aflw2000']
-        self._landmarks = {Lp.LEYEBROW: (1, 119, 2, 121, 3), Lp.REYEBROW: (4, 124, 5, 126, 6), Lp.LEYE: (7, 138, 139, 8, 141, 142), Lp.REYE: (11, 144, 145, 12, 147, 148), Lp.NOSE: (128, 129, 130, 17, 16, 133, 134, 135, 18), Lp.TMOUTH: (20, 150, 151, 22, 153, 154, 21, 165, 164, 163, 162, 161), Lp.BMOUTH: (156, 157, 23, 159, 160, 168, 167, 166), Lp.LEAR: (101, 102, 103, 104, 105, 106), Lp.REAR: (112, 113, 114, 115, 116, 117), Lp.CHIN: (107, 108, 24, 110, 111)}
+        self._landmarks = {Pf.LEYEBROW: (1, 119, 2, 121, 3), Pf.REYEBROW: (4, 124, 5, 126, 6), Pf.LEYE: (7, 138, 139, 8, 141, 142), Pf.REYE: (11, 144, 145, 12, 147, 148), Pf.NOSE: (128, 129, 130, 17, 16, 133, 134, 135, 18), Pf.TMOUTH: (20, 150, 151, 22, 153, 154, 21, 165, 164, 163, 162, 161), Pf.BMOUTH: (156, 157, 23, 159, 160, 168, 167, 166), Pf.LEAR: (101, 102, 103, 104, 105, 106), Pf.REAR: (112, 113, 114, 115, 116, 117), Pf.CHIN: (107, 108, 24, 110, 111)}
         self._categories = {0: Oi.FACE}
         self._colors = [(0, 255, 0)]
 
@@ -305,13 +312,14 @@ class AFLW2000(Database):
         import itertools
         from PIL import Image
         from scipy.spatial.transform import Rotation
-        from .annotations import FaceObject
+        from .annotations import PersonObject
+        from images_framework.alignment.landmarks import lps
         seq = GenericGroup()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
-        obj = FaceObject()
+        obj = PersonObject()
         obj.add_category(GenericCategory(Oi.FACE))
         euler = [float(parts[2]), float(parts[1]), float(parts[3])]
         obj.headpose = Rotation.from_euler('XYZ', euler, degrees=True).as_matrix()
@@ -323,7 +331,7 @@ class AFLW2000(Database):
             label = indices[idx]
             lp = list(self._landmarks.keys())[next((ids for ids, xs in enumerate(self._landmarks.values()) for x in xs if x == label), None)]
             pos = (int(round(float(parts[(2*idx)+4]))), int(round(float(parts[(2*idx)+5]))))
-            obj.add_landmark(GenericLandmark(label, lp, pos, True))
+            obj.add_landmark(GenericLandmark(label, lp, pos, True), lps[type(lp)])
         obj.bb = cv2.boundingRect(np.array([[pt.pos for pt in list(itertools.chain.from_iterable(obj.landmarks.values()))]]))
         obj.bb = (obj.bb[0], obj.bb[1], obj.bb[0]+obj.bb[2], obj.bb[1]+obj.bb[3])
         image.add_object(obj)
@@ -341,13 +349,13 @@ class Biwi(Database):
     def load_filename(self, path, db, line):
         from PIL import Image
         from scipy.spatial.transform import Rotation
-        from .annotations import FaceObject
+        from .annotations import PersonObject
         seq = GenericGroup()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
-        obj = FaceObject()
+        obj = PersonObject()
         obj.bb = (int(parts[1]), int(parts[2]), int(parts[3]), int(parts[4]))
         obj.add_category(GenericCategory(Oi.FACE))
         obj.headpose = Rotation.from_euler('XYZ', [float(parts[6]), float(parts[5]), float(parts[7])], degrees=True).as_matrix()  # biwi_ann_mtcnn.txt
@@ -367,13 +375,13 @@ class Panoptic(Database):
     def load_filename(self, path, db, line):
         from PIL import Image
         from scipy.spatial.transform import Rotation
-        from .annotations import FaceObject
+        from .annotations import PersonObject
         seq = GenericGroup()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
-        obj = FaceObject()
+        obj = PersonObject()
         obj.bb = (int(parts[1]), int(parts[2]), int(parts[1])+int(parts[3]), int(parts[2])+int(parts[4]))
         obj.add_category(GenericCategory(Oi.FACE))
         obj.headpose = Rotation.from_euler('XYZ', [float(parts[6]), float(parts[5]), float(parts[7])], degrees=True).as_matrix()

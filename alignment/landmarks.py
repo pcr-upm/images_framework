@@ -7,6 +7,16 @@ from enum import Enum, unique
 
 
 @unique
+class PersonLandmarkPart(Enum):
+    """
+    Person landmark part label.
+    """
+    FACE = 'face'
+    HAND = 'hand'
+    BODY = 'body'
+
+
+@unique
 class FaceLandmarkPart(Enum):
     """
     Face landmark part label.
@@ -25,16 +35,24 @@ class FaceLandmarkPart(Enum):
 
 
 @unique
-class PersonLandmarkPart(Enum):
+class HandLandmarkPart(Enum):
     """
-    Person landmark part label.
+    Hand landmark part label.
     """
-    NOSE = 'nose'
+    WRIST = 'wrist'
+    THUMB = 'thumb'
+    INDEX = 'index'
+    MIDDLE = 'middle'
+    RING = 'ring'
+    PINKY = 'pinky'
+
+
+@unique
+class BodyLandmarkPart(Enum):
+    """
+    Body landmark part label.
+    """
     NECK = 'neck'
-    LEYE = 'leye'
-    REYE = 'reye'
-    LEAR = 'lear'
-    REAR = 'rear'
     LSHOULDER = 'lshoulder'
     RSHOULDER = 'rshoulder'
     LELBOW = 'lelbow'
@@ -43,15 +61,10 @@ class PersonLandmarkPart(Enum):
     RWRIST = 'rwrist'
     LHIP = 'lhip'
     RHIP = 'rhip'
-    MIDHIP = 'midhip'
     LKNEE = 'lknee'
     RKNEE = 'rknee'
     LANKLE = 'lankle'
     RANKLE = 'rankle'
-    LBIGTOE = 'lbigtoe'
-    RBIGTOE = 'rbigtoe'
-    LSMALLTOE = 'lsmalltoe'
-    RSMALLTOE = 'rsmalltoe'
-    LHEEL = 'lheel'
-    RHEEL = 'rheel'
-    BACKGROUND = 'background'
+
+
+lps = {FaceLandmarkPart: PersonLandmarkPart.FACE, HandLandmarkPart: PersonLandmarkPart.HAND, BodyLandmarkPart: PersonLandmarkPart.BODY}

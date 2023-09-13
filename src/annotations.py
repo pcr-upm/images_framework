@@ -7,6 +7,7 @@ import uuid
 import numpy as np
 from enum import Enum
 from .categories import Category
+from images_framework.alignment.landmarks import PersonLandmarkPart as Pl
 
 
 class GenericCategory:
@@ -63,37 +64,26 @@ class PersonObject(GenericObject):
     Person object inherits from the generic object class.
     """
     def __init__(self):
-        from images_framework.alignment.landmarks import PersonLandmarkPart
-        super().__init__()
-        self.landmarks = {part.name: list([]) for part in PersonLandmarkPart}
-
-    def add_landmark(self, lnd: GenericLandmark):
-        self.landmarks.setdefault(lnd.part.name, list([])).append(lnd)
-
-    def clear(self):
-        self.landmarks.clear()
-
-
-class FaceObject(GenericObject):
-    """
-    Face object inherits from the generic object class.
-    """
-    def __init__(self):
-        from images_framework.alignment.landmarks import FaceLandmarkPart
+        from images_framework.alignment.landmarks import FaceLandmarkPart as Pf, HandLandmarkPart as Ph, BodyLandmarkPart as Pb
         super().__init__()
         self.headpose = np.array([[-1, -1, -1], [-1, -1, -1], [-1, -1, -1]])
         self.attributes = list([])
-        self.landmarks = {part.name: list([]) for part in FaceLandmarkPart}
+        self.landmarks = {part.value: {} for part in Pl}
+        self.landmarks[Pl.FACE.value] = {part.value: list([]) for part in Pf}
+        self.landmarks[Pl.HAND.value] = {part.value: list([]) for part in Ph}
+        self.landmarks[Pl.BODY.value] = {part.value: list([]) for part in Pb}
 
     def add_attribute(self, att: GenericAttribute):
         self.attributes.append(att)
 
-    def add_landmark(self, lnd: GenericLandmark):
-        self.landmarks.setdefault(lnd.part.name, list([])).append(lnd)
+    def add_landmark(self, lnd: GenericLandmark, part: Pl):
+        self.landmarks[part.value].setdefault(lnd.part.value, list([])).append(lnd)
 
     def clear(self):
         self.attributes.clear()
-        self.landmarks.clear()
+        self.landmarks[Pl.FACE.value].clear()
+        self.landmarks[Pl.HAND.value].clear()
+        self.landmarks[Pl.BODY.value].clear()
 
 
 class GenericImage:
