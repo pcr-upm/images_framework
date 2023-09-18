@@ -57,6 +57,7 @@ class Aligners(Enum):
     OPAL23_HEADPOSE = 'opal23_headpose'
     KAZEMI14_LANDMARKS = 'kazemi14_landmarks'
     DAD22_LANDMARKS = 'dad22_landmarks'
+    ICITS24_LANDMARKS = 'icits24_landmarks'
     OPENPOSE_LANDMARKS = 'openpose_landmarks'
     EFFICIENTNET21_RECONSTRUCTION = 'efficientnet21_reconstruction'
 
