@@ -39,12 +39,18 @@ class HandLandmarkPart(Enum):
     """
     Hand landmark part label.
     """
-    WRIST = 'wrist'
-    THUMB = 'thumb'
-    INDEX = 'index'
-    MIDDLE = 'middle'
-    RING = 'ring'
-    PINKY = 'pinky'
+    RWRIST = 'rwrist'
+    RTHUMB = 'rthumb'
+    RINDEX = 'rindex'
+    RMIDDLE = 'rmiddle'
+    RRING = 'rring'
+    RPINKY = 'rpinky'
+    LWRIST = 'lwrist'
+    LTHUMB = 'lthumb'
+    LINDEX = 'lindex'
+    LMIDDLE = 'lmiddle'
+    LRING = 'lring'
+    LPINKY = 'lpinky'
 
 
 @unique
@@ -57,8 +63,6 @@ class BodyLandmarkPart(Enum):
     RSHOULDER = 'rshoulder'
     LELBOW = 'lelbow'
     RELBOW = 'relbow'
-    LWRIST = 'lwrist'
-    RWRIST = 'rwrist'
     LHIP = 'lhip'
     RHIP = 'rhip'
     LKNEE = 'lknee'

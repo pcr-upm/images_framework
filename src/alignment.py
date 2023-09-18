@@ -45,7 +45,7 @@ class Alignment(Component):
         pass
 
     def show(self, viewer, ann, pred):
-        from images_framework.alignment.landmarks import PersonLandmarkPart as Pl, FaceLandmarkPart as Pf, BodyLandmarkPart as Pb
+        from images_framework.alignment.landmarks import PersonLandmarkPart as Pl, FaceLandmarkPart as Pf, HandLandmarkPart as Ph, BodyLandmarkPart as Pb
 
         def pairwise(iterable):
             import itertools
@@ -76,7 +76,7 @@ class Alignment(Component):
                         viewer.line(img_pred, mid, tuple(mid+obj_axis[2, :2].ravel().astype(int)), (255,0,0) if objs_idx == 0 else (122,0,0), thickness)  # red: yaw (z-axis)
                     # Draw skeleton for person objects
                     if any(obj.landmarks[Pl.BODY.value].values()):
-                        skeleton = [[Pf.LEAR, Pf.LEYE, Pf.NOSE, Pf.REYE, Pf.REAR], [Pb.LWRIST, Pb.LELBOW, Pb.LSHOULDER], [Pb.RWRIST, Pb.RELBOW, Pb.RSHOULDER], [Pb.LANKLE, Pb.LKNEE, Pb.LHIP], [Pb.RANKLE, Pb.RKNEE, Pb.RHIP]]
+                        skeleton = [[Pf.LEAR, Pf.LEYE, Pf.NOSE, Pf.REYE, Pf.REAR], [Ph.LWRIST, Pb.LELBOW, Pb.LSHOULDER], [Ph.RWRIST, Pb.RELBOW, Pb.RSHOULDER], [Pb.LANKLE, Pb.LKNEE, Pb.LHIP], [Pb.RANKLE, Pb.RKNEE, Pb.RHIP]]
                         skeleton.extend([[Pb.LHIP, Pb.LSHOULDER, Pf.NOSE, Pb.RSHOULDER, Pb.RHIP]])  # kinematic
                         # skeleton.extend([[Pf.LEYE, Pf.REYE], [Pb.LSHOULDER, Pb.RSHOULDER], [Pb.LHIP, Pb.RHIP], [Pb.LHIP, Pb.LSHOULDER, Pf.LEAR], [Pb.RHIP, Pb.RSHOULDER, Pf.REAR]])  # coco
                         for part in skeleton:

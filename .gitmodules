@@ -43,3 +43,6 @@
 [submodule "generation/controlnet23_generation"]
 	path = generation/controlnet23_generation
 	url = git@github.com:bobetocalo/controlnet23_generation.git
+[submodule "alignment/icits24_landmarks"]
+	path = alignment/icits24_landmarks
+	url = git@github.com:bobetocalo/icits24_landmarks.git
