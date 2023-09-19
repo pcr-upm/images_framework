@@ -45,7 +45,7 @@ class Alignment(Component):
         pass
 
     def show(self, viewer, ann, pred):
-        from images_framework.alignment.landmarks import PersonLandmarkPart as Pl, FaceLandmarkPart as Pf, HandLandmarkPart as Ph, BodyLandmarkPart as Pb
+        from images_framework.alignment.landmarks import lps, PersonLandmarkPart as Pl, FaceLandmarkPart as Pf, HandLandmarkPart as Ph, BodyLandmarkPart as Pb
 
         def pairwise(iterable):
             import itertools
@@ -76,15 +76,16 @@ class Alignment(Component):
                         viewer.line(img_pred, mid, tuple(mid+obj_axis[2, :2].ravel().astype(int)), (255,0,0) if objs_idx == 0 else (122,0,0), thickness)  # red: yaw (z-axis)
                     # Draw skeleton for person objects
                     if any(obj.landmarks[Pl.BODY.value].values()):
-                        skeleton = [[Pf.LEAR, Pf.LEYE, Pf.NOSE, Pf.REYE, Pf.REAR], [Ph.LWRIST, Pb.LELBOW, Pb.LSHOULDER], [Ph.RWRIST, Pb.RELBOW, Pb.RSHOULDER], [Pb.LANKLE, Pb.LKNEE, Pb.LHIP], [Pb.RANKLE, Pb.RKNEE, Pb.RHIP]]
-                        skeleton.extend([[Pb.LHIP, Pb.LSHOULDER, Pf.NOSE, Pb.RSHOULDER, Pb.RHIP]])  # kinematic
+                        skeleton = [[Pb.LANKLE, Pb.LKNEE, Pb.LHIP], [Pb.RANKLE, Pb.RKNEE, Pb.RHIP]]  # legs
+                        skeleton.extend([[Ph.LWRIST, Pb.LELBOW, Pb.LSHOULDER], [Ph.RWRIST, Pb.RELBOW, Pb.RSHOULDER]])  # arms
+                        # skeleton.extend([[Pb.LHIP, Pb.LSHOULDER, Pf.NOSE, Pb.RSHOULDER, Pb.RHIP]])  # kinematic
                         # skeleton.extend([[Pf.LEYE, Pf.REYE], [Pb.LSHOULDER, Pb.RSHOULDER], [Pb.LHIP, Pb.RHIP], [Pb.LHIP, Pb.LSHOULDER, Pf.LEAR], [Pb.RHIP, Pb.RSHOULDER, Pf.REAR]])  # coco
                         for part in skeleton:
                             for part_org, part_dst in pairwise(part):
-                                if part_org.value not in obj.landmarks[Pl.BODY.value].keys() or part_dst.value not in obj.landmarks[Pl.BODY.value].keys() or obj.landmarks[Pl.BODY.value][part_org.value] == [] or obj.landmarks[Pl.BODY.value][part_dst.value] == []:
+                                if part_org.value not in obj.landmarks[lps[type(part_org)].value].keys() or part_dst.value not in obj.landmarks[lps[type(part_dst)].value].keys() or obj.landmarks[lps[type(part_org)].value][part_org.value] == [] or obj.landmarks[lps[type(part_dst)].value][part_dst.value] == []:
                                     continue
                                 # Connection between parts using the last index of each part
-                                org, dst = obj.landmarks[Pl.BODY.value][part_org.value][-1], obj.landmarks[Pl.BODY.value][part_dst.value][-1]
+                                org, dst = obj.landmarks[lps[type(part_org)].value][part_org.value][-1], obj.landmarks[lps[type(part_dst)].value][part_dst.value][-1]
                                 color = ((0,122,255) if (org.visible and dst.visible) else (0,0,255)) if objs_idx == 0 else ((0,255,0) if (org.visible and dst.visible) else (255,0,0))
                                 viewer.line(img_pred, (int(round(org.pos[0])), int(round(org.pos[1]))), (int(round(dst.pos[0])), int(round(dst.pos[1]))), color, int(round(thickness*0.5)))
                     # Draw landmarks with a black border
