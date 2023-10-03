@@ -257,18 +257,19 @@ class DAD(Database):
         self._colors = [(0, 255, 0)]
 
     def load_filename(self, path, db, line):
+        import cv2
         import itertools
         from PIL import Image
         from scipy.spatial.transform import Rotation
         from .annotations import PersonObject
-        from images_framework.alignment.landmarks import lps
+        from images_framework.alignment.landmarks import lps, PersonLandmarkPart as Pl
         seq = GenericGroup()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
         obj = PersonObject()
-        obj.bb = (int(round(float(parts[1]))), int(round(float(parts[2]))), int(round(float(parts[1])))+int(round(float(parts[3]))), int(round(float(parts[2])))+int(round(float(parts[4]))))
+        # obj.bb = (int(round(float(parts[1]))), int(round(float(parts[2]))), int(round(float(parts[1])))+int(round(float(parts[3]))), int(round(float(parts[2])))+int(round(float(parts[4]))))
         obj.add_category(GenericCategory(Oi.FACE))
         if len(parts) != 12:  # train, val
             flame_vertices3d = np.reshape(np.matrix(parts[5], dtype=np.float32), (5023, 3))
@@ -292,6 +293,8 @@ class DAD(Database):
             obj.add_attribute(GenericAttribute('occlusions', bool(parts[len(parts)-3] == 'True')))
             obj.add_attribute(GenericAttribute('pose', parts[len(parts)-2]))
             obj.add_attribute(GenericAttribute('standard_light', bool(parts[len(parts)-1] == 'True')))
+        obj.bb = cv2.boundingRect(np.array([[pt.pos for pt in list(itertools.chain.from_iterable(obj.landmarks[Pl.FACE.value].values()))]]).astype(int))
+        obj.bb = (obj.bb[0], obj.bb[1], obj.bb[0]+obj.bb[2], obj.bb[1]+obj.bb[3])
         image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -312,7 +315,7 @@ class AFLW2000(Database):
         from PIL import Image
         from scipy.spatial.transform import Rotation
         from .annotations import PersonObject
-        from images_framework.alignment.landmarks import lps
+        from images_framework.alignment.landmarks import lps, PersonLandmarkPart as Pl
         seq = GenericGroup()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
@@ -331,7 +334,7 @@ class AFLW2000(Database):
             lp = list(self._landmarks.keys())[next((ids for ids, xs in enumerate(self._landmarks.values()) for x in xs if x == label), None)]
             pos = (int(round(float(parts[(2*idx)+4]))), int(round(float(parts[(2*idx)+5]))))
             obj.add_landmark(GenericLandmark(label, lp, pos, True), lps[type(lp)])
-        obj.bb = cv2.boundingRect(np.array([[pt.pos for pt in list(itertools.chain.from_iterable(obj.landmarks.values()))]]))
+        obj.bb = cv2.boundingRect(np.array([[pt.pos for pt in list(itertools.chain.from_iterable(obj.landmarks[Pl.FACE.value].values()))]]).astype(int))
         obj.bb = (obj.bb[0], obj.bb[1], obj.bb[0]+obj.bb[2], obj.bb[1]+obj.bb[3])
         image.add_object(obj)
         seq.add_image(image)
