@@ -59,6 +59,7 @@ class Aligners(Enum):
     DAD22_LANDMARKS = 'dad22_landmarks'
     ICITS24_LANDMARKS = 'icits24_landmarks'
     OPENPOSE_LANDMARKS = 'openpose_landmarks'
+    PAMI20_RECONSTRUCTION = 'pami20_reconstruction'
     EFFICIENTNET21_RECONSTRUCTION = 'efficientnet21_reconstruction'
 
 

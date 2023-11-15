@@ -46,3 +46,6 @@
 [submodule "alignment/icits24_landmarks"]
 	path = alignment/icits24_landmarks
 	url = git@github.com:bobetocalo/icits24_landmarks.git
+[submodule "alignment/pami20_reconstruction"]
+	path = alignment/pami20_reconstruction
+	url = git@github.com:pcr-upm/pami20_reconstruction.git
