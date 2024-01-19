@@ -1,6 +1,6 @@
 [submodule "detection/ssd16_detection"]
 	path = detection/ssd16_detection
-	url = git@github.com:bobetocalo/ssd16_detection.git
+	url = git@github.com:pcr-upm/ssd16_detection.git
 [submodule "detection/retinanet17_detection"]
 	path = detection/retinanet17_detection
 	url = git@github.com:bobetocalo/retinanet17_detection.git
@@ -45,7 +45,7 @@
 	url = git@github.com:bobetocalo/controlnet23_generation.git
 [submodule "alignment/icits24_landmarks"]
 	path = alignment/icits24_landmarks
-	url = git@github.com:bobetocalo/icits24_landmarks.git
+	url = git@github.com:pcr-upm/icits24_landmarks.git
 [submodule "alignment/pami20_reconstruction"]
 	path = alignment/pami20_reconstruction
 	url = git@github.com:pcr-upm/pami20_reconstruction.git
