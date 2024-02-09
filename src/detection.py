@@ -51,9 +51,9 @@ class Detection(Component):
         categories = Database.__subclasses__()[next((idx for idx, subset in enumerate(datasets) if self.database in subset), None)]().get_categories().values()
         colors = Database.__subclasses__()[next((idx for idx, subset in enumerate(datasets) if self.database in subset), None)]().get_colors()
         drawing = dict(zip([cat.name for cat in categories], colors))
-        ann_order = [img_ann.filename for img_ann in ann.images]  # same order among 'ann' and 'pred' images
+        ann_order = [(img_ann.filename, img_ann.tile) for img_ann in ann.images]  # keep order among 'ann' and 'pred'
         for img_pred in pred.images:
-            image_idx = [np.array_equal(img_pred.filename, elem) for elem in ann_order].index(True)
+            image_idx = [np.array_equal(img_pred.filename, f) & np.array_equal(img_pred.tile, t) for f, t in ann_order].index(True)
             for objs_idx, objs_val in enumerate([ann.images[image_idx].objects, img_pred.objects]):
                 for obj in objs_val:
                     values = [drawing[cat.label.name] if cat.label in categories else (0, 255, 0) for cat in obj.categories]
@@ -74,9 +74,9 @@ class Detection(Component):
 
     def evaluate(self, fs, ann, pred):
         # id_component;filename;num_ann;num_pred[;ann_id;ann_bb;ann_obb[;ann_label]][;pred_id;pred_bb;pred_obb[;pred_label;pred_score]]
-        ann_order = [img_ann.filename for img_ann in ann.images]  # same order among 'ann' and 'pred' images
+        ann_order = [(img_ann.filename, img_ann.tile) for img_ann in ann.images]  # keep order among 'ann' and 'pred'
         for img_pred in pred.images:
-            image_idx = [np.array_equal(img_pred.filename, elem) for elem in ann_order].index(True)
+            image_idx = [np.array_equal(img_pred.filename, f) & np.array_equal(img_pred.tile, t) for f, t in ann_order].index(True)
             fs.write(str(self.get_component_class()) + ';' + ann.images[image_idx].filename + ';' + str(len(ann.images[image_idx].objects)) + ';' + str(len(img_pred.objects)))
             for objs_idx, objs_val in enumerate([ann.images[image_idx].objects, img_pred.objects]):
                 for obj in objs_val:

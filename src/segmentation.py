@@ -48,9 +48,9 @@ class Segmentation(Component):
         colors = Database.__subclasses__()[next((idx for idx, subset in enumerate(datasets) if self.database in subset), None)]().get_colors()
         mapping = dict(zip([cat.name for cat in categories], range(len(categories))))
         drawing = dict(zip(range(len(categories)), colors))
-        ann_order = [img_ann.filename for img_ann in ann.images]  # same order among 'ann' and 'pred' images
+        ann_order = [(img_ann.filename, img_ann.tile) for img_ann in ann.images]  # keep order among 'ann' and 'pred'
         for img_pred in pred.images:
-            image_idx = [np.array_equal(img_pred.filename, elem) for elem in ann_order].index(True)
+            image_idx = [np.array_equal(img_pred.filename, f) & np.array_equal(img_pred.tile, t) for f, t in ann_order].index(True)
             # mapping['Background'] = 255
             # drawing[255] = (255, 255, 255)
             # import matplotlib.pyplot as plt
@@ -111,9 +111,9 @@ class Segmentation(Component):
     def evaluate(self, fs, ann, pred):
         from .utils import numpy2geometry
         # id_component;filename;num_ann;num_pred[;id_polygon;num_contours[;contour];num_labels[;label]]
-        ann_order = [img_ann.filename for img_ann in ann.images]  # same order among 'ann' and 'pred' images
+        ann_order = [(img_ann.filename, img_ann.tile) for img_ann in ann.images]  # keep order among 'ann' and 'pred'
         for img_pred in pred.images:
-            image_idx = [np.array_equal(img_pred.filename, elem) for elem in ann_order].index(True)
+            image_idx = [np.array_equal(img_pred.filename, f) & np.array_equal(img_pred.tile, t) for f, t in ann_order].index(True)
             fs.write(str(self.get_component_class()) + ';' + ann.images[image_idx].filename + ';' + str(len(ann.images[image_idx].objects)) + ';' + str(len(img_pred.objects)))
             for objs_idx, objs_val in enumerate([ann.images[image_idx].objects, img_pred.objects]):
                 for obj in objs_val:

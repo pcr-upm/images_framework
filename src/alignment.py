@@ -54,10 +54,10 @@ class Alignment(Component):
             return zip(a, b)
 
         axis = np.eye(3)
-        ann_order = [img_ann.filename for img_ann in ann.images]  # same order among 'ann' and 'pred' images
+        ann_order = [(img_ann.filename, img_ann.tile) for img_ann in ann.images]  # keep order among 'ann' and 'pred'
         for img_pred in pred.images:
             # Detection().show(viewer, ann, pred)
-            image_idx = [np.array_equal(img_pred.filename, elem) for elem in ann_order].index(True)
+            image_idx = [np.array_equal(img_pred.filename, f) & np.array_equal(img_pred.tile, t) for f, t in ann_order].index(True)
             for objs_idx, objs_val in enumerate([ann.images[image_idx].objects, img_pred.objects]):
                 for obj in objs_val:
                     # Draw axis
@@ -100,9 +100,9 @@ class Alignment(Component):
 
     def evaluate(self, fs, ann, pred):
         # id_component;filename;num_ann;num_pred[;ann_id;ann_bb;ann_pose;num_ann_landmarks[;ann_label;ann_pos;ann_visible;ann_confidence]][;pred_id;pred_bb;pred_pose;num_pred_landmarks[;pred_label;pred_pos;pred_visible;pred_confidence]]
-        ann_order = [img_ann.filename for img_ann in ann.images]  # same order among 'ann' and 'pred' images
+        ann_order = [(img_ann.filename, img_ann.tile) for img_ann in ann.images]  # keep order among 'ann' and 'pred'
         for img_pred in pred.images:
-            image_idx = [np.array_equal(img_pred.filename, elem) for elem in ann_order].index(True)
+            image_idx = [np.array_equal(img_pred.filename, f) & np.array_equal(img_pred.tile, t) for f, t in ann_order].index(True)
             fs.write(str(self.get_component_class()) + ';' + ann.images[image_idx].filename + ';' + str(len(ann.images[image_idx].objects)) + ';' + str(len(img_pred.objects)))
             for objs_idx, objs_val in enumerate([ann.images[image_idx].objects, img_pred.objects]):
                 for obj in objs_val:
