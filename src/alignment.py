@@ -103,7 +103,7 @@ class Alignment(Component):
         ann_order = [(img_ann.filename, img_ann.tile) for img_ann in ann.images]  # keep order among 'ann' and 'pred'
         for img_pred in pred.images:
             image_idx = [np.array_equal(img_pred.filename, f) & np.array_equal(img_pred.tile, t) for f, t in ann_order].index(True)
-            fs.write(str(self.get_component_class()) + ';' + ann.images[image_idx].filename + ';' + str(len(ann.images[image_idx].objects)) + ';' + str(len(img_pred.objects)))
+            fs.write(str(self.get_component_class()) + ';' + ann.images[image_idx].filename + ';' + str(ann.images[image_idx].tile.tolist()) + ';' + str(len(ann.images[image_idx].objects)) + ';' + str(len(img_pred.objects)))
             for objs_idx, objs_val in enumerate([ann.images[image_idx].objects, img_pred.objects]):
                 for obj in objs_val:
                     landmarks = map(str, [';'.join(map(str, [lnd.label, ';'.join(map(str, lnd.pos)), lnd.visible, lnd.confidence])) for lnds in [landmarks for lps in obj.landmarks.values() for landmarks in lps.values()] for lnd in lnds])

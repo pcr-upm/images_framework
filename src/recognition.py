@@ -72,7 +72,7 @@ class Recognition(Component):
             image_idx = [np.array_equal(img_pred.filename, f) & np.array_equal(img_pred.tile, t) for f, t in ann_order].index(True)
             ann_categories = list(itertools.chain.from_iterable([obj.categories for obj in ann.images[image_idx].objects]))
             pred_categories = list(itertools.chain.from_iterable([obj.categories for obj in img_pred.objects]))
-            fs.write(str(self.get_component_class()) + ';' + ann.images[image_idx].filename + ';' + str(len(ann_categories)) + ';' + str(len(pred_categories)))
+            fs.write(str(self.get_component_class()) + ';' + ann.images[image_idx].filename + ';' + str(ann.images[image_idx].tile.tolist()) + ';' + str(len(ann_categories)) + ';' + str(len(pred_categories)))
             for obj_idx, obj_val in enumerate([ann.images[image_idx].objects, img_pred.objects]):
                 for obj in obj_val:
                     fs.write(';' + str(obj.id))
