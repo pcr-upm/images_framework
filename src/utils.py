@@ -164,7 +164,7 @@ def numpy2geometry(contour):
     return geom
 
 
-def mask2contours(img, postprocessing=False):
+def mask2contours(img):
     # Generate several numpy contours from a mask image
     if img.ndim == 3 and img.shape[2] == 3:
         img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
