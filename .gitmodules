@@ -49,3 +49,6 @@
 [submodule "alignment/pami20_reconstruction"]
 	path = alignment/pami20_reconstruction
 	url = git@github.com:pcr-upm/pami20_reconstruction.git
+[submodule "recognition/dann16_recognition"]
+	path = recognition/dann16_recognition
+	url = git@github.com:pcr-upm/dann16_recognition.git
