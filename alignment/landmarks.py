@@ -58,7 +58,14 @@ class BodyLandmarkPart(Enum):
     """
     Body landmark part label.
     """
+    NOSE = 'nose'
+    LEYE = 'leye'
+    REYE = 'reye'
+    LEAR = 'lear'
+    REAR = 'rear'
     NECK = 'neck'
+    RWRIST = 'rwrist'
+    LWRIST = 'lwrist'
     LSHOULDER = 'lshoulder'
     RSHOULDER = 'rshoulder'
     LELBOW = 'lelbow'
