@@ -23,6 +23,7 @@ class Category(object):
     BUILDING = Name('Building')
     SOLAR_PANEL = Name('Solar panel')
     VEHICLE = Name('Vehicle')
+    CHARACTER = Name('Character')
     # COCO
     ACCESSORY = Name('Accessory')
     INDOOR = Name('Indoor')

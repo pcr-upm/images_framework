@@ -56,6 +56,29 @@ class Database(abc.ABC):
         return self._colors
 
 
+class MNIST(Database):
+    def __init__(self):
+        from images_framework.categories.characters import Character as Oc
+        super().__init__()
+        self._names = ['mnist']
+        self._categories = {0: Oc.CHARACTER.ZERO, 1: Oc.CHARACTER.ONE, 2: Oc.CHARACTER.TWO, 3: Oc.CHARACTER.THREE, 4: Oc.CHARACTER.FOUR, 5: Oc.CHARACTER.FIVE, 6: Oc.CHARACTER.SIX, 7: Oc.CHARACTER.SEVEN, 8: Oc.CHARACTER.EIGHT, 9: Oc.CHARACTER.NINE}
+        self._colors = get_palette(len(self._categories))
+
+    def load_filename(self, path, db, line):
+        from PIL import Image
+        seq = GenericGroup()
+        parts = line.strip().split(';')
+        image = GenericImage(path + parts[0])
+        width, height = Image.open(image.filename).size
+        image.tile = np.array([0, 0, width, height])
+        obj = GenericObject()
+        obj.bb = (int(parts[1]), int(parts[2]), int(parts[3]), int(parts[4]))
+        obj.add_category(GenericCategory(self._categories[int(parts[5])]))
+        image.add_object(obj)
+        seq.add_image(image)
+        return seq
+
+
 class COCO(Database):
     def __init__(self):
         from images_framework.alignment.landmarks import FaceLandmarkPart as Pf, HandLandmarkPart as Ph, BodyLandmarkPart as Pb

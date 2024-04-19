@@ -69,6 +69,7 @@ class Recognitors(Enum):
     Different object recognition algorithms.
     """
     RESNET15_RECOGNITION = 'resnet15_recognition'
+    DANN16_RECOGNITION = 'dann16_recognition'
 
 
 @unique
