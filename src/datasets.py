@@ -56,7 +56,7 @@ class Database(abc.ABC):
         return self._colors
 
 
-class MNIST(Database):
+class Mnist(Database):
     def __init__(self):
         from images_framework.categories.characters import Character as Oc
         super().__init__()
@@ -72,8 +72,8 @@ class MNIST(Database):
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
         obj = GenericObject()
-        obj.bb = (int(parts[1]), int(parts[2]), int(parts[3]), int(parts[4]))
-        obj.add_category(GenericCategory(self._categories[int(parts[5])]))
+        obj.bb = (0, 0, width, height)
+        obj.add_category(GenericCategory(self._categories[int(parts[1])]))
         image.add_object(obj)
         seq.add_image(image)
         return seq
