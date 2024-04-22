@@ -44,10 +44,11 @@ class Segmentation(Component):
 
     def show(self, viewer, ann, pred):
         datasets = [subclass().get_names() for subclass in Database.__subclasses__()]
-        categories = Database.__subclasses__()[next((idx for idx, subset in enumerate(datasets) if self.database in subset), None)]().get_categories().values()
+        categories = Database.__subclasses__()[next((idx for idx, subset in enumerate(datasets) if self.database in subset), None)]().get_categories()
+        names = list([cat.name for cat in categories.values()])
         colors = Database.__subclasses__()[next((idx for idx, subset in enumerate(datasets) if self.database in subset), None)]().get_colors()
-        mapping = dict(zip([cat.name for cat in categories], range(len(categories))))
-        drawing = dict(zip(range(len(categories)), colors))
+        mapping = dict(zip(names, range(len(names))))
+        drawing = dict(zip(range(len(names)), colors))
         ann_order = [(img_ann.filename, img_ann.tile) for img_ann in ann.images]  # keep order among 'ann' and 'pred'
         for img_pred in pred.images:
             image_idx = [np.array_equal(img_pred.filename, f) & np.array_equal(img_pred.tile, t) for f, t in ann_order].index(True)
@@ -129,8 +130,8 @@ class Segmentation(Component):
         import os
         import json
         datasets = [subclass().get_names() for subclass in Database.__subclasses__()]
-        categories = Database.__subclasses__()[next((idx for idx, subset in enumerate(datasets) if self.database in subset), None)]().get_categories().values()
-        names = [cat.name for cat in categories]
+        categories = Database.__subclasses__()[next((idx for idx, subset in enumerate(datasets) if self.database in subset), None)]().get_categories()
+        names = list([cat.name for cat in categories.values()])
         for img_pred in pred.images:
             # Create a blank json that matched the labeler provided jsons with default values
             output_json = dict({'images': [], 'annotations': [], 'categories': []})
@@ -147,9 +148,9 @@ class Segmentation(Component):
                     continue
                 tl = [np.min([pt[:, dim] for pt in tls]) for dim in [0, 1]]
                 br = [np.max([pt[:, dim] for pt in brs]) for dim in [0, 1]]
-                output_json['annotations'].append(dict({'id': idx+1, 'image_id': 0, 'category_id': int(names.index(obj.categories[-1].label.name)+1), 'segmentation': multipolygon, 'area': float(np.sum(areas)), 'bbox': list(map(int, [tl[0], tl[1], br[0]-tl[0], br[1]-tl[1]])), 'iscrowd': int(len(img_pred.objects) > 1)}))
-            for idx, label in enumerate(categories):
-                output_json['categories'].append(dict({'id': idx+1, 'name': label.name, 'supercategory': ''}))
+                output_json['annotations'].append(dict({'id': idx, 'image_id': 0, 'category_id': int(names.index(obj.categories[-1].label.name)+1), 'segmentation': multipolygon, 'area': float(np.sum(areas)), 'bbox': list(map(int, [tl[0], tl[1], br[0]-tl[0], br[1]-tl[1]])), 'iscrowd': int(len(img_pred.objects) > 1)}))
+            for idx, label in enumerate(names):
+                output_json['categories'].append(dict({'id': idx, 'name': label.name, 'supercategory': ''}))
             # Save COCO annotation file
             root, extension = os.path.splitext(img_pred.filename)
             with open(dirname + os.path.basename(root) + '.json', 'w') as ofs:

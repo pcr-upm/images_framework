@@ -19,10 +19,12 @@ class Recognition(Component):
     def __init__(self):
         super().__init__(4)
         self.database = None
+        self.detector = Detection()
 
     def parse_options(self, params):
         import argparse
         import itertools
+        self.detector.parse_options(params)
         parser = argparse.ArgumentParser(prog='Recognition', add_help=False)
         parser.add_argument('--database', required=True, choices=list(itertools.chain.from_iterable([db().get_names() for db in Database.__subclasses__()])),
                             help='Select database model.')
@@ -45,16 +47,17 @@ class Recognition(Component):
 
     def show(self, viewer, ann, pred):
         datasets = [subclass().get_names() for subclass in Database.__subclasses__()]
-        categories = Database.__subclasses__()[next((idx for idx, subset in enumerate(datasets) if self.database in subset), None)]().get_categories().values()
+        categories = Database.__subclasses__()[next((idx for idx, subset in enumerate(datasets) if self.database in subset), None)]().get_categories()
+        names = list([cat.name for cat in categories.values()])
         colors = Database.__subclasses__()[next((idx for idx, subset in enumerate(datasets) if self.database in subset), None)]().get_colors()
-        drawing = dict(zip([cat.name for cat in categories], colors))
+        drawing = dict(zip(names, colors))
         ann_order = [(img_ann.filename, img_ann.tile) for img_ann in ann.images]  # keep order among 'ann' and 'pred'
         for img_pred in pred.images:
-            Detection().show(viewer, ann, pred)
+            self.detector.show(viewer, ann, pred)
             image_idx = [np.array_equal(img_pred.filename, f) & np.array_equal(img_pred.tile, t) for f, t in ann_order].index(True)
             for objs_idx, objs_val in enumerate([ann.images[image_idx].objects, img_pred.objects]):
                 for obj in objs_val:
-                    values = [drawing[cat.label.name] if cat.label in categories else (0, 255, 0) for cat in obj.categories]
+                    values = [drawing[cat.label.name] if cat.label in names else (0, 255, 0) for cat in obj.categories]
                     color = np.mean(values, axis=0)
                     # Draw text
                     (xmin, ymin, xmax, ymax) = obj.bb
@@ -84,15 +87,16 @@ class Recognition(Component):
         import os
         import json
         datasets = [subclass().get_names() for subclass in Database.__subclasses__()]
-        categories = Database.__subclasses__()[next((idx for idx, subset in enumerate(datasets) if self.database in subset), None)]().get_categories().values()
+        categories = Database.__subclasses__()[next((idx for idx, subset in enumerate(datasets) if self.database in subset), None)]().get_categories()
+        names = list([cat.name for cat in categories.values()])
         for img_pred in pred.images:
             # Create a blank json that matched the labeler provided jsons with default values
             output_json = dict({'images': [], 'annotations': [], 'categories': []})
             output_json['images'].append(dict({'id': 0, 'file_name': os.path.basename(img_pred.filename), 'width': int(img_pred.tile[2]-img_pred.tile[0]), 'height': int(img_pred.tile[3]-img_pred.tile[1]), 'date_captured': img_pred.timestamp}))
             for idx, obj in enumerate(img_pred.objects):
-                output_json['annotations'].append(dict({'id': idx+1, 'image_id': 0, 'category_id': int(categories.index(obj.categories[-1])+1), 'bbox': list(map(int, [obj.bb[0], obj.bb[1], obj.bb[2]-obj.bb[0], obj.bb[3]-obj.bb[1]])), 'iscrowd': int(len(img_pred.objects) > 1)}))
-            for idx, label in enumerate(categories):
-                output_json['categories'].append(dict({'id': idx+1, 'name': label.name, 'supercategory': ''}))
+                output_json['annotations'].append(dict({'id': idx, 'image_id': 0, 'category_id': int(names.index(obj.categories[-1].label.name)+1), 'bbox': list(map(int, [obj.bb[0], obj.bb[1], obj.bb[2]-obj.bb[0], obj.bb[3]-obj.bb[1]])), 'iscrowd': int(len(img_pred.objects) > 1)}))
+            for idx, name in enumerate(names):
+                output_json['categories'].append(dict({'id': idx, 'name': name, 'supercategory': ''}))
             # Save COCO annotation file
             root, extension = os.path.splitext(img_pred.filename)
             with open(dirname + os.path.basename(root) + '.json', 'w') as ofs:

@@ -48,15 +48,16 @@ class Detection(Component):
 
     def show(self, viewer, ann, pred):
         datasets = [subclass().get_names() for subclass in Database.__subclasses__()]
-        categories = Database.__subclasses__()[next((idx for idx, subset in enumerate(datasets) if self.database in subset), None)]().get_categories().values()
+        categories = Database.__subclasses__()[next((idx for idx, subset in enumerate(datasets) if self.database in subset), None)]().get_categories()
+        names = list([cat.name for cat in categories.values()])
         colors = Database.__subclasses__()[next((idx for idx, subset in enumerate(datasets) if self.database in subset), None)]().get_colors()
-        drawing = dict(zip([cat.name for cat in categories], colors))
+        drawing = dict(zip(names, colors))
         ann_order = [(img_ann.filename, img_ann.tile) for img_ann in ann.images]  # keep order among 'ann' and 'pred'
         for img_pred in pred.images:
             image_idx = [np.array_equal(img_pred.filename, f) & np.array_equal(img_pred.tile, t) for f, t in ann_order].index(True)
             for objs_idx, objs_val in enumerate([ann.images[image_idx].objects, img_pred.objects]):
                 for obj in objs_val:
-                    values = [drawing[cat.label.name] if cat.label in categories else (0, 255, 0) for cat in obj.categories]
+                    values = [drawing[cat.label.name] if cat.label in names else (0, 255, 0) for cat in obj.categories]
                     color = np.mean(values, axis=0)
                     # Draw rectangle (bb or obb)
                     if obj.obb != (-1, -1, -1, -1, -1, -1, -1, -1):
