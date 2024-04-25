@@ -37,6 +37,7 @@ class Detectors(Enum):
     RETINANET17_DETECTION = 'retinanet17_detection'
     SCRDET19_DETECTION = 'scrdet19_detection'
     ORP22_DETECTION = 'orp22_detection'
+    ARCKPADEL_DETECTION = 'arckpadel_detection'
 
 
 @unique

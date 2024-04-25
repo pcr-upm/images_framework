@@ -52,3 +52,6 @@
 [submodule "recognition/dann16_recognition"]
 	path = recognition/dann16_recognition
 	url = git@github.com:pcr-upm/dann16_recognition.git
+[submodule "detection/arckpadel_detection"]
+	path = detection/arckpadel_detection
+	url = git@github.com:pcr-upm/arckpadel_detection.git
