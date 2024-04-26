@@ -25,6 +25,7 @@ class Category(object):
     VEHICLE = Name('Vehicle')
     CHARACTER = Name('Character')
     BALL = Name('Ball')
+    RACKET = Name('Racket')
     # COCO
     ACCESSORY = Name('Accessory')
     INDOOR = Name('Indoor')

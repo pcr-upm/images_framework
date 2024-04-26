@@ -489,6 +489,35 @@ class WIDER(Database):
         return seq
 
 
+class ArckPadel(Database):
+    def __init__(self):
+        super().__init__()
+        self._names = ['arckpadel']
+        self._categories = {0: Oi.BALL, 1: Oi.RACKET, 2: Oi.PERSON}
+        self._colors = [(0, 255, 0)]
+
+    def load_filename(self, path, db, line):
+        from PIL import Image
+        seq = GenericGroup()
+        parts = line.strip().split(';')
+        image = GenericImage(path + parts[0])
+        width, height = Image.open(image.filename).size
+        image.tile = np.array([0, 0, width, height])
+        if len(parts) > 1:
+            import xml.etree.ElementTree as ET
+            filepath = parts[1]
+            tree = ET.parse(path + filepath)
+            root = tree.getroot()
+            for obj in root.findall('object'):
+                bbox = obj.find('bndbox')
+                obj = GenericObject()
+                obj.bb = (int(bbox.find('xmin').text), int(bbox.find('ymin').text), int(bbox.find('xmax').text), int(bbox.find('ymax').text))
+                obj.add_category(GenericCategory(self._categories[0]))
+                image.add_object(obj)
+        seq.add_image(image)
+        return seq
+
+
 class XView(Database):
     def __init__(self):
         from images_framework.categories.vehicles import Vehicle as Ov
