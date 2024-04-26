@@ -57,7 +57,7 @@ class Recognition(Component):
             image_idx = [np.array_equal(img_pred.filename, f) & np.array_equal(img_pred.tile, t) for f, t in ann_order].index(True)
             for objs_idx, objs_val in enumerate([ann.images[image_idx].objects, img_pred.objects]):
                 for obj in objs_val:
-                    values = [drawing[cat.label.name] if cat.label in names else (0, 255, 0) for cat in obj.categories]
+                    values = [drawing[cat.label.name] if cat.label.name in names else (0, 255, 0) for cat in obj.categories]
                     color = np.mean(values, axis=0)
                     # Draw text
                     (xmin, ymin, xmax, ymax) = obj.bb

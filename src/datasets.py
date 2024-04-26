@@ -494,7 +494,7 @@ class ArckPadel(Database):
         super().__init__()
         self._names = ['arckpadel']
         self._categories = {0: Oi.BALL, 1: Oi.RACKET, 2: Oi.PERSON}
-        self._colors = [(0, 255, 0)]
+        self._colors = [(0, 255, 0), (0, 0, 255), (0, 255, 255)]
 
     def load_filename(self, path, db, line):
         from PIL import Image
