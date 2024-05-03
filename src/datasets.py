@@ -497,24 +497,28 @@ class ArckPadel(Database):
         self._colors = [(0, 255, 0), (0, 0, 255), (0, 255, 255)]
 
     def load_filename(self, path, db, line):
+        import os
         from PIL import Image
         seq = GenericGroup()
         parts = line.strip().split(';')
-        image = GenericImage(path + parts[0])
-        width, height = Image.open(image.filename).size
-        image.tile = np.array([0, 0, width, height])
-        if len(parts) > 1:
-            import xml.etree.ElementTree as ET
-            filepath = parts[1]
-            tree = ET.parse(path + filepath)
-            root = tree.getroot()
-            for obj in root.findall('object'):
-                bbox = obj.find('bndbox')
-                obj = GenericObject()
-                obj.bb = (int(bbox.find('xmin').text), int(bbox.find('ymin').text), int(bbox.find('xmax').text), int(bbox.find('ymax').text))
-                obj.add_category(GenericCategory(self._categories[0]))
-                image.add_object(obj)
-        seq.add_image(image)
+        num_images = int(parts[0])
+        for idx in range(0, num_images):
+            image = GenericImage(path + parts[1+idx])
+            width, height = Image.open(image.filename).size
+            image.tile = np.array([0, 0, width, height])
+            root, extension = os.path.splitext(image.filename)
+            ann_file = root + '.xml'
+            if os.path.exists(ann_file):
+                import xml.etree.ElementTree as ET
+                tree = ET.parse(ann_file)
+                root = tree.getroot()
+                for obj in root.findall('object'):
+                    bbox = obj.find('bndbox')
+                    obj = GenericObject()
+                    obj.bb = (int(bbox.find('xmin').text), int(bbox.find('ymin').text), int(bbox.find('xmax').text), int(bbox.find('ymax').text))
+                    obj.add_category(GenericCategory(self._categories[0]))
+                    image.add_object(obj)
+            seq.add_image(image)
         return seq
 
 
