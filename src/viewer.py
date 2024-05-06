@@ -111,8 +111,8 @@ class Viewer:
     def show(self, delay):
         canvas = None
         for key in self._geoimages:
-            canvas = self._geoimages[key].img if canvas is None else np.hstack((canvas, self._geoimages[key].img))
-        canvas = cv2.cvtColor(canvas, cv2.COLOR_RGB2BGR)
+            frame = cv2.cvtColor(self._geoimages[key].img, cv2.COLOR_RGB2BGR)
+            canvas = frame if canvas is None else np.hstack((canvas, frame))  # stack images in sequence horizontally
         cv2.namedWindow(self._window_title, cv2.WINDOW_AUTOSIZE | cv2.WINDOW_KEEPRATIO | cv2.WINDOW_GUI_NORMAL)
         cv2.moveWindow(self._window_title, 0, 0)
         cv2.imshow(self._window_title, canvas)
@@ -121,8 +121,16 @@ class Viewer:
         self._geoimages.clear()
 
     def save(self, path):
+        import uuid
+        filename = str(uuid.uuid4())
         canvas = None
+        # h, w, c = next(iter(self._geoimages.values())).img.shape
+        # video = cv2.VideoWriter(path+filename+'.avi', fourcc=cv2.VideoWriter_fourcc(*'XVID'), fps=30, frameSize=(w, h))
         for key in self._geoimages:
-            canvas = self._geoimages[key].img if canvas is None else np.hstack((canvas, self._geoimages[key].img))
-            save_geoimage(path, canvas, self._geoimages[key].profile)
+            frame = cv2.cvtColor(self._geoimages[key].img, cv2.COLOR_RGB2BGR)
+            canvas = frame if canvas is None else np.hstack((canvas, frame))  # stack images in sequence horizontally
+        #     video.write(frame)
+        # video.release()
+        canvas = cv2.cvtColor(canvas, cv2.COLOR_BGR2RGB)
+        save_geoimage(path+filename+'.tif', canvas, self._geoimages[key].profile)
         self._geoimages.clear()
