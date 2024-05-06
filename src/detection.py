@@ -119,10 +119,11 @@ class Detection(Component):
                 layer.CreateFeature(feature)
 
         import os
+        from PIL import Image
         from pascal_voc_writer import Writer
         for img_pred in pred.images:
-            img = cv2.imread(img_pred.filename)
-            writer = Writer(img_pred.filename, img.shape[0], img.shape[1], img.shape[2])
+            width, height = Image.open(img_pred.filename).size
+            writer = Writer(img_pred.filename, width, height)
             for obj in img_pred.objects:
                 (xmin, ymin, xmax, ymax) = obj.bb
                 writer.addObject(obj.categories[0].label.name, xmin, ymin, xmax, ymax)
