@@ -35,7 +35,7 @@ def main():
     composite.show(viewer, ann, pred)
     dirname = 'output/images/'
     Path(dirname).mkdir(parents=True, exist_ok=True)
-    viewer.save(dirname + os.path.basename(pred.images[0].filename))
+    viewer.save(dirname)
     print('End of images_framework_test')
 
 

@@ -150,7 +150,7 @@ class Segmentation(Component):
                 br = [np.max([pt[:, dim] for pt in brs]) for dim in [0, 1]]
                 output_json['annotations'].append(dict({'id': idx, 'image_id': 0, 'category_id': int(names.index(obj.categories[-1].label.name)+1), 'segmentation': multipolygon, 'area': float(np.sum(areas)), 'bbox': list(map(int, [tl[0], tl[1], br[0]-tl[0], br[1]-tl[1]])), 'iscrowd': int(len(img_pred.objects) > 1)}))
             for idx, label in enumerate(names):
-                output_json['categories'].append(dict({'id': idx, 'name': label.name, 'supercategory': ''}))
+                output_json['categories'].append(dict({'id': idx, 'name': label, 'supercategory': ''}))
             # Save COCO annotation file
             root, extension = os.path.splitext(img_pred.filename)
             with open(dirname + os.path.basename(root) + '.json', 'w') as ofs:
