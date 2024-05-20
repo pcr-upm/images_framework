@@ -55,3 +55,9 @@
 [submodule "detection/arckpadel_detection"]
 	path = detection/arckpadel_detection
 	url = git@github.com:pcr-upm/arckpadel_detection.git
+[submodule "alignment/students_landmarks"]
+	path = alignment/students_landmarks
+	url = git@github.com:pcr-upm/students_landmarks.git
+[submodule "alignment/students_headpose"]
+	path = alignment/students_headpose
+	url = git@github.com:pcr-upm/students_headpose.git
