@@ -29,7 +29,7 @@ def draw_histogram(errors, categories):
     ax.set_xticks(np.arange(len(categories))+0.35)
     plt.setp(ax.set_xticklabels(categories), rotation=90)
     plt.grid('on', linestyle='--', linewidth=1.5)
-    plt.savefig('output/histogram_errors.eps', format='eps')
+    plt.savefig('images_framework/output/histogram_errors.eps', format='eps')
     plt.close(fig)
 
 
@@ -48,7 +48,7 @@ def draw_cumulative_curve(errors, categories, threshold=15, database=None):
         cumulative = np.cumsum(values/float(errors.shape[0]))
         base = [x for x in base if (x < threshold)]
         cumulative = cumulative[0:len(base)]
-        np.savetxt('output/cum/cumulative_' + str(idx) + '.txt', np.column_stack([base, cumulative]), fmt='%1.6f')
+        np.savetxt('images_framework/output/cum/cumulative_' + str(idx) + '.txt', np.column_stack([base, cumulative]), fmt='%1.6f')
         aucs.append(area_under_curve(base, cumulative, threshold))
         frs.append(failure_rate(base, cumulative, threshold))
         plt.plot(base, cumulative, color=c_dark[idx], zorder=20, label=categories[idx])
@@ -56,7 +56,7 @@ def draw_cumulative_curve(errors, categories, threshold=15, database=None):
     if database is not None:
         import os
         from pathlib import Path
-        dirname = 'output/cum/landmarks/' + database
+        dirname = 'images_framework/output/cum/landmarks/' + database
         for i in os.listdir(dirname):
             if i.endswith('.txt'):
                 tmp = np.loadtxt(os.path.join(dirname, i))
@@ -79,7 +79,7 @@ def draw_cumulative_curve(errors, categories, threshold=15, database=None):
     fr = ['{:.2f}'.format(x) for x in frs]
     labels = [str(l + ' [' + a + '] (' + f + ')') for (l, a, f) in zip(labels, auc, fr)]
     plt.legend(handles, labels, loc='upper left')
-    plt.savefig('output/cumulative_curve.eps', format='eps')
+    plt.savefig('images_framework/output/cumulative_curve.eps', format='eps')
     plt.close(fig)
 
 
@@ -93,16 +93,16 @@ def draw_precision_recall(precisions, recalls, categories):
     plt.axis([0, 1, 0, 1])
     c_dark = list(filter(lambda x: x.startswith('dark'), col.cnames.keys()))
     aps = []
-    dirname = 'output/pr/'
+    dirname = 'images_framework/output/pr/'
     Path(dirname).mkdir(parents=True, exist_ok=True)
     # Compare algorithms for a specific category
     # for idx, filename in enumerate(['SCRDet19', 'RetinaNet17']):
-    #     precision, recall = np.loadtxt('output/pr/cowc_' + filename.lower() + '.txt', unpack=True)
+    #     precision, recall = np.loadtxt('images_framework/output/pr/cowc_' + filename.lower() + '.txt', unpack=True)
     #     plt.plot(recall, precision, color=c_dark[idx], label=filename)
     #     aps.append(calc_ap(recall, precision))
     # Compare categories for a specific algorithm
     for idx in range(len(categories)):
-        np.savetxt('output/pr/precision_recall_' + str(idx) + '.txt', np.column_stack([precisions[idx], recalls[idx]]))
+        np.savetxt('images_framework/output/pr/precision_recall_' + str(idx) + '.txt', np.column_stack([precisions[idx], recalls[idx]]))
         plt.plot(recalls[idx], precisions[idx], color=c_dark[idx], label=categories[idx])
         aps.append(calc_ap(recalls[idx], precisions[idx]))
     handles, labels = ax.get_legend_handles_labels()
@@ -114,7 +114,7 @@ def draw_precision_recall(precisions, recalls, categories):
     plt.xlabel('Recall')
     plt.ylabel('Precision')
     plt.grid('on', linestyle='--', linewidth=1.5)
-    plt.savefig('output/precision_recall.eps', format='eps')
+    plt.savefig('images_framework/output/precision_recall.eps', format='eps')
     plt.close(fig)
 
 
@@ -137,7 +137,7 @@ def draw_confusion_matrix(cm, categories, normalize=False):
         for j in range(cm.shape[1]):
             ax.text(j, i, format(cm[i, j], fmt), ha='center', va='center', color='white' if cm[i, j] > thresh else 'black', fontsize=int(20-pow(len(categories), 0.5)))
     fig.tight_layout()
-    plt.savefig('output/confusion_matrix.eps', format='eps')
+    plt.savefig('images_framework/output/confusion_matrix.eps', format='eps')
     plt.close(fig)
 
 

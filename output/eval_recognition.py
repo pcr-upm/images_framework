@@ -54,7 +54,7 @@ def parse_file(input_file):
 
 def main():
     print('Program started ...')
-    input_file = 'output/results.txt'
+    input_file = 'images_framework/output/results.txt'
 
     if len(sys.argv) == 1 and os.path.exists(input_file):
         results, categories = parse_file(input_file)

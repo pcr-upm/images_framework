@@ -69,7 +69,7 @@ def parse_file(input_file):
 
 def main():
     print('Program started ...')
-    input_file = 'output/results.txt'
+    input_file = 'images_framework/output/results.txt'
     parser = argparse.ArgumentParser(prog='eval_segmentation', add_help=False)
     parser.add_argument('--background', dest='background', action='store_true', help='Evaluate background label.')
     parser.set_defaults(background=False)
