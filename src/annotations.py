@@ -6,7 +6,7 @@ __email__ = 'roberto.valle@upm.es'
 import uuid
 import numpy as np
 from enum import Enum
-from .categories import Category
+from .categories import Name
 from images_framework.alignment.landmarks import PersonLandmarkPart as Pl
 
 
@@ -14,7 +14,7 @@ class GenericCategory:
     """
     Generic category data.
     """
-    def __init__(self, label: Category, score=-1):
+    def __init__(self, label: Name, score=-1):
         self.label = label
         self.score = score
 

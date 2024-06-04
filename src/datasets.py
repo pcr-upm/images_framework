@@ -392,8 +392,8 @@ class AFLW2000(Database):
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
         obj = PersonObject()
-        obj.add_category(GenericCategory(Oi.FACE))
-        euler = [float(parts[2]), float(parts[1]), float(parts[3])]
+        obj.add_category(GenericCategory(Name(parts[1])))  # Set identity as category to split the validation set
+        euler = [float(parts[3]), float(parts[2]), float(parts[4])]
         obj.headpose = Rotation.from_euler('XYZ', euler, degrees=True).as_matrix()
         # Skip images with angles outside the range (-99, 99)
         if np.any(np.abs(euler) > 99):
@@ -402,7 +402,7 @@ class AFLW2000(Database):
         for idx in range(0, len(indices)):
             label = indices[idx]
             lp = list(self._landmarks.keys())[next((ids for ids, xs in enumerate(self._landmarks.values()) for x in xs if x == label), None)]
-            pos = (int(round(float(parts[(2*idx)+4]))), int(round(float(parts[(2*idx)+5]))))
+            pos = (int(round(float(parts[(2*idx)+5]))), int(round(float(parts[(2*idx)+6]))))
             obj.add_landmark(GenericLandmark(label, lp, pos, True), lps[type(lp)])
         obj.bb = cv2.boundingRect(np.array([[pt.pos for pt in list(itertools.chain.from_iterable(obj.landmarks[Pl.FACE.value].values()))]]).astype(int))
         obj.bb = (obj.bb[0], obj.bb[1], obj.bb[0]+obj.bb[2], obj.bb[1]+obj.bb[3])
