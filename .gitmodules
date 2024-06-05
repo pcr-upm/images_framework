@@ -61,3 +61,6 @@
 [submodule "alignment/students_headpose"]
 	path = alignment/students_headpose
 	url = git@github.com:pcr-upm/students_headpose.git
+[submodule "alignment/wdann_headpose"]
+	path = alignment/wdann_headpose
+	url = git@github.com:pcr-upm/wdann_headpose.git
