@@ -8,5 +8,5 @@ sudo docker stop images_framework_container
 echo 'Transferring data from docker container to your local machine ...'
 mkdir -p output
 sudo chown -R "${USER}":"${USER}" /var/lib/docker/
-rsync --delete -azvv /var/lib/docker/volumes/images_framework_volume/_data/output/ output
+rsync --delete -azvv /var/lib/docker/volumes/images_framework_volume/_data/images_framework/output/images/ output
 sudo docker system prune --all --force --volumes
