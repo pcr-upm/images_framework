@@ -79,6 +79,31 @@ class Mnist(Database):
         return seq
 
 
+class OP3D12P(Database):
+    def __init__(self):
+        super().__init__()
+        self._names = ['op3d_12p']
+        self._categories = {0: Oi.FACE}
+        self._colors = [(0, 255, 0)]
+
+    def load_filename(self, path, db, line):
+        from PIL import Image
+        from scipy.spatial.transform import Rotation
+        from .annotations import PersonObject
+        seq = GenericGroup()
+        parts = line.strip().split(',')
+        image = GenericImage(path + parts[0])
+        width, height = Image.open(image.filename).size
+        image.tile = np.array([0, 0, width, height])
+        obj = PersonObject()
+        obj.bb = (0, 0, width, height)
+        obj.add_category(GenericCategory(Name(parts[1])))  # Set identity as category to split the validation set
+        obj.headpose = Rotation.from_euler('YXZ', [float(parts[2]), float(parts[3]), 0.0], degrees=True).as_matrix()
+        image.add_object(obj)
+        seq.add_image(image)
+        return seq
+
+
 class COCO(Database):
     def __init__(self):
         from images_framework.alignment.landmarks import FaceLandmarkPart as Pf, HandLandmarkPart as Ph, BodyLandmarkPart as Pb
