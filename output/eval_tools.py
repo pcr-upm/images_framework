@@ -125,7 +125,7 @@ def draw_confusion_matrix(cm, categories, normalize=False):
     ax = fig.add_subplot(111)
     if normalize:
         cm = cm.astype('float') / np.maximum(cm.sum(axis=1)[:, np.newaxis], np.finfo(np.float64).eps)
-    im = ax.imshow(cm, interpolation='nearest', cmap=plt.cm.get_cmap('Blues'))
+    im = ax.imshow(cm, interpolation='nearest', cmap=plt.get_cmap('Blues'))
     ax.figure.colorbar(im, ax=ax)
     ax.set(xticks=np.arange(cm.shape[1]), yticks=np.arange(cm.shape[0]), xticklabels=categories, yticklabels=categories, ylabel='Annotation', xlabel='Prediction')
     # Rotate the tick labels and set their alignment
