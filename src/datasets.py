@@ -82,7 +82,7 @@ class Mnist(Database):
 class OP3D12P(Database):
     def __init__(self):
         super().__init__()
-        self._names = ['op3d_12p']
+        self._names = ['op3d12p']
         self._categories = {0: Oi.FACE}
         self._colors = [(0, 255, 0)]
 
@@ -91,7 +91,7 @@ class OP3D12P(Database):
         from scipy.spatial.transform import Rotation
         from .annotations import PersonObject
         seq = GenericGroup()
-        parts = line.strip().split(',')
+        parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
