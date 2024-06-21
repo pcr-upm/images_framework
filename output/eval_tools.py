@@ -46,7 +46,7 @@ def draw_cumulative_curve(errors, categories, threshold=15, database=None):
     for idx in range(errors.shape[1]):
         values, base = np.histogram(errors[:, idx], bins=10000)
         cumulative = np.cumsum(values/float(errors.shape[0]))
-        base = [x for x in base if (x < threshold)]
+        base = [x for x in base if (x < threshold)][:10000]
         cumulative = cumulative[0:len(base)]
         np.savetxt('images_framework/output/cum/cumulative_' + str(idx) + '.txt', np.column_stack([base, cumulative]), fmt='%1.6f')
         aucs.append(area_under_curve(base, cumulative, threshold))
