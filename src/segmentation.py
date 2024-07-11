@@ -22,8 +22,10 @@ class Segmentation(Component):
     def parse_options(self, params):
         import argparse
         import itertools
+        choices = list(itertools.chain.from_iterable([db().get_names() for db in Database.__subclasses__()]))
+        choices.append('all')
         parser = argparse.ArgumentParser(prog='Segmentation', add_help=False)
-        parser.add_argument('--database', required=True, choices=list(itertools.chain.from_iterable([db().get_names() for db in Database.__subclasses__()])),
+        parser.add_argument('--database', required=True, choices=choices,
                             help='Select database model.')
         args, unknown = parser.parse_known_args(params)
         print(parser.format_usage())

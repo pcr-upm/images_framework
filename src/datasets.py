@@ -1082,7 +1082,7 @@ class WorldView3(Database):
     def __init__(self):
         from images_framework.categories.vehicles import Vehicle as Ov
         super().__init__()
-        self._names = ['maxar', 'cuende', 'all']
+        self._names = ['maxar', 'cuende']
         self._categories = {0: Ov.VEHICLE.CAR}
         self._colors = [(0, 255, 0)]
 
