@@ -85,6 +85,7 @@ def print_headpose_metrics(err_images, anno_mats, pred_mats, images_filter=None)
     err_images_filter = np.array([val for key, val in enumerate(err_images) if key in images_filter])
     anno_mats_filter = np.array([val for key, val in enumerate(anno_mats) if key in images_filter])
     pred_mats_filter = np.array([val for key, val in enumerate(pred_mats) if key in images_filter])
+    # Mean absolute error
     mae_by_angle = np.mean(err_images_filter, axis=0)
     print('MAE: ' + str(np.mean(mae_by_angle)))
     print('[yaw, pitch roll]: ' + str(mae_by_angle))
@@ -178,13 +179,19 @@ def main():
     if len(sys.argv) >= 1 and os.path.exists(input_file):
         results = parse_file(input_file)
         if bool(results):
-            anno_mats, pred_mats, anno_angles, pred_angles = [], [], [], []
-            for keyname in results.keys():
-                for identifier in results[keyname].keys():
-                    anno_matrix = results[keyname][identifier]['annotation']['pose']
-                    pred_matrix = results[keyname][identifier]['prediction']['pose']
-                    anno_mats.append(anno_matrix)
-                    pred_mats.append(pred_matrix)
+            if state is States.POSE or state is States.ALL:
+                anno_mats, pred_mats = [], []
+                for keyname in results.keys():
+                    for identifier in results[keyname].keys():
+                        anno_matrix = results[keyname][identifier]['annotation']['pose']
+                        pred_matrix = results[keyname][identifier]['prediction']['pose']
+                        anno_mats.append(anno_matrix)
+                        pred_mats.append(pred_matrix)
+                anno_mats, pred_mats = np.array(anno_mats), np.array(pred_mats)
+                # Align predicted rotation matrices to remove systematic errors in cross data set evaluation
+                # pred_mats = align_predictions(anno_mats, pred_mats)
+                anno_angles, pred_angles = [], []
+                for anno_matrix, pred_matrix in zip(anno_mats, pred_mats):
                     if database in AFLW2000().get_names() or database in Biwi().get_names() or database in Panoptic().get_names():
                         # Order is pitch x yaw x roll
                         anno_angle = np.array(Rotation.from_matrix(anno_matrix).as_euler('XYZ', degrees=True))[[1, 0, 2]]
@@ -195,9 +202,8 @@ def main():
                         pred_angle = np.array(Rotation.from_matrix(pred_matrix).as_euler('YXZ', degrees=True))
                     anno_angles.append(anno_angle)
                     pred_angles.append(pred_angle)
-            if state is States.POSE or state is States.ALL:
-                # Mean absolute error (pose)
-                anno_mats, pred_mats, anno_angles, pred_angles = np.array(anno_mats), np.array(pred_mats), np.array(anno_angles), np.array(pred_angles)
+                anno_angles, pred_angles = np.array(anno_angles), np.array(pred_angles)
+                # Mean absolute error and geodesic error (pose)
                 errors = np.abs(anno_angles - pred_angles)
                 mae_by_image = np.mean(errors, axis=1)
                 # Wrapped MAE, i.e. Real-time fine-grained estimation for wide range head pose (BMVC 2020)
