@@ -80,6 +80,33 @@ def parse_file(input_file):
     return results
 
 
+def align_predictions(anno_mats, pred_mats, images_filter=None, tol=0.0001, max_iter=100000):
+    def _compute_displacement(mean_matrix, matrices):
+        return np.concatenate([cv2.Rodrigues(r)[0].T for r in mean_matrix.T @ matrices])
+
+    def _compute_mean_rotation(mats):
+        # Exclude samples outside the sphere of radius pi/2 for convergence
+        distances = _compute_displacement(np.eye(3), mats)
+        distances = np.linalg.norm(distances, axis=1)
+        matrices = mats[distances < np.pi/2]
+
+        mean_matrix = matrices[0]
+        for _ in range(max_iter):
+            displacement = _compute_displacement(mean_matrix, matrices)
+            displacement = np.mean(displacement, axis=0)
+            d_norm = np.linalg.norm(displacement)
+            if d_norm < tol:
+                break
+            mean_matrix = mean_matrix @ cv2.Rodrigues(displacement)[0]
+        return mean_matrix
+
+    images_filter = range(0, len(anno_mats)) if not images_filter else images_filter
+    deltas = np.matmul(pred_mats[images_filter], anno_mats[images_filter].transpose(0, 2, 1))
+    mean_delta = _compute_mean_rotation(deltas)
+    pred_mats[images_filter] = np.matmul(mean_delta.T, pred_mats[images_filter])
+    return pred_mats
+
+
 def print_headpose_metrics(err_images, anno_mats, pred_mats, images_filter=None):
     images_filter = range(0, len(err_images)) if not images_filter else images_filter
     err_images_filter = np.array([val for key, val in enumerate(err_images) if key in images_filter])
@@ -189,7 +216,9 @@ def main():
                         pred_mats.append(pred_matrix)
                 anno_mats, pred_mats = np.array(anno_mats), np.array(pred_mats)
                 # Align predicted rotation matrices to remove systematic errors in cross data set evaluation
-                # pred_mats = align_predictions(anno_mats, pred_mats)
+                if database in Biwi().get_names():
+                    for mask in [range(0,431),range(431,793),range(793,1362),range(1362,2051),range(2051,2932),range(2932,3331),range(3331,4030),range(4030,4768),range(4768,5599),range(5599,6287),range(6287,6857),range(6857,7584),range(7584,8068),range(8068,8721),range(8721,9196),range(9196,9888),range(9888,10203),range(10203,10679),range(10679,11014),range(11014,11485),range(11485,11935),range(11935,12465),range(12465,12860),range(12860,13219)]:
+                        pred_mats = align_predictions(anno_mats, pred_mats, images_filter=mask)
                 anno_angles, pred_angles = [], []
                 for anno_matrix, pred_matrix in zip(anno_mats, pred_mats):
                     if database in AFLW2000().get_names() or database in Biwi().get_names() or database in Panoptic().get_names():
