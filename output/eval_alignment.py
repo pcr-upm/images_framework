@@ -51,7 +51,7 @@ def parse_file(input_file):
             parts = line.split(';')
             if int(parts.pop(0)) != 3:
                 continue
-            filename, ext = os.path.splitext(os.path.basename(parts.pop(0)))
+            filename, ext = os.path.splitext(parts.pop(0))
             tile = np.array(parts.pop(0)[1:-1].split(',')).astype(int)
             keyname = filename + '_' + '_'.join([str(val) for val in tile]) + ext
             results.setdefault(keyname, {})
@@ -193,11 +193,14 @@ def main():
                         help='Select state.')
     parser.add_argument('--database', '-d', choices=list(itertools.chain.from_iterable([db().get_names() for db in Database.__subclasses__()])), default='aflw',
                         help='Select database.')
+    parser.add_argument('--align', '-a', dest='align', action="store_true",
+                        help='Align predicted rotation matrices.')
     parser.add_argument('--measure', '-m', choices=[x.value for x in Measures], default=Measures.HEIGHT,
                         help='Select measure.')
     args, _ = parser.parse_known_args()
     state = States(args.state)
     database = args.database
+    align = args.align
     measure = args.measure
 
     print('Program started ...')
@@ -216,9 +219,12 @@ def main():
                         pred_mats.append(pred_matrix)
                 anno_mats, pred_mats = np.array(anno_mats), np.array(pred_mats)
                 # Align predicted rotation matrices to remove systematic errors in cross data set evaluation
-                if database in Biwi().get_names():
-                    for mask in [range(0,431),range(431,793),range(793,1362),range(1362,2051),range(2051,2932),range(2932,3331),range(3331,4030),range(4030,4768),range(4768,5599),range(5599,6287),range(6287,6857),range(6857,7584),range(7584,8068),range(8068,8721),range(8721,9196),range(9196,9888),range(9888,10203),range(10203,10679),range(10679,11014),range(11014,11485),range(11485,11935),range(11935,12465),range(12465,12860),range(12860,13219)]:
-                        pred_mats = align_predictions(anno_mats, pred_mats, images_filter=mask)
+                if align:
+                    if database in Biwi().get_names():
+                        for mask in [range(0,431),range(431,793),range(793,1362),range(1362,2051),range(2051,2932),range(2932,3331),range(3331,4030),range(4030,4768),range(4768,5599),range(5599,6287),range(6287,6857),range(6857,7584),range(7584,8068),range(8068,8721),range(8721,9196),range(9196,9888),range(9888,10203),range(10203,10679),range(10679,11014),range(11014,11485),range(11485,11935),range(11935,12465),range(12465,12860),range(12860,13219)]:
+                            pred_mats = align_predictions(anno_mats, pred_mats, images_filter=mask)
+                    else:
+                        pred_mats = align_predictions(anno_mats, pred_mats, images_filter=len(anno_mats))
                 anno_angles, pred_angles = [], []
                 for anno_matrix, pred_matrix in zip(anno_mats, pred_mats):
                     if database in AFLW2000().get_names() or database in Biwi().get_names() or database in Panoptic().get_names():
