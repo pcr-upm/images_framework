@@ -221,10 +221,11 @@ def main():
                 # Align predicted rotation matrices to remove systematic errors in cross data set evaluation
                 if align:
                     if database in Biwi().get_names():
-                        for mask in [range(0,431),range(431,793),range(793,1362),range(1362,2051),range(2051,2932),range(2932,3331),range(3331,4030),range(4030,4768),range(4768,5599),range(5599,6287),range(6287,6857),range(6857,7584),range(7584,8068),range(8068,8721),range(8721,9196),range(9196,9888),range(9888,10203),range(10203,10679),range(10679,11014),range(11014,11485),range(11485,11935),range(11935,12465),range(12465,12860),range(12860,13219)]:
+                        for mask in [range(0,431),range(431,793),range(793,1362),range(1362,2051),range(2051,2932),range(2932,3331),range(3331,4030),range(4030,4768),range(4768,5599),range(5599,6287),range(6287,6857),range(6857,7584),range(7584,8068),range(8068,8721),range(8721,9196),range(9196,9888),range(9888,10203),range(10203,10679),range(10679,11014),range(11014,11485),range(11485,11935),range(11935,12465),range(12465,12860),range(12860,13219)]:  # biwi_ann_mtcnn.txt
+                        # for mask in [range(0,882),range(882,1367),range(1367,2112),range(2112,2668),range(2668,3063),range(3063,3697),range(3697,4239),range(4239,4731),range(4731,5303),range(5303,5801),range(5801,6533),range(6533,7277),range(7277,7942),range(7942,8444),range(8444,9170),range(9170,9681),range(9681,10335),range(10335,11281),range(11281,11850),range(11850,12580),range(12580,13377),range(13377,14149),range(14149,14763),range(14763,15677)]:  # biwi_ann_test.txt
                             pred_mats = align_predictions(anno_mats, pred_mats, images_filter=mask)
                     else:
-                        pred_mats = align_predictions(anno_mats, pred_mats, images_filter=len(anno_mats))
+                        pred_mats = align_predictions(anno_mats, pred_mats, images_filter=range(len(anno_mats)))
                 anno_angles, pred_angles = [], []
                 for anno_matrix, pred_matrix in zip(anno_mats, pred_mats):
                     if database in AFLW2000().get_names() or database in Biwi().get_names() or database in Panoptic().get_names():
