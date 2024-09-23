@@ -64,3 +64,6 @@
 [submodule "alignment/wdann_headpose"]
 	path = alignment/wdann_headpose
 	url = git@github.com:pcr-upm/wdann_headpose.git
+[submodule "alignment/saul24_gaze"]
+	path = alignment/saul24_gaze
+	url = git@github.com:pcr-upm/saul24_gaze.git

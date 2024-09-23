@@ -421,7 +421,7 @@ class AFLW2000(Database):
         euler = [float(parts[3]), float(parts[2]), float(parts[4])]
         obj.headpose = Rotation.from_euler('XYZ', euler, degrees=True).as_matrix()
         # Skip images with angles outside the range (-99, 99)
-        if np.any(np.abs(euler) > 99):
+        if np.any(np.abs(euler) > 30):
             return seq
         indices = [101, 102, 103, 104, 105, 106, 107, 108, 24, 110, 111, 112, 113, 114, 115, 116, 117, 1, 119, 2, 121, 3, 4, 124, 5, 126, 6, 128, 129, 130, 17, 16, 133, 134, 135, 18, 7, 138, 139, 8, 141, 142, 11, 144, 145, 12, 147, 148, 20, 150, 151, 22, 153, 154, 21, 156, 157, 23, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168]
         for idx in range(0, len(indices)):
