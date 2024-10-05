@@ -98,7 +98,7 @@ class OP3D12P(Database):
         obj = PersonObject()
         obj.bb = (float(parts[2]), float(parts[3]), float(parts[2])+float(parts[4]), float(parts[3])+float(parts[5]))
         obj.add_category(GenericCategory(Name(parts[1])))  # Set identity as category to split the validation set
-        obj.headpose = Rotation.from_euler('YXZ', [-float(parts[6]), float(parts[7]), 0.0], degrees=True).as_matrix()
+        obj.headpose = Rotation.from_euler('YXZ', [float(parts[6]), float(parts[7]), float(parts[8])], degrees=True).as_matrix()
         image.add_object(obj)
         seq.add_image(image)
         return seq
