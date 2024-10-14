@@ -158,12 +158,12 @@ def metric_by_image(err_images, metric, percentile_threshold=98):
 
 
 def area_under_curve(base, cumulative, auc_threshold):
-    from scipy.integrate import simps
+    from scipy.integrate import simpson
     base = [x for x in base if (x < auc_threshold)]
     if not base:
         return 0.0
     cumulative = cumulative[0:len(base)]
-    return (simps(cumulative[0:10000], x=base[0:10000]) / auc_threshold) * 100.0
+    return (simpson(cumulative[0:10000], x=base[0:10000]) / auc_threshold) * 100.0
 
 
 def failure_rate(base, cumulative, auc_threshold):
