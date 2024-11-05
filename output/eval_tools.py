@@ -139,29 +139,3 @@ def draw_confusion_matrix(cm, categories, normalize=False):
     fig.tight_layout()
     plt.savefig('images_framework/output/confusion_matrix.eps', format='eps')
     plt.close(fig)
-
-
-def metric_accuracy(cm, categories):
-    # Compute the accuracy
-    correct_samples_class = np.diag(cm).astype(float)
-    total_samples_class = np.sum(cm, axis=1).astype(float)
-    print('Pixel Acc: %.3f%%' % (np.sum(correct_samples_class) / np.sum(total_samples_class) * 100))
-    acc = correct_samples_class / np.maximum(total_samples_class, np.finfo(np.float64).eps)
-    print('Mean Acc: %.3f%%' % (acc.mean() * 100))
-    for idx, val in enumerate(categories):
-        # True/False Positives (TP/FP) refer to the number of predicted positives that were correct/incorrect.
-        # True/False Negatives (TN/FN) refer to the number of predicted negatives that were correct/incorrect.
-        tp = cm[idx, idx]
-        fp = sum(cm[:, idx]) - tp
-        fn = sum(cm[idx, :]) - tp
-        tn = sum(np.delete(sum(cm) - cm[idx, :], idx))
-        # True Positive Rate: proportion of real positive cases that were correctly predicted as positive.
-        recall = tp / np.maximum(tp+fn, np.finfo(np.float64).eps)
-        # Precision: proportion of predicted positive cases that were truly real positives.
-        precision = tp / np.maximum(tp+fp, np.finfo(np.float64).eps)
-        # True Negative Rate: proportion of real negative cases that were correctly predicted as negative.
-        specificity = tn / np.maximum(tn+fp, np.finfo(np.float64).eps)
-        # Dice coefficient refers to two times the intersection of two sets divided by the sum of their areas.
-        # Dice = 2 |A∩B| / (|A|+|B|) = 2 TP / (2 TP + FP + FN)
-        f1_score = 2 * ((precision * recall) / np.maximum(precision+recall, np.finfo(np.float64).eps))
-        print('> %s: Recall: %.3f%% Precision: %.3f%% Specificity: %.3f%% Dice: %.3f%%' % (val, recall*100, precision*100, specificity*100, f1_score*100))

@@ -8,8 +8,8 @@ import sys
 sys.path.append(os.getcwd())
 import numpy as np
 from tqdm import tqdm
-from sklearn.metrics import confusion_matrix
-from eval_tools import draw_confusion_matrix, metric_accuracy
+from sklearn.metrics import confusion_matrix, accuracy_score, recall_score, precision_score
+from eval_tools import draw_confusion_matrix
 
 
 def parse_file(input_file):
@@ -69,7 +69,27 @@ def main():
             print('Confusion matrix:')
             print(cm)
             draw_confusion_matrix(cm, categories, True)
-            metric_accuracy(cm, categories)
+            print('mAccuracy: %.3f%%' % (accuracy_score(y_true, y_pred)*100))
+            print('mRecall: %.3f%%' % (recall_score(y_true, y_pred, average='macro', zero_division=1)*100))
+            print('mPrecision: %.3f%%' % (precision_score(y_true, y_pred, average='macro', zero_division=1)*100))
+            # Draw metrics for each category
+            for idx, val in enumerate(categories):
+                # True/False Positives (TP/FP) refer to the number of predicted positives that were correct/incorrect.
+                # True/False Negatives (TN/FN) refer to the number of predicted negatives that were correct/incorrect.
+                tp = cm[idx, idx]
+                fp = sum(cm[:, idx]) - tp
+                fn = sum(cm[idx, :]) - tp
+                tn = sum(np.delete(sum(cm) - cm[idx, :], idx))
+                # True Positive Rate: proportion of real positive cases that were correctly predicted as positive.
+                recall = tp / np.maximum(tp+fn, np.finfo(np.float64).eps)
+                # Precision: proportion of predicted positive cases that were truly real positives.
+                precision = tp / np.maximum(tp+fp, np.finfo(np.float64).eps)
+                # True Negative Rate: proportion of real negative cases that were correctly predicted as negative.
+                specificity = tn / np.maximum(tn+fp, np.finfo(np.float64).eps)
+                # Dice coefficient refers to two times the intersection of two sets divided by the sum of their areas.
+                # Dice = 2 |A∩B| / (|A|+|B|) = 2 TP / (2 TP + FP + FN)
+                f1_score = 2 * ((precision * recall) / np.maximum(precision+recall, np.finfo(np.float64).eps))
+                print('> %s: Recall: %.3f%% Precision: %.3f%% Specificity: %.3f%% Dice: %.3f%%' % (val, recall*100, precision*100, specificity*100, f1_score*100))
         else:
             print('Empty object recognition results')
     else:

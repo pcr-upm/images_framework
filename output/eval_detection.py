@@ -8,8 +8,8 @@ import sys
 sys.path.append(os.getcwd())
 import numpy as np
 from tqdm import tqdm
-from sklearn.metrics import confusion_matrix
-from eval_tools import draw_precision_recall, draw_confusion_matrix, metric_accuracy
+from sklearn.metrics import confusion_matrix, accuracy_score, recall_score, precision_score
+from eval_tools import draw_precision_recall, draw_confusion_matrix
 
 
 def area_intersection(boxes, box):
@@ -179,15 +179,6 @@ def main():
                         # FN
                         y_true += [cls] * len(anno_indices)
                         y_pred += [default_cls] * len(anno_indices)
-                if threshold == 0.5:
-                    names = categories.copy()
-                    names.insert(0, default_cls)
-                    cm = confusion_matrix(y_true, y_pred, labels=names)
-                    print('Confusion matrix:')
-                    print(cm)
-                    draw_confusion_matrix(cm, names, True)
-                    metric_accuracy(cm, names)
-                    print('=====' * 10)
                 # Compute AP metric
                 print('IoU threshold:', threshold)
                 y_true, y_pred = np.array(y_true), np.array(y_pred)
@@ -203,10 +194,20 @@ def main():
                     recall_list.append(recall)
                     ap_list.append(ap)
                 mean_ap = np.mean(ap_list)
+                print('mAccuracy: %.3f%%' % (accuracy_score(y_true, y_pred)*100))
+                print('mRecall: %.3f%%' % (recall_score(y_true, y_pred, average='macro', zero_division=1)*100))
+                print('mPrecision: %.3f%%' % (precision_score(y_true, y_pred, average='macro', zero_division=1)*100))
                 print('mAP: %.3f%%' % (mean_ap*100))
                 aps.append(mean_ap)
                 if threshold == 0.5:
+                    names = categories.copy()
+                    names.insert(0, default_cls)
+                    cm = confusion_matrix(y_true, y_pred, labels=names)
+                    print('Confusion matrix:')
+                    print(cm)
+                    draw_confusion_matrix(cm, names, True)
                     draw_precision_recall(precision_list, recall_list, categories)
+                print('=====' * 10)
             print('mmAP: %.3f%%' % (sum(aps)/len(aps)*100))
         else:
             print('Empty object detection results')
