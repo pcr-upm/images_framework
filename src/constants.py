@@ -56,12 +56,12 @@ class Aligners(Enum):
     """
     CIARP17_HEADPOSE = 'ciarp17_headpose'
     OPAL23_HEADPOSE = 'opal23_headpose'
-    WDANN_HEADPOSE = 'wdann_headpose'
     STUDENTS_HEADPOSE = 'students_headpose'
     STUDENTS_LANDMARKS = 'students_landmarks'
     KAZEMI14_LANDMARKS = 'kazemi14_landmarks'
     DAD22_LANDMARKS = 'dad22_landmarks'
     ICITS24_LANDMARKS = 'icits24_landmarks'
+    WDANN_LANDMARKS = 'wdann_landmarks'
     OPENPOSE_LANDMARKS = 'openpose_landmarks'
     PAMI20_RECONSTRUCTION = 'pami20_reconstruction'
     EFFICIENTNET21_RECONSTRUCTION = 'efficientnet21_reconstruction'
