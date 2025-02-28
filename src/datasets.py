@@ -551,13 +551,15 @@ class ArckPadel(Database):
         from PIL import Image
         seq = GenericGroup()
         parts = line.strip().split(';')
-        num_images = int(parts[0])
+        num_images = int(parts[1])
+        if len(parts) == 2:
+            return seq
         for idx in range(0, num_images):
-            image = GenericImage(path + parts[1+idx])
+            ann_file = path + parts[2+idx]
+            root, extension = os.path.splitext(ann_file)
+            image = GenericImage(path + root + '.png')
             width, height = Image.open(image.filename).size
             image.tile = np.array([0, 0, width, height])
-            root, extension = os.path.splitext(image.filename)
-            ann_file = root + '.xml'
             if os.path.exists(ann_file):
                 import xml.etree.ElementTree as ET
                 tree = ET.parse(ann_file)
