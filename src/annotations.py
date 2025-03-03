@@ -113,6 +113,16 @@ class AerialImage(GenericImage):
         self.nadir_angle = -1
 
 
+class DiffusionImage(GenericImage):
+    """
+    Diffusion image inherits from the generic image class.
+    """
+    def __init__(self, filename):
+        super().__init__(filename)
+        self.control = ''
+        self.prompt = ''
+
+
 class GenericGroup:
     """
     Set of images or sequence of frames from a video.

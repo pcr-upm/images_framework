@@ -79,6 +79,31 @@ class Mnist(Database):
         return seq
 
 
+class Fill50K(Database):
+    def __init__(self):
+        super().__init__()
+        self._names = ['fill50k']
+        self._categories = {0: Oi.FACE}
+        self._colors = [(0, 255, 0)]
+
+    def load_filename(self, path, db, line):
+        from PIL import Image
+        from .annotations import DiffusionImage
+        seq = GenericGroup()
+        parts = line.strip().split(';')
+        image = DiffusionImage(path + parts[0])
+        width, height = Image.open(image.filename).size
+        image.tile = np.array([0, 0, width, height])
+        image.control = path + parts[1]
+        image.prompt = parts[2]
+        obj = GenericObject()
+        obj.bb = (0, 0, width, height)
+        obj.add_category(GenericCategory(Oi.FACE))
+        image.add_object(obj)
+        seq.add_image(image)
+        return seq
+
+
 class OP3D12P(Database):
     def __init__(self):
         super().__init__()
