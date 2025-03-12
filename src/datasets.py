@@ -326,6 +326,7 @@ class FaceSynthetics(Database):
         super().__init__()
         self._names = ['face_synthetics', 'FaceSynthetics']
         self._landmarks = {Pf.LEYEBROW: (1, 119, 2, 121, 3), Pf.REYEBROW: (4, 124, 5, 126, 6), Pf.LEYE: (7, 138, 139, 8, 141, 142, 169), Pf.REYE: (11, 144, 145, 12, 147, 148, 170), Pf.NOSE: (128, 129, 130, 17, 16, 133, 134, 135, 18), Pf.TMOUTH: (20, 150, 151, 22, 153, 154, 21, 165, 164, 163, 162, 161), Pf.BMOUTH: (156, 157, 23, 159, 160, 168, 167, 166), Pf.LEAR: (101, 102, 103, 104, 105, 106), Pf.REAR: (112, 113, 114, 115, 116, 117), Pf.CHIN: (107, 108, 24, 110, 111)}
+        # self._landmarks = {Pf.LEYEBROW: (1, 119, 2, 121, 3), Pf.REYEBROW: (4, 124, 5, 126, 6), Pf.LEYE: (7, 138, 139, 8, 141, 142), Pf.REYE: (11, 144, 145, 12, 147, 148), Pf.NOSE: (128, 129, 130, 17, 16, 133, 134, 135, 18), Pf.TMOUTH: (20, 150, 151, 22, 153, 154, 21, 165, 164, 163, 162, 161), Pf.BMOUTH: (156, 157, 23, 159, 160, 168, 167, 166), Pf.LEAR: (101, 102, 103, 104, 105, 106), Pf.REAR: (112, 113, 114, 115, 116, 117), Pf.CHIN: (107, 108, 24, 110, 111)}
         # self._categories = {0: Name('BACKGROUND'), 1: Name('SKIN'), 2: Name('NOSE'), 3: Name('RIGHT_EYE'), 4: Name('LEFT_EYE'), 5: Name('RIGHT_BROW'), 6: Name('LEFT_BROW'), 7: Name('RIGHT_EAR'), 8: Name('LEFT_EAR'), 9: Name('MOUTH_INTERIOR'), 10: Name('TOP_LIP'), 11: Name('BOTTOM_LIP'), 12: Name('NECK'), 13: Name('HAIR'), 14: Name('BEARD'), 15: Name('CLOTHING'), 16: Name('GLASSES'), 17: Name('HEADWEAR'), 18: Name('FACEWEAR'), 255: Name('IGNORE')}
         # self._colors = get_palette(len(self._categories))
         self._categories = {0: Oi.FACE}
@@ -336,11 +337,11 @@ class FaceSynthetics(Database):
         import itertools
         from PIL import Image
         from .utils import load_geoimage, mask2contours
-        from .annotations import PersonObject
+        from .annotations import DiffusionImage, PersonObject
         from images_framework.alignment.landmarks import lps, PersonLandmarkPart as Pl
         seq = GenericGroup()
         parts = line.strip().split(';')
-        image = GenericImage(path + parts[0])
+        image = DiffusionImage(path + parts[0])
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
         # Segmentation
@@ -351,10 +352,13 @@ class FaceSynthetics(Database):
         #     obj.multipolygon = mask2contours(mask)
         #     obj.add_category(GenericCategory(self._categories[idx]))
         #     image.add_object(obj)
+        # Control
+        # image.control = path + parts[1]
         # Landmarks
         obj = PersonObject()
         obj.add_category(GenericCategory(Oi.FACE))
         indices = [101, 102, 103, 104, 105, 106, 107, 108, 24, 110, 111, 112, 113, 114, 115, 116, 117, 1, 119, 2, 121, 3, 4, 124, 5, 126, 6, 128, 129, 130, 17, 16, 133, 134, 135, 18, 7, 138, 139, 8, 141, 142, 11, 144, 145, 12, 147, 148, 20, 150, 151, 22, 153, 154, 21, 156, 157, 23, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170]
+        # indices = [101, 102, 103, 104, 105, 106, 107, 108, 24, 110, 111, 112, 113, 114, 115, 116, 117, 1, 119, 2, 121, 3, 4, 124, 5, 126, 6, 128, 129, 130, 17, 16, 133, 134, 135, 18, 7, 138, 139, 8, 141, 142, 11, 144, 145, 12, 147, 148, 20, 150, 151, 22, 153, 154, 21, 156, 157, 23, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168]
         for idx in range(0, len(indices)):
             label = indices[idx]
             lp = list(self._landmarks.keys())[next((ids for ids, xs in enumerate(self._landmarks.values()) for x in xs if x == label), None)]
@@ -363,6 +367,8 @@ class FaceSynthetics(Database):
         obj.bb = cv2.boundingRect(np.array([[pt.pos for pt in list(itertools.chain.from_iterable(obj.landmarks[Pl.FACE.value].values()))]]).astype(int))
         obj.bb = (obj.bb[0], obj.bb[1], obj.bb[0]+obj.bb[2], obj.bb[1]+obj.bb[3])
         image.add_object(obj)
+        # Prompt
+        # image.prompt = parts[-1]
         seq.add_image(image)
         return seq
 
