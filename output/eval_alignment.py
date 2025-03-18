@@ -191,7 +191,7 @@ def main():
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument('--state', '-s', choices=[x.value for x in States], default=States.ALL,
                         help='Select state.')
-    parser.add_argument('--database', '-d', choices=list(itertools.chain.from_iterable([db().get_names() for db in Database.__subclasses__()])), default='aflw',
+    parser.add_argument('--database', '-d', choices=list(itertools.chain.from_iterable([db().get_names() for db in Database.__subclasses__()])), default=None,
                         help='Select database.')
     parser.add_argument('--align', '-a', dest='align', action="store_true",
                         help='Align predicted rotation matrices.')
