@@ -87,7 +87,9 @@ class Fill50K(Database):
         self._colors = [(0, 255, 0)]
 
     def load_filename(self, path, db, line):
+        import os
         from PIL import Image
+        from pathlib import Path
         from .annotations import DiffusionImage
         seq = GenericGroup()
         parts = line.strip().split(';')
@@ -96,6 +98,11 @@ class Fill50K(Database):
         image.tile = np.array([0, 0, width, height])
         image.control = path + parts[1]
         image.prompt = parts[2]
+        dirname = path + 'prompt/'
+        Path(dirname).mkdir(parents=True, exist_ok=True)
+        image.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '.txt'
+        with open(image.prompt, 'w', encoding='utf-8') as ofs: 
+            ofs.write(parts[2])
         obj = GenericObject()
         obj.bb = (0, 0, width, height)
         obj.add_category(GenericCategory(Oi.FACE))
@@ -333,10 +340,11 @@ class FaceSynthetics(Database):
         self._colors = [(0, 255, 0)]
 
     def load_filename(self, path, db, line):
+        import os
         import cv2
         import itertools
         from PIL import Image
-        from .utils import load_geoimage, mask2contours
+        from pathlib import Path
         from .annotations import DiffusionImage, PersonObject
         from images_framework.alignment.landmarks import lps, PersonLandmarkPart as Pl
         seq = GenericGroup()
@@ -345,6 +353,7 @@ class FaceSynthetics(Database):
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
         # Segmentation
+        # from .utils import load_geoimage, mask2contours
         # segmentation, _ = load_geoimage(path + parts[1])
         # for idx in self._categories.keys():
         #     obj = GenericObject()
@@ -352,8 +361,6 @@ class FaceSynthetics(Database):
         #     obj.multipolygon = mask2contours(mask)
         #     obj.add_category(GenericCategory(self._categories[idx]))
         #     image.add_object(obj)
-        # Control
-        # image.control = path + parts[1]
         # Landmarks
         obj = PersonObject()
         obj.add_category(GenericCategory(Oi.FACE))
@@ -367,8 +374,31 @@ class FaceSynthetics(Database):
         obj.bb = cv2.boundingRect(np.array([[pt.pos for pt in list(itertools.chain.from_iterable(obj.landmarks[Pl.FACE.value].values()))]]).astype(int))
         obj.bb = (obj.bb[0], obj.bb[1], obj.bb[0]+obj.bb[2], obj.bb[1]+obj.bb[3])
         image.add_object(obj)
-        # Prompt
-        # image.prompt = parts[-1]
+        # Generate control
+        from images_framework.alignment.landmarks import FaceLandmarkPart as Pf
+        colors = {Pf.LEYEBROW: (255, 0, 0), Pf.REYEBROW: (0, 128, 255), Pf.LEYE: (170, 0, 255), Pf.REYE: (255, 0, 255), Pf.NOSE: (0, 255, 255), Pf.TMOUTH: (0, 255, 0), Pf.BMOUTH: (255, 255, 0), Pf.LEAR: (128, 0, 128), Pf.REAR: (128, 128, 0), Pf.CHIN: (0, 0, 255), Pf.FOREHEAD: (255, 165, 0)}
+        detected_map = np.zeros(shape=(height, width, 3), dtype=np.uint8)
+        for lnds in obj.landmarks[Pl.FACE.value].values():
+            for lnd in lnds:
+                pt = (int(lnd.pos[0]), int(lnd.pos[1]))
+                cv2.circle(detected_map, pt, 3, colors[lnd.part], thickness=-1)
+        dirname = path + 'landmarks/'
+        Path(dirname).mkdir(parents=True, exist_ok=True)
+        image.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '.png'
+        cv2.imwrite(image.control, cv2.cvtColor(detected_map, cv2.COLOR_RGB2BGR))
+        # Generate prompt
+        import torch
+        from transformers import BlipProcessor, BlipForConditionalGeneration
+        processor = BlipProcessor.from_pretrained('Salesforce/blip-image-captioning-large')
+        model = BlipForConditionalGeneration.from_pretrained('Salesforce/blip-image-captioning-large').to('cuda', torch.float16)
+        prompt = "synthetic face of"
+        inputs = processor(Image.open(image.filename), text=prompt, return_tensors='pt').to('cuda')
+        generated_ids = model.generate(**inputs)
+        dirname = path + 'prompt/'
+        Path(dirname).mkdir(parents=True, exist_ok=True)
+        image.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '.txt'
+        with open(image.prompt, 'w', encoding='utf-8') as ofs: 
+            ofs.write(processor.decode(generated_ids[0], skip_special_tokens=True))
         seq.add_image(image)
         return seq
 
