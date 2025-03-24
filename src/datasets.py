@@ -375,30 +375,30 @@ class FaceSynthetics(Database):
         obj.bb = (obj.bb[0], obj.bb[1], obj.bb[0]+obj.bb[2], obj.bb[1]+obj.bb[3])
         image.add_object(obj)
         # Generate control
-        from images_framework.alignment.landmarks import FaceLandmarkPart as Pf
-        colors = {Pf.LEYEBROW: (255, 0, 0), Pf.REYEBROW: (0, 128, 255), Pf.LEYE: (170, 0, 255), Pf.REYE: (255, 0, 255), Pf.NOSE: (0, 255, 255), Pf.TMOUTH: (0, 255, 0), Pf.BMOUTH: (255, 255, 0), Pf.LEAR: (128, 0, 128), Pf.REAR: (128, 128, 0), Pf.CHIN: (0, 0, 255), Pf.FOREHEAD: (255, 165, 0)}
-        detected_map = np.zeros(shape=(height, width, 3), dtype=np.uint8)
-        for lnds in obj.landmarks[Pl.FACE.value].values():
-            for lnd in lnds:
-                pt = (int(lnd.pos[0]), int(lnd.pos[1]))
-                cv2.circle(detected_map, pt, 3, colors[lnd.part], thickness=-1)
+        # from images_framework.alignment.landmarks import FaceLandmarkPart as Pf
+        # colors = {Pf.LEYEBROW: (255, 0, 0), Pf.REYEBROW: (0, 128, 255), Pf.LEYE: (170, 0, 255), Pf.REYE: (255, 0, 255), Pf.NOSE: (0, 255, 255), Pf.TMOUTH: (0, 255, 0), Pf.BMOUTH: (255, 255, 0), Pf.LEAR: (128, 0, 128), Pf.REAR: (128, 128, 0), Pf.CHIN: (0, 0, 255), Pf.FOREHEAD: (255, 165, 0)}
+        # detected_map = np.zeros(shape=(height, width, 3), dtype=np.uint8)
+        # for lnds in obj.landmarks[Pl.FACE.value].values():
+        #     for lnd in lnds:
+        #         pt = (int(lnd.pos[0]), int(lnd.pos[1]))
+        #         cv2.circle(detected_map, pt, 3, colors[lnd.part], thickness=-1)
         dirname = path + 'landmarks/'
         Path(dirname).mkdir(parents=True, exist_ok=True)
         image.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '.png'
-        cv2.imwrite(image.control, cv2.cvtColor(detected_map, cv2.COLOR_RGB2BGR))
+        # cv2.imwrite(image.control, cv2.cvtColor(detected_map, cv2.COLOR_RGB2BGR))
         # Generate prompt
-        import torch
-        from transformers import BlipProcessor, BlipForConditionalGeneration
-        processor = BlipProcessor.from_pretrained('Salesforce/blip-image-captioning-large')
-        model = BlipForConditionalGeneration.from_pretrained('Salesforce/blip-image-captioning-large').to('cuda', torch.float16)
-        prompt = "synthetic face of"
-        inputs = processor(Image.open(image.filename), text=prompt, return_tensors='pt').to('cuda')
-        generated_ids = model.generate(**inputs)
+        # import torch
+        # from transformers import BlipProcessor, BlipForConditionalGeneration
+        # processor = BlipProcessor.from_pretrained('Salesforce/blip-image-captioning-large')
+        # model = BlipForConditionalGeneration.from_pretrained('Salesforce/blip-image-captioning-large').to('cuda', torch.float16)
+        # prompt = "synthetic face of"
+        # inputs = processor(Image.open(image.filename), text=prompt, return_tensors='pt').to('cuda')
+        # generated_ids = model.generate(**inputs)
         dirname = path + 'prompt/'
         Path(dirname).mkdir(parents=True, exist_ok=True)
         image.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '.txt'
-        with open(image.prompt, 'w', encoding='utf-8') as ofs: 
-            ofs.write(processor.decode(generated_ids[0], skip_special_tokens=True))
+        # with open(image.prompt, 'w', encoding='utf-8') as ofs: 
+        #     ofs.write(processor.decode(generated_ids[0], skip_special_tokens=True))
         seq.add_image(image)
         return seq
 
