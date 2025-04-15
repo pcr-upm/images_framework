@@ -67,3 +67,6 @@
 [submodule "alignment/saul24_gaze"]
 	path = alignment/saul24_gaze
 	url = git@github.com:pcr-upm/saul24_gaze.git
+[submodule "alignment/access25_headpose"]
+	path = alignment/access25_headpose
+	url = git@github.com:pcr-upm/access25_headpose.git
