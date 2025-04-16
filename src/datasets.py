@@ -111,10 +111,10 @@ class Fill50K(Database):
         return seq
 
 
-class OP3D12P(Database):
+class HPGEN(Database):
     def __init__(self):
         super().__init__()
-        self._names = ['op3d12p']
+        self._names = ['hpgen']
         self._categories = {0: Oi.FACE}
         self._colors = [(0, 255, 0)]
 
@@ -130,7 +130,8 @@ class OP3D12P(Database):
         obj = PersonObject()
         obj.bb = (float(parts[2]), float(parts[3]), float(parts[2])+float(parts[4]), float(parts[3])+float(parts[5]))
         obj.add_category(GenericCategory(Name(parts[1])))  # Set identity as category to split the validation set
-        obj.headpose = Rotation.from_euler('YXZ', [float(parts[6]), float(parts[7]), float(parts[8])], degrees=True).as_matrix()
+        # obj.headpose = Rotation.from_euler('YXZ', [float(parts[6]), float(parts[7]), float(parts[8])], degrees=True).as_matrix()
+        obj.headpose = Rotation.from_euler('YXZ', [-float(parts[6]), float(parts[7]), 0.0], degrees=True).as_matrix()
         image.add_object(obj)
         seq.add_image(image)
         return seq
