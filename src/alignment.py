@@ -26,6 +26,7 @@ class Alignment(Component):
         import itertools
         choices = list(itertools.chain.from_iterable([db().get_names() for db in Database.__subclasses__()]))
         choices.append('all')
+        choices.append('all_hpgen')
         parser = argparse.ArgumentParser(prog='Alignment', add_help=False)
         parser.add_argument('--database', required=True, choices=choices,
                             help='Select database model.')
