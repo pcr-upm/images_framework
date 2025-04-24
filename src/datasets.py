@@ -375,31 +375,12 @@ class FaceSynthetics(Database):
         obj.bb = cv2.boundingRect(np.array([[pt.pos for pt in list(itertools.chain.from_iterable(obj.landmarks[Pl.FACE.value].values()))]]).astype(int))
         obj.bb = (obj.bb[0], obj.bb[1], obj.bb[0]+obj.bb[2], obj.bb[1]+obj.bb[3])
         image.add_object(obj)
-        # Generate control
-        # from images_framework.alignment.landmarks import FaceLandmarkPart as Pf
-        # colors = {Pf.LEYEBROW: (255, 0, 0), Pf.REYEBROW: (0, 128, 255), Pf.LEYE: (170, 0, 255), Pf.REYE: (255, 0, 255), Pf.NOSE: (0, 255, 255), Pf.TMOUTH: (0, 255, 0), Pf.BMOUTH: (255, 255, 0), Pf.LEAR: (128, 0, 128), Pf.REAR: (128, 128, 0), Pf.CHIN: (0, 0, 255), Pf.FOREHEAD: (255, 165, 0)}
-        # detected_map = np.zeros(shape=(height, width, 3), dtype=np.uint8)
-        # for lnds in obj.landmarks[Pl.FACE.value].values():
-        #     for lnd in lnds:
-        #         pt = (int(lnd.pos[0]), int(lnd.pos[1]))
-        #         cv2.circle(detected_map, pt, 3, colors[lnd.part], thickness=-1)
-        dirname = path + 'landmarks/'
-        Path(dirname).mkdir(parents=True, exist_ok=True)
-        image.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '.png'
-        # cv2.imwrite(image.control, cv2.cvtColor(detected_map, cv2.COLOR_RGB2BGR))
-        # Generate prompt
-        # import torch
-        # from transformers import BlipProcessor, BlipForConditionalGeneration
-        # processor = BlipProcessor.from_pretrained('Salesforce/blip-image-captioning-large')
-        # model = BlipForConditionalGeneration.from_pretrained('Salesforce/blip-image-captioning-large').to('cuda', torch.float16)
-        # prompt = "synthetic face of"
-        # inputs = processor(Image.open(image.filename), text=prompt, return_tensors='pt').to('cuda')
-        # generated_ids = model.generate(**inputs)
-        dirname = path + 'prompt/'
-        Path(dirname).mkdir(parents=True, exist_ok=True)
-        image.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '.txt'
-        # with open(image.prompt, 'w', encoding='utf-8') as ofs: 
-        #     ofs.write(processor.decode(generated_ids[0], skip_special_tokens=True))
+        # dirname = path + 'landmarks/'
+        # Path(dirname).mkdir(parents=True, exist_ok=True)
+        # image.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '.png'
+        # dirname = path + 'prompt/'
+        # Path(dirname).mkdir(parents=True, exist_ok=True)
+        # image.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '.txt'
         seq.add_image(image)
         return seq
 
@@ -455,53 +436,12 @@ class DAD(Database):
         obj.bb = cv2.boundingRect(np.array([[pt.pos for pt in list(itertools.chain.from_iterable(obj.landmarks[Pl.FACE.value].values()))]]).astype(int))
         obj.bb = (obj.bb[0], obj.bb[1], obj.bb[0]+obj.bb[2], obj.bb[1]+obj.bb[3])
         image.add_object(obj)
-        # Set control and prompt
-        # img = cv2.cvtColor(cv2.imread(image.filename, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
-        # bbox_width = obj.bb[2]-obj.bb[0]
-        # bbox_height = obj.bb[3]-obj.bb[1]
-        # max_size = max(bbox_width, bbox_height)
-        # shift = (float(max_size-bbox_width)/2.0, float(max_size-bbox_height)/2.0)
-        # bbox_squared = (obj.bb[0]-shift[0], obj.bb[1]-shift[1], obj.bb[2]+shift[0], obj.bb[3]+shift[1])
-        # bbox_scale = 0.2
-        # shift = max_size*bbox_scale
-        # bbox_enlarged = (bbox_squared[0]-shift, bbox_squared[1]-shift, bbox_squared[2]+shift, bbox_squared[3]+shift)
-        # T = np.zeros((2, 3))
-        # T[0, 0], T[0, 1], T[0, 2] = 1, 0, -bbox_enlarged[0]
-        # T[1, 0], T[1, 1], T[1, 2] = 0, 1, -bbox_enlarged[1]
-        # bbox_width = bbox_enlarged[2]-bbox_enlarged[0]
-        # bbox_height = bbox_enlarged[3]-bbox_enlarged[1]
-        # face_translated = cv2.warpAffine(img, T, (int(bbox_width), int(bbox_height)))
-        # S = np.zeros((2, 3), dtype=float)
-        # S[0, 0], S[0, 1], S[0, 2] = 512/bbox_width, 0, 0
-        # S[1, 0], S[1, 1], S[1, 2] = 0, 512/bbox_height, 0
-        # warped_img = cv2.warpAffine(face_translated, S, (512, 512))
-        # Generate control
-        # from images_framework.alignment.landmarks import FaceLandmarkPart as Pf
-        # colors = {Pf.LEYEBROW: (255, 0, 0), Pf.REYEBROW: (0, 128, 255), Pf.LEYE: (170, 0, 255), Pf.REYE: (255, 0, 255), Pf.NOSE: (0, 255, 255), Pf.TMOUTH: (0, 255, 0), Pf.BMOUTH: (255, 255, 0), Pf.LEAR: (128, 0, 128), Pf.REAR: (128, 128, 0), Pf.CHIN: (0, 0, 255), Pf.FOREHEAD: (255, 165, 0)}
-        # detected_map = np.zeros(shape=(512, 512, 3), dtype=np.uint8)
-        # for lnds in obj.landmarks[Pl.FACE.value].values():
-        #     for lnd in lnds:
-        #         pt = (int(lnd.pos[0]), int(lnd.pos[1]))
-        #         pt_translated = np.dot(T, np.array([pt[0], pt[1], 1]))
-        #         warped_pt = np.dot(S, np.array([pt_translated[0], pt_translated[1], 1]))
-        #         cv2.circle(detected_map, (int(warped_pt[0]), int(warped_pt[1])), 3, colors[lnd.part], thickness=-1)
-        dirname = path + 'landmarks/'
-        Path(dirname).mkdir(parents=True, exist_ok=True)
-        image.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '.png'
-        # cv2.imwrite(image.control, cv2.cvtColor(detected_map, cv2.COLOR_RGB2BGR))
-        # Generate prompt
-        # import torch
-        # from transformers import BlipProcessor, BlipForConditionalGeneration
-        # processor = BlipProcessor.from_pretrained('Salesforce/blip-image-captioning-large')
-        # model = BlipForConditionalGeneration.from_pretrained('Salesforce/blip-image-captioning-large').to('cuda', torch.float16)
-        # prompt = "face of"
-        # inputs = processor(warped_img, text=prompt, return_tensors='pt').to('cuda')
-        # generated_ids = model.generate(**inputs)
-        dirname = path + 'prompt/'
-        Path(dirname).mkdir(parents=True, exist_ok=True)
-        image.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '.txt'
-        # with open(image.prompt, 'w', encoding='utf-8') as ofs: 
-        #     ofs.write(processor.decode(generated_ids[0], skip_special_tokens=True))
+        # dirname = path + 'landmarks/'
+        # Path(dirname).mkdir(parents=True, exist_ok=True)
+        # image.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '.png'
+        # dirname = path + 'prompt/'
+        # Path(dirname).mkdir(parents=True, exist_ok=True)
+        # image.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '.txt'
         seq.add_image(image)
         return seq
 
