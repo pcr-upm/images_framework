@@ -236,12 +236,14 @@ class COFW(Database):
         self._colors = [(0, 255, 0)]
 
     def load_filename(self, path, db, line):
+        import os
         from PIL import Image
-        from .annotations import PersonObject
+        from pathlib import Path
+        from .annotations import DiffusionImage, PersonObject
         from images_framework.alignment.landmarks import lps
         seq = GenericGroup()
         parts = line.strip().split(';')
-        image = GenericImage(path + parts[0])
+        image = DiffusionImage(path + parts[0])
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
         obj = PersonObject()
@@ -255,6 +257,12 @@ class COFW(Database):
             vis = float(parts[(3*idx)+7]) == 0.0
             obj.add_landmark(GenericLandmark(label, lp, pos, vis), lps[type(lp)])
         image.add_object(obj)
+        # dirname = path + 'landmarks/'
+        # Path(dirname).mkdir(parents=True, exist_ok=True)
+        # image.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '.png'
+        # dirname = path + 'prompt/'
+        # Path(dirname).mkdir(parents=True, exist_ok=True)
+        # image.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '.txt'
         seq.add_image(image)
         return seq
 
@@ -306,12 +314,14 @@ class WFLW(Database):
         self._colors = [(0, 255, 0)]
 
     def load_filename(self, path, db, line):
+        import os
         from PIL import Image
-        from .annotations import PersonObject
+        from pathlib import Path
+        from .annotations import DiffusionImage, PersonObject
         from images_framework.alignment.landmarks import lps
         seq = GenericGroup()
         parts = line.strip().split(';')
-        image = GenericImage(path + parts[0])
+        image = DiffusionImage(path + parts[0])
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
         obj = PersonObject()
@@ -324,6 +334,12 @@ class WFLW(Database):
             pos = (float(parts[(2*idx)+11]), float(parts[(2*idx)+12]))
             obj.add_landmark(GenericLandmark(label, lp, pos, True), lps[type(lp)])
         image.add_object(obj)
+        # dirname = path + 'landmarks/'
+        # Path(dirname).mkdir(parents=True, exist_ok=True)
+        # image.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '.png'
+        # dirname = path + 'prompt/'
+        # Path(dirname).mkdir(parents=True, exist_ok=True)
+        # image.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '.txt'
         seq.add_image(image)
         return seq
 
@@ -456,15 +472,17 @@ class AFLW2000(Database):
         self._colors = [(0, 255, 0)]
 
     def load_filename(self, path, db, line):
+        import os
         import cv2
         import itertools
         from PIL import Image
+        from pathlib import Path
         from scipy.spatial.transform import Rotation
-        from .annotations import PersonObject
+        from .annotations import DiffusionImage, PersonObject
         from images_framework.alignment.landmarks import lps, PersonLandmarkPart as Pl
         seq = GenericGroup()
         parts = line.strip().split(';')
-        image = GenericImage(path + parts[0])
+        image = DiffusionImage(path + parts[0])
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
         obj = PersonObject()
@@ -483,6 +501,12 @@ class AFLW2000(Database):
         obj.bb = cv2.boundingRect(np.array([[pt.pos for pt in list(itertools.chain.from_iterable(obj.landmarks[Pl.FACE.value].values()))]]).astype(int))
         obj.bb = (obj.bb[0], obj.bb[1], obj.bb[0]+obj.bb[2], obj.bb[1]+obj.bb[3])
         image.add_object(obj)
+        # dirname = path + 'landmarks/'
+        # Path(dirname).mkdir(parents=True, exist_ok=True)
+        # image.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '.png'
+        # dirname = path + 'prompt/'
+        # Path(dirname).mkdir(parents=True, exist_ok=True)
+        # image.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '.txt'
         seq.add_image(image)
         return seq
 
