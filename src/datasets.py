@@ -531,7 +531,7 @@ class Agora(Database):
         obj.bb = (int(parts[1]), int(parts[2]), int(parts[1])+int(parts[3]), int(parts[2])+int(parts[4]))
         obj.add_category(GenericCategory(Oi.FACE))
         pitch, yaw, roll = map(float, parts[5:])
-        obj.headpose = Rotation.from_euler('ZYX', [pitch, yaw, roll],degrees=True).as_matrix()
+        obj.headpose = Rotation.from_euler('XYZ', [pitch, yaw, roll],degrees=True).as_matrix()
         image.add_object(obj)
         seq.add_image(image)
         return seq
