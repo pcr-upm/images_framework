@@ -194,6 +194,46 @@ class COCO(Database):
         return seq
 
 
+class Agora(Database):
+    def __init__(self):
+        from images_framework.alignment.landmarks import FaceLandmarkPart as Pf, HandLandmarkPart as Ph, BodyLandmarkPart as Pb
+        super().__init__()
+        self._names = ['agora']
+        self._landmarks = {Pf.NOSE: (110, 111,), Pf.LEYE: (109,), Pf.REYE: (112,), Pb.LSHOULDER: (5,), Pb.RSHOULDER: (6,), Pb.LELBOW: (7,), Pb.RELBOW: (8,), Ph.LWRIST: (9,), Ph.RWRIST: (10,), Pb.LHIP: (11,), Pb.RHIP: (12,), Pb.LKNEE: (13,), Pb.RKNEE: (14,), Pb.LANKLE: (15,), Pb.RANKLE: (16,), Pb.LTOE: (15, 105,), Pb.RTOE: (16, 106,), Pb.NECK: (17,), Pb.CHEST: (107, 108,), Pb.ABDOMEN: (101, 102, 103, 104,)}
+        self._categories = {0: Oi.PERSON}
+        self._colors = [(0, 255, 0)]
+
+    def load_filename(self, path, db, line):
+        import cv2
+        import json
+        import itertools
+        from PIL import Image
+        from .annotations import PersonObject
+        from images_framework.alignment.landmarks import lps, PersonLandmarkPart as Pl
+        seq = GenericGroup()
+        parts = line.strip().split(';')
+        image = GenericImage(path + parts[0])
+        width, height = Image.open(image.filename).size
+        image.tile = np.array([0, 0, width, height])
+        for idx_obj in range(0, int(parts[1])):
+            obj = PersonObject()
+            obj.id = int(parts[(2*idx_obj)+2])
+            landmarks = np.array(json.loads(parts[(2*idx_obj)+3]), dtype=float).reshape(-1, 3)  # (127, 3)
+            skeleton, hands, face = landmarks[:25], landmarks[25:56], landmarks[56:]
+            obj.add_category(GenericCategory(Oi.PERSON))
+            indices = [101, 11, 12, 102, 13, 14, 103, 15, 16, 104, 105, 106, 17, 107, 108, 112, 5, 6, 7, 8, 9, 10, 109, 110, 111]
+            for idx_lnd, label in enumerate(indices):
+                lp = list(self._landmarks.keys())[next((ids for ids, xs in enumerate(self._landmarks.values()) for x in xs if x == label), None)]
+                pos = (int(skeleton[idx_lnd][0]), int(skeleton[idx_lnd][1]))
+                vis = int(skeleton[idx_lnd][2])
+                obj.add_landmark(GenericLandmark(label, lp, pos, bool(vis)), lps[type(lp)])
+            obj.bb = cv2.boundingRect(landmarks[:, :2].astype(int))
+            obj.bb = (obj.bb[0], obj.bb[1], obj.bb[0]+obj.bb[2], obj.bb[1]+obj.bb[3])
+            image.add_object(obj)
+        seq.add_image(image)
+        return seq
+
+
 class PTS68(Database):
     def __init__(self):
         from images_framework.alignment.landmarks import FaceLandmarkPart as Pf

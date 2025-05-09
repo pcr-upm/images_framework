@@ -64,6 +64,8 @@ class BodyLandmarkPart(Enum):
     LEAR = 'lear'
     REAR = 'rear'
     NECK = 'neck'
+    CHEST = 'chest'
+    ABDOMEN = 'abdomen'
     RWRIST = 'rwrist'
     LWRIST = 'lwrist'
     LSHOULDER = 'lshoulder'
@@ -76,6 +78,8 @@ class BodyLandmarkPart(Enum):
     RKNEE = 'rknee'
     LANKLE = 'lankle'
     RANKLE = 'rankle'
+    LTOE = 'ltoe'
+    RTOE = 'rtoe'
 
 
 lps = {FaceLandmarkPart: PersonLandmarkPart.FACE, HandLandmarkPart: PersonLandmarkPart.HAND, BodyLandmarkPart: PersonLandmarkPart.BODY}
