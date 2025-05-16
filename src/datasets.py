@@ -177,7 +177,7 @@ class COCO(Database):
             landmarks = np.array(json.loads(parts[(5*idx)+8]), dtype=int)
             obj = GenericObject() if landmarks.size == 0 else PersonObject()
             obj.id = int(parts[(5*idx)+4])
-            obj.bb = (bbox[0], bbox[1], bbox[0]+bbox[2], bbox[1]+bbox[3])
+            obj.bb = (float(bbox[0]), float(bbox[1]), float(bbox[0]+bbox[2]), float(bbox[1]+bbox[3]))
             # obj.multipolygon = [np.array([[[pt[0], pt[1]]] for pt in list(zip(contour[::2], contour[1::2]))], dtype=float) for contour in contours]
             obj.add_category(GenericCategory(list(self._categories.values())[int(parts[(5*idx)+7])-1]))
             if not isinstance(obj, PersonObject):
