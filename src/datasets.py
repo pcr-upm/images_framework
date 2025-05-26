@@ -198,9 +198,8 @@ class Agora(Database):
     def __init__(self):
         from images_framework.alignment.landmarks import FaceLandmarkPart as Pf, HandLandmarkPart as Ph, BodyLandmarkPart as Pb
         super().__init__()
-        self._names = ['agora_hp']
-        # self._names = ['agora']
-        self._landmarks = {Pf.REYEBROW: (0, 1, 2, 3, 4,), Pf.LEYEBROW: (5, 6, 7, 8, 9,), Pf.NOSE: (10, 11, 12, 13, 14, 15, 16, 17, 18), Pf.REYE: (19, 20, 21, 22, 23, 24,), Pf.LEYE: (25, 26, 27, 28, 29, 30,), Pf.TMOUTH: (31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42,), Pf.BMOUTH: (43, 44, 45, 46, 47, 48, 49, 50,)}
+        self._names = ['agora']
+        self._landmarks = {Pf.REYEBROW: (4, 124, 5, 126, 6), Pf.LEYEBROW: (1, 119, 2, 121, 3), Pf.NOSE: (128, 129, 130, 17, 16, 133, 134, 135, 18), Pf.REYE: (11, 144, 145, 12, 147, 148), Pf.LEYE: (7, 138, 139, 8, 141, 142), Pf.TMOUTH: (20, 150, 151, 22, 153, 154, 21, 165, 164, 163, 162, 161), Pf.BMOUTH: (156, 157, 23, 159, 160, 168, 167, 166)}
         # self._landmarks = {Pf.NOSE: (110, 111,), Pf.LEYE: (109,), Pf.REYE: (112,), Pb.LSHOULDER: (5,), Pb.RSHOULDER: (6,), Pb.LELBOW: (7,), Pb.RELBOW: (8,), Ph.LWRIST: (9,), Ph.RWRIST: (10,), Pb.LHIP: (11,), Pb.RHIP: (12,), Pb.LKNEE: (13,), Pb.RKNEE: (14,), Pb.LANKLE: (15,), Pb.RANKLE: (16,), Pb.LTOE: (15, 105,), Pb.RTOE: (16, 106,), Pb.NECK: (17,), Pb.CHEST: (107, 108,), Pb.ABDOMEN: (101, 102, 103, 104,)}
         self._categories = {0: Oi.PERSON}
         self._colors = [(0, 255, 0)]
@@ -238,8 +237,8 @@ class Agora(Database):
             #     pos = (int(skeleton[idx_lnd][0]), int(skeleton[idx_lnd][1]))
             #     vis = int(skeleton[idx_lnd][2])
             #     obj.add_landmark(GenericLandmark(label, lp, pos, bool(vis)), lps[type(lp)])
-            # obj.bb = cv2.boundingRect(landmarks[:, :2].astype(int))
-            # obj.bb = (obj.bb[0], obj.bb[1], obj.bb[0]+obj.bb[2], obj.bb[1]+obj.bb[3])
+            obj.bb = cv2.boundingRect(landmarks[:, :2].astype(int))
+            obj.bb = (obj.bb[0], obj.bb[1], obj.bb[0]+obj.bb[2], obj.bb[1]+obj.bb[3])
             image.add_object(obj)
         seq.add_image(image)
         return seq
