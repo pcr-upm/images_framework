@@ -218,12 +218,13 @@ class Agora(Database):
         image.tile = np.array([0, 0, width, height])
         for idx_obj in range(0, int(parts[1])):
             obj = PersonObject()
-            obj.id = int(parts[(9*idx_obj)+2])
-            obj.bb = (int(parts[(9*idx_obj)+3]), int(parts[(9*idx_obj)+4]), int(parts[(9*idx_obj)+3])+int(parts[(9*idx_obj)+5]), int(parts[(9*idx_obj)+4])+int(parts[(9*idx_obj)+6]))
-            euler = [float(parts[(9*idx_obj)+7]), float(parts[(9*idx_obj)+8]), float(parts[(9*idx_obj)+9])]
-            obj.headpose = Rotation.from_euler('XYZ', euler, degrees=True).as_matrix()
+            obj.id = int(parts[(7*idx_obj)+2])
+            obj.bb = (int(parts[(7*idx_obj)+3]), int(parts[(7*idx_obj)+4]), int(parts[(7*idx_obj)+3])+int(parts[(7*idx_obj)+5]), int(parts[(7*idx_obj)+4])+int(parts[(7*idx_obj)+6]))
+            rot_matrix = np.reshape(np.matrix(parts[(7*idx_obj)+7], dtype=np.float32), (4, 4))
+            euler = Rotation.from_matrix(np.transpose(rot_matrix[:3, :3])).as_euler('YXZ', degrees=True)
+            obj.headpose = Rotation.from_euler('YXZ', [euler[0], euler[1], -euler[2]], degrees=True).as_matrix()
             obj.add_category(GenericCategory(Oi.PERSON))
-            landmarks = np.array(json.loads(parts[(9*idx_obj)+10]), dtype=float).reshape(-1, 2)  # (51, 2)
+            landmarks = np.array(json.loads(parts[(7*idx_obj)+8]), dtype=float).reshape(-1, 2)  # (51, 2)
             indices = [4, 124, 5, 126, 6, 1, 119, 2, 121, 3, 128, 129, 130, 17, 16, 133, 134, 135, 18, 11, 144, 145, 12, 147, 148, 7, 138, 139, 8, 141, 142, 20, 150, 151, 22, 153, 154, 21, 165, 164, 163, 162, 161, 156, 157, 23, 159, 160, 168, 167, 166]
             for idx_lnd, label in enumerate(indices):
                 lp = list(self._landmarks.keys())[next((ids for ids, xs in enumerate(self._landmarks.values()) for x in xs if x == label), None)]
