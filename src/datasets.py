@@ -361,25 +361,29 @@ class WFLW(Database):
         from images_framework.alignment.landmarks import lps
         seq = GenericGroup()
         parts = line.strip().split(';')
-        image = DiffusionImage(path + parts[0])
+        image = DiffusionImage(path + parts.pop(0))
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
-        obj = PersonObject()
-        obj.bb = (int(parts[1]), int(parts[2]), int(parts[1])+int(parts[3]), int(parts[2])+int(parts[4]))
-        obj.add_category(GenericCategory(Oi.FACE))
-        indices = [100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 24, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 1, 134, 2, 136, 3, 138, 139, 140, 141, 4, 143, 5, 145, 6, 147, 148, 149, 150, 151, 152, 153, 17, 16, 156, 157, 158, 18, 7, 161, 9, 163, 8, 165, 10, 167, 11, 169, 13, 171, 12, 173, 14, 175, 20, 177, 178, 22, 180, 181, 21, 183, 184, 23, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197]
-        for idx in range(0, len(indices)):
-            label = indices[idx]
-            lp = list(self._landmarks.keys())[next((ids for ids, xs in enumerate(self._landmarks.values()) for x in xs if x == label), None)]
-            pos = (float(parts[(2*idx)+11]), float(parts[(2*idx)+12]))
-            obj.add_landmark(GenericLandmark(label, lp, pos, True), lps[type(lp)])
-        image.add_object(obj)
-        # dirname = path + 'landmarks/'
-        # Path(dirname).mkdir(parents=True, exist_ok=True)
-        # image.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '.png'
-        # dirname = path + 'prompt/'
-        # Path(dirname).mkdir(parents=True, exist_ok=True)
-        # image.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '.txt'
+        num_faces = int(parts.pop(0))
+        for idx in range(0, num_faces):
+            obj = PersonObject()
+            x, y, w, h = parts.pop(0), parts.pop(0), parts.pop(0), parts.pop(0)
+            obj.bb = (int(x), int(y), int(x)+int(w), int(y)+int(h))
+            obj.add_category(GenericCategory(Oi.FACE))
+            pose, expression, illumination, makeup, occlusion, blur = parts.pop(0), parts.pop(0), parts.pop(0), parts.pop(0), parts.pop(0), parts.pop(0)
+            indices = [100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 24, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 1, 134, 2, 136, 3, 138, 139, 140, 141, 4, 143, 5, 145, 6, 147, 148, 149, 150, 151, 152, 153, 17, 16, 156, 157, 158, 18, 7, 161, 9, 163, 8, 165, 10, 167, 11, 169, 13, 171, 12, 173, 14, 175, 20, 177, 178, 22, 180, 181, 21, 183, 184, 23, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197]
+            for idx in range(0, len(indices)):
+                label = indices[idx]
+                lp = list(self._landmarks.keys())[next((ids for ids, xs in enumerate(self._landmarks.values()) for x in xs if x == label), None)]
+                pos = (float(parts.pop(0)), float(parts.pop(0)))
+                obj.add_landmark(GenericLandmark(label, lp, pos, True), lps[type(lp)])
+            image.add_object(obj)
+            # dirname = path + 'landmarks/'
+            # Path(dirname).mkdir(parents=True, exist_ok=True)
+            # image.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(elem) for elem in obj.bb) + '.png'
+            # dirname = path + 'prompt/'
+            # Path(dirname).mkdir(parents=True, exist_ok=True)
+            # image.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(elem) for elem in obj.bb) + '.txt'
         seq.add_image(image)
         return seq
 
