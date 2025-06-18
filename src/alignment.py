@@ -68,7 +68,7 @@ class Alignment(Component):
                     thickness = int(round(math.log(max(math.e, np.sqrt(cv2.contourArea(contour))), 2)))
                     if (obj.headpose != -1).any():
                         # From right-hand rule to left-hand rule
-                        euler = Rotation.from_matrix(obj.headpose).as_euler('YXZ', degrees=True)
+                        euler = Rotation.from_matrix(obj.headpose.cpu().numpy()).as_euler('YXZ', degrees=True)
                         obj_axis = axis @ Rotation.from_euler('YXZ', [-euler[0], -euler[1], -euler[2]], degrees=True).as_matrix()
                         obj_axis *= np.sqrt(cv2.contourArea(contour))
                         mu = cv2.moments(contour)
