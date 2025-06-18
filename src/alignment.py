@@ -69,8 +69,6 @@ class Alignment(Component):
                     thickness = int(round(math.log(max(math.e, np.sqrt(cv2.contourArea(contour))), 2)))
                     if (obj.headpose != -1).any():
                         # From right-hand rule to left-hand rule
-                        print('Headpose: ', obj.headpose)
-                        print('Headpose shape: ', obj.headpose.shape)
                         headpose = obj.headpose
                         if isinstance(headpose, torch.Tensor):
                             headpose = headpose.cpu().numpy()
@@ -80,9 +78,10 @@ class Alignment(Component):
                         obj_axis *= np.sqrt(cv2.contourArea(contour))
                         mu = cv2.moments(contour)
                         mid = tuple([int(round(mu['m10']/mu['m00'])), int(round(mu['m01']/mu['m00']))])
-                        viewer.line(img_pred, mid, tuple(mid+obj_axis[0, :2].ravel().astype(int)), (0,255,0) if objs_idx == 0 else (0,122,0), thickness)  # green: roll (x-axis)
-                        viewer.line(img_pred, mid, tuple(mid+obj_axis[1, :2].ravel().astype(int)), (0,0,255) if objs_idx == 0 else (0,0,122), thickness)  # blue: pitch (y-axis)
-                        viewer.line(img_pred, mid, tuple(mid+obj_axis[2, :2].ravel().astype(int)), (255,0,0) if objs_idx == 0 else (122,0,0), thickness)  # red: yaw (z-axis)
+                        if objs_idx == 0:
+                            viewer.line(img_pred, mid, tuple(mid+obj_axis[0, :2].ravel().astype(int)), (0,255,0) if objs_idx == 0 else (0,122,0), thickness)  # green: roll (x-axis)
+                            viewer.line(img_pred, mid, tuple(mid+obj_axis[1, :2].ravel().astype(int)), (0,0,255) if objs_idx == 0 else (0,0,122), thickness)  # blue: pitch (y-axis)
+                            viewer.line(img_pred, mid, tuple(mid+obj_axis[2, :2].ravel().astype(int)), (255,0,0) if objs_idx == 0 else (122,0,0), thickness)  # red: yaw (z-axis)
                     # Draw skeleton for person objects
                     if any(obj.landmarks[Pl.BODY.value].values()):
                         skeleton = [[Pb.LANKLE, Pb.LKNEE, Pb.LHIP], [Pb.RANKLE, Pb.RKNEE, Pb.RHIP]]  # legs
