@@ -69,6 +69,8 @@ class Alignment(Component):
                     thickness = int(round(math.log(max(math.e, np.sqrt(cv2.contourArea(contour))), 2)))
                     if (obj.headpose != -1).any():
                         # From right-hand rule to left-hand rule
+                        print('Headpose: ', obj.headpose)
+                        print('Headpose shape: ', obj.headpose.shape)
                         headpose = obj.headpose
                         if isinstance(headpose, torch.Tensor):
                             headpose = headpose.cpu().numpy()
