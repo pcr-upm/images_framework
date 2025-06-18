@@ -73,8 +73,8 @@ class Alignment(Component):
                         if isinstance(headpose, torch.Tensor):
                             headpose = headpose.cpu().numpy()
 
-                        euler = Rotation.from_matrix(headpose).as_euler('YXZ', degrees=True)
-                        obj_axis = axis @ Rotation.from_euler('YXZ', [-euler[0], -euler[1], -euler[2]], degrees=True).as_matrix()
+                        euler = Rotation.from_matrix(headpose).as_euler('XYZ', degrees=True)
+                        obj_axis = axis @ Rotation.from_euler('XYZ', [-euler[0], -euler[1], -euler[2]], degrees=True).as_matrix()
                         obj_axis *= np.sqrt(cv2.contourArea(contour))
                         mu = cv2.moments(contour)
                         mid = tuple([int(round(mu['m10']/mu['m00'])), int(round(mu['m01']/mu['m00']))])
@@ -135,7 +135,7 @@ class Alignment(Component):
                 headpose = obj.headpose
                 if isinstance(headpose, torch.Tensor):
                     headpose = headpose.cpu().numpy()
-                output_json['annotations'].append(dict({'id': str(obj.id), 'image_id': img_idx, 'bbox': list(map(float, [obj.bb[0], obj.bb[1], obj.bb[2]-obj.bb[0], obj.bb[3]-obj.bb[1]])), 'pose': list(map(float, Rotation.from_matrix(headpose).as_euler('YXZ', degrees=True) if hasattr(obj, 'headpose') else [-1.0, -1.0, -1.0])), 'landmarks': landmarks, 'iscrowd': int(len(img_pred.objects) > 1)}))
+                output_json['annotations'].append(dict({'id': str(obj.id), 'image_id': img_idx, 'bbox': list(map(float, [obj.bb[0], obj.bb[1], obj.bb[2]-obj.bb[0], obj.bb[3]-obj.bb[1]])), 'pose': list(map(float, Rotation.from_matrix(headpose).as_euler('XYZ', degrees=True) if hasattr(obj, 'headpose') else [-1.0, -1.0, -1.0])), 'landmarks': landmarks, 'iscrowd': int(len(img_pred.objects) > 1)}))
             output_json['mapping'].append(dict({str(lp.value): list(map(int, parts[lp])) for lp in parts}))
             # Save COCO annotation file
             root, extension = os.path.splitext(img_pred.filename)
