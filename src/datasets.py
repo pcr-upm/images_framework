@@ -507,9 +507,6 @@ class Panoptic(Database):
         obj.bb = (int(parts[1]), int(parts[2]), int(parts[1])+int(parts[3]), int(parts[2])+int(parts[4]))
         obj.add_category(GenericCategory(Oi.FACE))
         obj.headpose = Rotation.from_euler('XYZ', [float(parts[6]), float(parts[5]), float(parts[7])], degrees=True).as_matrix()
-        euler = Rotation.from_matrix(obj.headpose).as_euler('XYZ', degrees=True)
-        obj.headpose = Rotation.from_euler('XYZ', [euler[0], euler[1], -euler[2]], degrees=True).as_matrix()
-
         image.add_object(obj)
         seq.add_image(image)
         return seq
