@@ -86,6 +86,16 @@ class PersonObject(GenericObject):
         self.landmarks[Pl.BODY.value].clear()
 
 
+class DiffusionObject(PersonObject):
+    """
+    Diffusion object inherits from the person object class.
+    """
+    def __init__(self):
+        super().__init__()
+        self.control = ''
+        self.prompt = ''
+
+
 class GenericImage:
     """
     Generic image data.
@@ -111,16 +121,6 @@ class AerialImage(GenericImage):
         super().__init__(filename)
         self.gsd = -1
         self.nadir_angle = -1
-
-
-class DiffusionImage(GenericImage):
-    """
-    Diffusion image inherits from the generic image class.
-    """
-    def __init__(self, filename):
-        super().__init__(filename)
-        self.control = ''
-        self.prompt = ''
 
 
 class GenericGroup:

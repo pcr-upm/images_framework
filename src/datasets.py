@@ -83,29 +83,29 @@ class Fill50K(Database):
     def __init__(self):
         super().__init__()
         self._names = ['fill50k']
-        self._categories = {0: Oi.FACE}
+        self._categories = {0: Oi.BACKGROUND}
         self._colors = [(0, 255, 0)]
 
     def load_filename(self, path, db, line):
         import os
         from PIL import Image
         from pathlib import Path
-        from .annotations import DiffusionImage
+        from .annotations import DiffusionObject
         seq = GenericGroup()
         parts = line.strip().split(';')
-        image = DiffusionImage(path + parts[0])
+        image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
-        image.control = path + parts[1]
-        image.prompt = parts[2]
+        obj = DiffusionObject()
+        obj.bb = (0, 0, width, height)
+        obj.add_category(GenericCategory(Oi.BACKGROUND))
+        obj.control = path + parts[1]
+        obj.prompt = parts[2]
         dirname = path + 'prompt/'
         Path(dirname).mkdir(parents=True, exist_ok=True)
-        image.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '.txt'
-        with open(image.prompt, 'w', encoding='utf-8') as ofs: 
+        obj.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '.txt'
+        with open(obj.prompt, 'w', encoding='utf-8') as ofs: 
             ofs.write(parts[2])
-        obj = GenericObject()
-        obj.bb = (0, 0, width, height)
-        obj.add_category(GenericCategory(Oi.FACE))
         image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -290,14 +290,14 @@ class COFW(Database):
         import os
         from PIL import Image
         from pathlib import Path
-        from .annotations import DiffusionImage, PersonObject
+        from .annotations import DiffusionObject
         from images_framework.alignment.landmarks import lps
         seq = GenericGroup()
         parts = line.strip().split(';')
-        image = DiffusionImage(path + parts[0])
+        image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
-        obj = PersonObject()
+        obj = DiffusionObject()
         obj.bb = (float(parts[1]), float(parts[2]), float(parts[1])+float(parts[3]), float(parts[2])+float(parts[4]))
         obj.add_category(GenericCategory(Oi.FACE))
         indices = [1, 6, 3, 4, 101, 102, 103, 104, 7, 12, 8, 11, 9, 10, 13, 14, 105, 106, 16, 18, 17, 107, 20, 21, 22, 108, 109, 23, 24]
@@ -307,13 +307,13 @@ class COFW(Database):
             pos = (float(parts[(3*idx)+5]), float(parts[(3*idx)+6]))
             vis = float(parts[(3*idx)+7]) == 0.0
             obj.add_landmark(GenericLandmark(label, lp, pos, vis), lps[type(lp)])
+            # dirname = path + 'landmarks/'
+            # Path(dirname).mkdir(parents=True, exist_ok=True)
+            # obj.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(elem) for elem in obj.bb) + '.png'
+            # dirname = path + 'prompt/'
+            # Path(dirname).mkdir(parents=True, exist_ok=True)
+            # obj.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(elem) for elem in obj.bb) + '.txt'
         image.add_object(obj)
-        # dirname = path + 'landmarks/'
-        # Path(dirname).mkdir(parents=True, exist_ok=True)
-        # image.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '.png'
-        # dirname = path + 'prompt/'
-        # Path(dirname).mkdir(parents=True, exist_ok=True)
-        # image.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '.txt'
         seq.add_image(image)
         return seq
 
@@ -330,14 +330,14 @@ class AFLW(Database):
     def load_filename(self, path, db, line):
         from PIL import Image
         from scipy.spatial.transform import Rotation
-        from .annotations import PersonObject
+        from .annotations import DiffusionObject
         from images_framework.alignment.landmarks import lps
         seq = GenericGroup()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
-        obj = PersonObject()
+        obj = DiffusionObject()
         obj.bb = (int(parts[1]), int(parts[2]), int(parts[1])+int(parts[3]), int(parts[2])+int(parts[4]))
         obj.add_category(GenericCategory(Oi.FACE))
         obj.headpose = Rotation.from_euler('YXZ', [float(parts[5]), float(parts[6]), float(parts[7])], degrees=True).as_matrix()
@@ -350,6 +350,12 @@ class AFLW(Database):
             lp = list(self._landmarks.keys())[next((ids for ids, xs in enumerate(self._landmarks.values()) for x in xs if x == label), None)]
             pos = (float(parts[(3*idx)+12]), float(parts[(3*idx)+13]))
             obj.add_landmark(GenericLandmark(label, lp, pos, True), lps[type(lp)])
+            # dirname = path + 'landmarks/'
+            # Path(dirname).mkdir(parents=True, exist_ok=True)
+            # obj.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(elem) for elem in obj.bb) + '.png'
+            # dirname = path + 'prompt/'
+            # Path(dirname).mkdir(parents=True, exist_ok=True)
+            # obj.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(elem) for elem in obj.bb) + '.txt'
         image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -368,16 +374,16 @@ class WFLW(Database):
         import os
         from PIL import Image
         from pathlib import Path
-        from .annotations import DiffusionImage, PersonObject
+        from .annotations import DiffusionObject
         from images_framework.alignment.landmarks import lps
         seq = GenericGroup()
         parts = line.strip().split(';')
-        image = DiffusionImage(path + parts.pop(0))
+        image = GenericImage(path + parts.pop(0))
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
         num_faces = int(parts.pop(0))
         for idx in range(0, num_faces):
-            obj = PersonObject()
+            obj = DiffusionObject()
             x, y, w, h = parts.pop(0), parts.pop(0), parts.pop(0), parts.pop(0)
             obj.bb = (int(x), int(y), int(x)+int(w), int(y)+int(h))
             obj.add_category(GenericCategory(Oi.FACE))
@@ -388,13 +394,13 @@ class WFLW(Database):
                 lp = list(self._landmarks.keys())[next((ids for ids, xs in enumerate(self._landmarks.values()) for x in xs if x == label), None)]
                 pos = (float(parts.pop(0)), float(parts.pop(0)))
                 obj.add_landmark(GenericLandmark(label, lp, pos, True), lps[type(lp)])
+                # dirname = path + 'landmarks/'
+                # Path(dirname).mkdir(parents=True, exist_ok=True)
+                # obj.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(elem) for elem in obj.bb) + '.png'
+                # dirname = path + 'prompt/'
+                # Path(dirname).mkdir(parents=True, exist_ok=True)
+                # obj.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(elem) for elem in obj.bb) + '.txt'
             image.add_object(obj)
-            # dirname = path + 'landmarks/'
-            # Path(dirname).mkdir(parents=True, exist_ok=True)
-            # image.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(elem) for elem in obj.bb) + '.png'
-            # dirname = path + 'prompt/'
-            # Path(dirname).mkdir(parents=True, exist_ok=True)
-            # image.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(elem) for elem in obj.bb) + '.txt'
         seq.add_image(image)
         return seq
 
@@ -417,11 +423,11 @@ class FaceSynthetics(Database):
         import itertools
         from PIL import Image
         from pathlib import Path
-        from .annotations import DiffusionImage, PersonObject
+        from .annotations import DiffusionObject
         from images_framework.alignment.landmarks import lps, PersonLandmarkPart as Pl
         seq = GenericGroup()
         parts = line.strip().split(';')
-        image = DiffusionImage(path + parts[0])
+        image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
         # Segmentation
@@ -434,7 +440,7 @@ class FaceSynthetics(Database):
         #     obj.add_category(GenericCategory(self._categories[idx]))
         #     image.add_object(obj)
         # Landmarks
-        obj = PersonObject()
+        obj = DiffusionObject()
         obj.add_category(GenericCategory(Oi.FACE))
         indices = [101, 102, 103, 104, 105, 106, 107, 108, 24, 110, 111, 112, 113, 114, 115, 116, 117, 1, 119, 2, 121, 3, 4, 124, 5, 126, 6, 128, 129, 130, 17, 16, 133, 134, 135, 18, 7, 138, 139, 8, 141, 142, 11, 144, 145, 12, 147, 148, 20, 150, 151, 22, 153, 154, 21, 156, 157, 23, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170]
         # indices = [101, 102, 103, 104, 105, 106, 107, 108, 24, 110, 111, 112, 113, 114, 115, 116, 117, 1, 119, 2, 121, 3, 4, 124, 5, 126, 6, 128, 129, 130, 17, 16, 133, 134, 135, 18, 7, 138, 139, 8, 141, 142, 11, 144, 145, 12, 147, 148, 20, 150, 151, 22, 153, 154, 21, 156, 157, 23, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168]
@@ -445,13 +451,13 @@ class FaceSynthetics(Database):
             obj.add_landmark(GenericLandmark(label, lp, pos, True), lps[type(lp)])
         obj.bb = cv2.boundingRect(np.array([[pt.pos for pt in list(itertools.chain.from_iterable(obj.landmarks[Pl.FACE.value].values()))]]).astype(int))
         obj.bb = (obj.bb[0], obj.bb[1], obj.bb[0]+obj.bb[2], obj.bb[1]+obj.bb[3])
-        image.add_object(obj)
         # dirname = path + 'landmarks/'
         # Path(dirname).mkdir(parents=True, exist_ok=True)
-        # image.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '.png'
+        # obj.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(elem) for elem in obj.bb) + '.png'
         # dirname = path + 'prompt/'
         # Path(dirname).mkdir(parents=True, exist_ok=True)
-        # image.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '.txt'
+        # obj.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(elem) for elem in obj.bb) + '.txt'
+        image.add_object(obj)
         seq.add_image(image)
         return seq
 
@@ -472,14 +478,14 @@ class DAD(Database):
         from PIL import Image
         from pathlib import Path
         from scipy.spatial.transform import Rotation
-        from .annotations import DiffusionImage, PersonObject
+        from .annotations import DiffusionObject
         from images_framework.alignment.landmarks import lps, PersonLandmarkPart as Pl
         seq = GenericGroup()
         parts = line.strip().split(';')
-        image = DiffusionImage(path + parts[0])
+        image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
-        obj = PersonObject()
+        obj = DiffusionObject()
         # obj.bb = (int(round(float(parts[1]))), int(round(float(parts[2]))), int(round(float(parts[1])))+int(round(float(parts[3]))), int(round(float(parts[2])))+int(round(float(parts[4]))))
         obj.add_category(GenericCategory(Oi.FACE))
         if len(parts) != 12:  # train, val
@@ -506,13 +512,13 @@ class DAD(Database):
             obj.add_attribute(GenericAttribute('standard_light', bool(parts[len(parts)-1] == 'True')))
         obj.bb = cv2.boundingRect(np.array([[pt.pos for pt in list(itertools.chain.from_iterable(obj.landmarks[Pl.FACE.value].values()))]]).astype(int))
         obj.bb = (obj.bb[0], obj.bb[1], obj.bb[0]+obj.bb[2], obj.bb[1]+obj.bb[3])
-        image.add_object(obj)
         # dirname = path + 'landmarks/'
         # Path(dirname).mkdir(parents=True, exist_ok=True)
-        # image.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '.png'
+        # obj.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(elem) for elem in obj.bb) + '.png'
         # dirname = path + 'prompt/'
         # Path(dirname).mkdir(parents=True, exist_ok=True)
-        # image.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '.txt'
+        # obj.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(elem) for elem in obj.bb) + '.txt'
+        image.add_object(obj)
         seq.add_image(image)
         return seq
 
@@ -533,14 +539,14 @@ class AFLW2000(Database):
         from PIL import Image
         from pathlib import Path
         from scipy.spatial.transform import Rotation
-        from .annotations import DiffusionImage, PersonObject
+        from .annotations import DiffusionObject
         from images_framework.alignment.landmarks import lps, PersonLandmarkPart as Pl
         seq = GenericGroup()
         parts = line.strip().split(';')
-        image = DiffusionImage(path + parts[0])
+        image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
-        obj = PersonObject()
+        obj = DiffusionObject()
         obj.add_category(GenericCategory(Name(parts[1])))  # Set identity as category to split the validation set
         euler = [float(parts[3]), float(parts[2]), float(parts[4])]
         obj.headpose = Rotation.from_euler('XYZ', euler, degrees=True).as_matrix()
@@ -555,13 +561,13 @@ class AFLW2000(Database):
             obj.add_landmark(GenericLandmark(label, lp, pos, True), lps[type(lp)])
         obj.bb = cv2.boundingRect(np.array([[pt.pos for pt in list(itertools.chain.from_iterable(obj.landmarks[Pl.FACE.value].values()))]]).astype(int))
         obj.bb = (obj.bb[0], obj.bb[1], obj.bb[0]+obj.bb[2], obj.bb[1]+obj.bb[3])
-        image.add_object(obj)
         # dirname = path + 'landmarks/'
         # Path(dirname).mkdir(parents=True, exist_ok=True)
-        # image.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '.png'
+        # obj.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(elem) for elem in obj.bb) + '.png'
         # dirname = path + 'prompt/'
         # Path(dirname).mkdir(parents=True, exist_ok=True)
-        # image.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '.txt'
+        # obj.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(elem) for elem in obj.bb) + '.txt'
+        image.add_object(obj)
         seq.add_image(image)
         return seq
 
