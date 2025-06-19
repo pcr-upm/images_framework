@@ -525,12 +525,6 @@ class Panoptic(Database):
         predicted_pitch = euler_xyz_predicted[0]
         predicted_yaw = euler_xyz_predicted[1]
         predicted_roll = -euler_xyz_predicted[2]  # Invertir el roll predicho
-
-        # Los ángulos de Euler finales en el formato compatible para tu evaluación son:
-        # [predicted_pitch, predicted_yaw, predicted_roll]
-        print(f"Predicción convertida (pitch, yaw, roll - XYZ compatible): "
-              f"[{predicted_pitch:.2f}, {predicted_yaw:.2f}, {predicted_roll:.2f}] grados")
-
         # Ahora puedes comparar estos ángulos con tus etiquetas del formato compatible
         # (que ya deberían estar en este mismo formato [pitch, yaw, -roll] XYZ)
         obj.headpose = Rotation.from_euler('XYZ', [predicted_pitch, predicted_yaw, predicted_roll],
