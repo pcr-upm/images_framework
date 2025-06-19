@@ -511,6 +511,32 @@ class Panoptic(Database):
         euler_yxz = R.from_matrix(obj.headpose.T).as_euler('XYZ', degrees=True)
         pitch, yaw, roll = euler_yxz[0], euler_yxz[1], -euler_yxz[2]
         obj.headpose = R.from_euler('XYZ', [yaw, pitch, roll], degrees=True).as_matrix()
+
+        transposed_predicted_matrix = np.transpose(obj.headpose)
+
+        # 2. Convertir la matriz de rotación a ángulos de Euler en el orden 'XYZ'
+        # 'as_euler' te devuelve los ángulos en el orden que especificas.
+        # 'degrees=True' para obtenerlos en grados.
+        euler_xyz_predicted = Rotation.from_matrix(transposed_predicted_matrix).as_euler('XYZ', degrees=True)
+
+        # 3. Aplicar las correcciones de signo finales si son necesarias
+        # Basado en tu formato compatible: [euler[0], euler[1], -euler[2]]
+        # Esto invierte el componente de 'roll' (el tercer componente en 'XYZ').
+        predicted_pitch = euler_xyz_predicted[0]
+        predicted_yaw = euler_xyz_predicted[1]
+        predicted_roll = -euler_xyz_predicted[2]  # Invertir el roll predicho
+
+        # Los ángulos de Euler finales en el formato compatible para tu evaluación son:
+        # [predicted_pitch, predicted_yaw, predicted_roll]
+        print(f"Predicción convertida (pitch, yaw, roll - XYZ compatible): "
+              f"[{predicted_pitch:.2f}, {predicted_yaw:.2f}, {predicted_roll:.2f}] grados")
+
+        # Ahora puedes comparar estos ángulos con tus etiquetas del formato compatible
+        # (que ya deberían estar en este mismo formato [pitch, yaw, -roll] XYZ)
+        obj.headpose = Rotation.from_euler('XYZ', [predicted_pitch, predicted_yaw, predicted_roll],
+                                           degrees=True).as_matrix()
+
+
         image.add_object(obj)
         seq.add_image(image)
         return seq
