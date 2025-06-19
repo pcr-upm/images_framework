@@ -498,7 +498,6 @@ class Panoptic(Database):
         from PIL import Image
         from scipy.spatial.transform import Rotation
         from .annotations import PersonObject
-        from scipy.spatial.transform import Rotation
         seq = GenericGroup()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
@@ -507,10 +506,7 @@ class Panoptic(Database):
         obj = PersonObject()
         obj.bb = (int(parts[1]), int(parts[2]), int(parts[1])+int(parts[3]), int(parts[2])+int(parts[4]))
         obj.add_category(GenericCategory(Oi.FACE))
-        euler = [float(parts[6]), float(parts[5]), float(parts[7])]
-        obj.headpose = Rotation.from_euler('XYZ', euler, degrees=True).as_matrix()
-        euler = Rotation.from_matrix(np.transpose(obj.headpose)).as_euler('XYZ', degrees=True)
-        obj.headpose = Rotation.from_euler('YXZ', [euler[0], euler[1], -euler[2]], degrees=True).as_matrix()
+        obj.headpose = Rotation.from_euler('XYZ', [float(parts[6]), float(parts[5]), float(parts[7])], degrees=True).as_matrix()
         image.add_object(obj)
         seq.add_image(image)
         return seq
