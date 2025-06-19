@@ -498,7 +498,6 @@ class Panoptic(Database):
         from PIL import Image
         from scipy.spatial.transform import Rotation
         from .annotations import PersonObject
-        from scipy.spatial.transform import Rotation as R
         seq = GenericGroup()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
@@ -507,29 +506,19 @@ class Panoptic(Database):
         obj = PersonObject()
         obj.bb = (int(parts[1]), int(parts[2]), int(parts[1])+int(parts[3]), int(parts[2])+int(parts[4]))
         obj.add_category(GenericCategory(Oi.FACE))
-        obj.headpose = Rotation.from_euler('XYZ', [float(parts[6]), float(parts[5]), float(parts[7])], degrees=True).as_matrix()
-        euler_yxz = R.from_matrix(obj.headpose.T).as_euler('XYZ', degrees=True)
-        pitch, yaw, roll = euler_yxz[0], euler_yxz[1], -euler_yxz[2]
-        obj.headpose = R.from_euler('XYZ', [yaw, pitch, roll], degrees=True).as_matrix()
 
-        transposed_predicted_matrix = np.transpose(obj.headpose)
+        euler = [float(parts[6]), float(parts[5]), float(parts[7])]
 
-        # 2. Convertir la matriz de rotación a ángulos de Euler en el orden 'XYZ'
-        # 'as_euler' te devuelve los ángulos en el orden que especificas.
-        # 'degrees=True' para obtenerlos en grados.
-        euler_xyz_predicted = Rotation.from_matrix(transposed_predicted_matrix).as_euler('XYZ', degrees=True)
-
-        # 3. Aplicar las correcciones de signo finales si son necesarias
-        # Basado en tu formato compatible: [euler[0], euler[1], -euler[2]]
-        # Esto invierte el componente de 'roll' (el tercer componente en 'XYZ').
-        predicted_pitch = euler_xyz_predicted[0]
-        predicted_yaw = euler_xyz_predicted[1]
-        predicted_roll = -euler_xyz_predicted[2]  # Invertir el roll predicho
-        # Ahora puedes comparar estos ángulos con tus etiquetas del formato compatible
-        # (que ya deberían estar en este mismo formato [pitch, yaw, -roll] XYZ)
-        obj.headpose = Rotation.from_euler('XYZ', [predicted_pitch, predicted_yaw, predicted_roll],
-                                           degrees=True).as_matrix()
-
+        # Convert to compatible format: XYZ Euler angles, roll inverted
+        rotation_matrix = Rotation.from_euler('XYZ', euler, degrees=True).as_matrix()
+        # Transpose the rotation matrix
+        transposed_rotation_matrix = np.transpose(rotation_matrix)
+        # Extract Euler angles from the transposed matrix in XYZ order
+        euler_xyz = Rotation.from_matrix(transposed_rotation_matrix).as_euler('XYZ', degrees=True)
+        # Invert the roll angle
+        final_euler = [euler_xyz[0], euler_xyz[1], -euler_xyz[2]]
+        # Create the final rotation matrix
+        obj.headpose = Rotation.from_euler('XYZ', final_euler, degrees=True).as_matrix()
 
         image.add_object(obj)
         seq.add_image(image)
