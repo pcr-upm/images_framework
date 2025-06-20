@@ -255,15 +255,17 @@ class PTS68(Database):
         self._colors = [(0, 255, 0)]
 
     def load_filename(self, path, db, line):
+        import os
         from PIL import Image
-        from .annotations import PersonObject
+        from pathlib import Path
+        from .annotations import DiffusionObject
         from images_framework.alignment.landmarks import lps
         seq = GenericGroup()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
-        obj = PersonObject()
+        obj = DiffusionObject()
         obj.bb = (float(parts[1]), float(parts[2]), float(parts[3]), float(parts[4]))
         obj.add_category(GenericCategory(Oi.FACE))
         indices = [101, 102, 103, 104, 105, 106, 107, 108, 24, 110, 111, 112, 113, 114, 115, 116, 117, 1, 119, 2, 121, 3, 4, 124, 5, 126, 6, 128, 129, 130, 17, 16, 133, 134, 135, 18, 7, 138, 139, 8, 141, 142, 11, 144, 145, 12, 147, 148, 20, 150, 151, 22, 153, 154, 21, 156, 157, 23, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168]
@@ -272,6 +274,12 @@ class PTS68(Database):
             lp = list(self._landmarks.keys())[next((ids for ids, xs in enumerate(self._landmarks.values()) for x in xs if x == label), None)]
             pos = (float(parts[(2*idx)+5]), float(parts[(2*idx)+6]))
             obj.add_landmark(GenericLandmark(label, lp, pos, True), lps[type(lp)])
+            # dirname = path + 'landmarks/'
+            # Path(dirname).mkdir(parents=True, exist_ok=True)
+            # obj.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(int(elem)) for elem in obj.bb) + '.png'
+            # dirname = path + 'prompt/'
+            # Path(dirname).mkdir(parents=True, exist_ok=True)
+            # obj.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(int(elem)) for elem in obj.bb) + '.txt'
         image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -309,10 +317,10 @@ class COFW(Database):
             obj.add_landmark(GenericLandmark(label, lp, pos, vis), lps[type(lp)])
             # dirname = path + 'landmarks/'
             # Path(dirname).mkdir(parents=True, exist_ok=True)
-            # obj.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(elem) for elem in obj.bb) + '.png'
+            # obj.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(int(elem)) for elem in obj.bb) + '.png'
             # dirname = path + 'prompt/'
             # Path(dirname).mkdir(parents=True, exist_ok=True)
-            # obj.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(elem) for elem in obj.bb) + '.txt'
+            # obj.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(int(elem)) for elem in obj.bb) + '.txt'
         image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -352,10 +360,10 @@ class AFLW(Database):
             obj.add_landmark(GenericLandmark(label, lp, pos, True), lps[type(lp)])
             # dirname = path + 'landmarks/'
             # Path(dirname).mkdir(parents=True, exist_ok=True)
-            # obj.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(elem) for elem in obj.bb) + '.png'
+            # obj.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(int(elem)) for elem in obj.bb) + '.png'
             # dirname = path + 'prompt/'
             # Path(dirname).mkdir(parents=True, exist_ok=True)
-            # obj.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(elem) for elem in obj.bb) + '.txt'
+            # obj.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(int(elem)) for elem in obj.bb) + '.txt'
         image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -396,10 +404,10 @@ class WFLW(Database):
                 obj.add_landmark(GenericLandmark(label, lp, pos, True), lps[type(lp)])
                 # dirname = path + 'landmarks/'
                 # Path(dirname).mkdir(parents=True, exist_ok=True)
-                # obj.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(elem) for elem in obj.bb) + '.png'
+                # obj.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(int(elem)) for elem in obj.bb) + '.png'
                 # dirname = path + 'prompt/'
                 # Path(dirname).mkdir(parents=True, exist_ok=True)
-                # obj.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(elem) for elem in obj.bb) + '.txt'
+                # obj.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(int(elem)) for elem in obj.bb) + '.txt'
             image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -453,10 +461,10 @@ class FaceSynthetics(Database):
         obj.bb = (obj.bb[0], obj.bb[1], obj.bb[0]+obj.bb[2], obj.bb[1]+obj.bb[3])
         # dirname = path + 'landmarks/'
         # Path(dirname).mkdir(parents=True, exist_ok=True)
-        # obj.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(elem) for elem in obj.bb) + '.png'
+        # obj.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(int(elem)) for elem in obj.bb) + '.png'
         # dirname = path + 'prompt/'
         # Path(dirname).mkdir(parents=True, exist_ok=True)
-        # obj.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(elem) for elem in obj.bb) + '.txt'
+        # obj.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(int(elem)) for elem in obj.bb) + '.txt'
         image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -514,10 +522,10 @@ class DAD(Database):
         obj.bb = (obj.bb[0], obj.bb[1], obj.bb[0]+obj.bb[2], obj.bb[1]+obj.bb[3])
         # dirname = path + 'landmarks/'
         # Path(dirname).mkdir(parents=True, exist_ok=True)
-        # obj.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(elem) for elem in obj.bb) + '.png'
+        # obj.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(int(elem)) for elem in obj.bb) + '.png'
         # dirname = path + 'prompt/'
         # Path(dirname).mkdir(parents=True, exist_ok=True)
-        # obj.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(elem) for elem in obj.bb) + '.txt'
+        # obj.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(int(elem)) for elem in obj.bb) + '.txt'
         image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -551,8 +559,8 @@ class AFLW2000(Database):
         euler = [float(parts[3]), float(parts[2]), float(parts[4])]
         obj.headpose = Rotation.from_euler('XYZ', euler, degrees=True).as_matrix()
         # Skip images with angles outside the range (-99, 99)
-        if np.any(np.abs(euler) > 99):
-            return seq
+        # if np.any(np.abs(euler) > 99):
+        #     return seq
         indices = [101, 102, 103, 104, 105, 106, 107, 108, 24, 110, 111, 112, 113, 114, 115, 116, 117, 1, 119, 2, 121, 3, 4, 124, 5, 126, 6, 128, 129, 130, 17, 16, 133, 134, 135, 18, 7, 138, 139, 8, 141, 142, 11, 144, 145, 12, 147, 148, 20, 150, 151, 22, 153, 154, 21, 156, 157, 23, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168]
         for idx in range(0, len(indices)):
             label = indices[idx]
@@ -563,10 +571,10 @@ class AFLW2000(Database):
         obj.bb = (obj.bb[0], obj.bb[1], obj.bb[0]+obj.bb[2], obj.bb[1]+obj.bb[3])
         # dirname = path + 'landmarks/'
         # Path(dirname).mkdir(parents=True, exist_ok=True)
-        # obj.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(elem) for elem in obj.bb) + '.png'
+        # obj.control = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(int(elem)) for elem in obj.bb) + '.png'
         # dirname = path + 'prompt/'
         # Path(dirname).mkdir(parents=True, exist_ok=True)
-        # obj.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(elem) for elem in obj.bb) + '.txt'
+        # obj.prompt = dirname + os.path.splitext(os.path.basename(image.filename))[0] + '_' + '_'.join(str(int(elem)) for elem in obj.bb) + '.txt'
         image.add_object(obj)
         seq.add_image(image)
         return seq
