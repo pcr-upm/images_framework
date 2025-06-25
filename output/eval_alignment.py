@@ -231,8 +231,8 @@ def main():
                 for anno_matrix, pred_matrix in zip(anno_mats, pred_mats):
                     if database in AFLW2000().get_names() or database in Biwi().get_names() or database in Panoptic().get_names():
                         # Order is pitch x yaw x roll
-                        anno_angle = np.array(Rotation.from_matrix(anno_matrix).as_euler('XYZ', degrees=True))[[1, 0, 2]]
-                        pred_angle = np.array(Rotation.from_matrix(pred_matrix).as_euler('XYZ', degrees=True))[[1, 0, 2]]
+                        anno_angle = np.array(Rotation.from_matrix(anno_matrix).as_euler('XYZ', degrees=True))[[0, 1, 2]]
+                        pred_angle = np.array(Rotation.from_matrix(pred_matrix).as_euler('XYZ', degrees=True))[[0, 1, 2]]
                     else:
                         # Order is yaw x pitch x roll
                         anno_angle = np.array(Rotation.from_matrix(anno_matrix).as_euler('YXZ', degrees=True))
@@ -281,8 +281,8 @@ def main():
                 pred_max = np.max(pred_angles, axis=0)
                 pred_min = np.min(pred_angles, axis=0)
 
-                print(f"Yaw: ({anno_min[1]}, {anno_max[1]})")
-                print(f"Pitch: ({anno_min[0]}, {anno_max[0]})")
+                print(f"Yaw: ({anno_min[0]}, {anno_max[0]})")
+                print(f"Pitch: ({anno_min[1]}, {anno_max[1]})")
                 print(f"Roll: ({anno_min[2]}, {anno_max[2]})")
                 cm = confusion_matrix(y_true, y_pred, labels=categories)
                 print('Confusion matrix:')
