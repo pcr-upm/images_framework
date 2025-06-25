@@ -268,7 +268,7 @@ def main():
                 draw_cumulative_curve(errors, ['Yaw', 'Pitch', 'Roll'], threshold=15)
                 # Compute the confusion matrix
                 if database in {'agora', 'panoptic'}:
-                    categories = list(range(-180, 181, 15))
+                    categories = np.array(list(range(-180, 181, 15)))
                 else:
                     categories = list(range(-90, 91, 15))
                 y_true, y_pred = [], []
@@ -278,6 +278,7 @@ def main():
                 cm = confusion_matrix(y_true, y_pred, labels=categories)
                 print('Confusion matrix:')
                 print(cm)
+                np.savetxt("confusion_matrix.txt", cm, fmt='%4d')
                 draw_confusion_matrix(cm, categories, True)
                 # Compute the accuracy
                 correct_samples_class = np.sum(np.diagonal(cm).astype(float))
