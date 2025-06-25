@@ -245,7 +245,7 @@ def main():
                 mae_by_image = np.mean(errors, axis=1)
                 # Wrapped MAE, i.e. Real-time fine-grained estimation for wide range head pose (BMVC 2020)
                 sign = np.sign(pred_angles)
-                if database in {'agora', 'panoptic'}:
+                if database in AFLW2000().get_names() or database in Biwi().get_names() or database in Panoptic().get_names() or database in 'agora':
                     pred_angles_wrap = np.array([180-pred_angles[:, 0], pred_angles[:, 1]-(sign[:, 1]*180), pred_angles[:, 2]-(sign[:, 2]*180)])
                 else:
                     pred_angles_wrap = np.array([pred_angles[:, 0]-(sign[:, 0]*180), 180-pred_angles[:, 1], pred_angles[:, 2]-(sign[:, 2]*180)])
@@ -267,7 +267,7 @@ def main():
                 # Draw cumulative distribution
                 draw_cumulative_curve(errors, ['Yaw', 'Pitch', 'Roll'], threshold=15)
                 # Compute the confusion matrix
-                if (database in Panoptic.get_names() or database in Agora.get_names()):
+                if database in {'agora', 'panoptic'}:
                     categories = list(range(-180, 181, 15))
                 else:
                     categories = list(range(-90, 91, 15))
