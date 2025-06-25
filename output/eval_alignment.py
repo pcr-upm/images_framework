@@ -275,6 +275,14 @@ def main():
                 for idx in range(len(anno_angles)):
                     y_true.append(categories[(np.abs(anno_angles[idx][0] - categories)).argmin()])
                     y_pred.append(categories[(np.abs(pred_angles[idx][0] - categories)).argmin()])
+                anno_max = np.max(anno_angles, axis=0)
+                anno_min = np.min(anno_angles, axis=0)
+
+                pred_max = np.max(pred_angles, axis=0)
+                pred_min = np.min(pred_angles, axis=0)
+
+                print("anno_angles - Max:", anno_max, "Min:", anno_min)
+                print("pred_angles - Max:", pred_max, "Min:", pred_min)
                 cm = confusion_matrix(y_true, y_pred, labels=categories)
                 print('Confusion matrix:')
                 print(cm)
