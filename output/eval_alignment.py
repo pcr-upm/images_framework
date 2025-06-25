@@ -5,6 +5,9 @@ __email__ = 'roberto.valle@upm.es'
 
 import os
 import sys
+
+from src.datasets import Agora
+
 sys.path.append(os.getcwd())
 import cv2
 import json
@@ -266,7 +269,10 @@ def main():
                 # Draw cumulative distribution
                 draw_cumulative_curve(errors, ['Yaw', 'Pitch', 'Roll'], threshold=15)
                 # Compute the confusion matrix
-                categories = [-90, -75, -60, -45, -30, -15, 0, 15, 30, 45, 60, 75, 90]
+                if (database in Panoptic.get_names() or database in Agora.get_names()):
+                    categories = list(range(-180, 181, 15))
+                else:
+                    categories = list(range(-90, 91, 15))
                 y_true, y_pred = [], []
                 for idx in range(len(anno_angles)):
                     y_true.append(categories[(np.abs(anno_angles[idx][0] - categories)).argmin()])
