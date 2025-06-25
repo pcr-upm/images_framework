@@ -229,8 +229,11 @@ def main():
                         pred_mats = align_predictions(anno_mats, pred_mats, images_filter=range(len(anno_mats)))
                 anno_angles, pred_angles = [], []
                 for anno_matrix, pred_matrix in zip(anno_mats, pred_mats):
-                    if database in AFLW2000().get_names() or database in Biwi().get_names() or database in Panoptic().get_names():
+                    if database in AFLW2000().get_names() or database in Biwi().get_names():
                         # Order is pitch x yaw x roll
+                        anno_angle = np.array(Rotation.from_matrix(anno_matrix).as_euler('XYZ', degrees=True))[[1, 0, 2]]
+                        pred_angle = np.array(Rotation.from_matrix(pred_matrix).as_euler('XYZ', degrees=True))[[1, 0, 2]]
+                    elif database in Panoptic().get_names():
                         anno_angle = np.array(Rotation.from_matrix(anno_matrix).as_euler('XYZ', degrees=True))[[0, 1, 2]]
                         pred_angle = np.array(Rotation.from_matrix(pred_matrix).as_euler('XYZ', degrees=True))[[0, 1, 2]]
                     else:
