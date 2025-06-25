@@ -245,7 +245,7 @@ def main():
                 mae_by_image = np.mean(errors, axis=1)
                 # Wrapped MAE, i.e. Real-time fine-grained estimation for wide range head pose (BMVC 2020)
                 sign = np.sign(pred_angles)
-                if database in AFLW2000().get_names() or database in Biwi().get_names() or database in Panoptic().get_names():
+                if database in {'agora', 'panoptic'}:
                     pred_angles_wrap = np.array([180-pred_angles[:, 0], pred_angles[:, 1]-(sign[:, 1]*180), pred_angles[:, 2]-(sign[:, 2]*180)])
                 else:
                     pred_angles_wrap = np.array([pred_angles[:, 0]-(sign[:, 0]*180), 180-pred_angles[:, 1], pred_angles[:, 2]-(sign[:, 2]*180)])
