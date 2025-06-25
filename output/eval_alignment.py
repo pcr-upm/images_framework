@@ -281,8 +281,9 @@ def main():
                 pred_max = np.max(pred_angles, axis=0)
                 pred_min = np.min(pred_angles, axis=0)
 
-                print("anno_angles - Max:", anno_max, "Min:", anno_min)
-                print("pred_angles - Max:", pred_max, "Min:", pred_min)
+                print(f"Yaw: ({anno_min[1]}, {anno_max[1]})")
+                print(f"Pitch: ({anno_min[0]}, {anno_max[0]})")
+                print(f"Roll: ({anno_min[2]}, {anno_max[2]})")
                 cm = confusion_matrix(y_true, y_pred, labels=categories)
                 print('Confusion matrix:')
                 print(cm)
