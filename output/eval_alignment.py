@@ -216,6 +216,63 @@ def calculate_geodesic_error(anno_matrix, pred_matrix):
 
     return ge_degrees
 
+import matplotlib.pyplot as plt
+def plot_geodesic_error_histogram(
+    geodesic_errors,
+    save_path='histograma_geodesico.png',
+    title='Distribución de los Errores Geodésicos',
+    xlabel='Error Geodésico (grados)',
+    ylabel='Frecuencia',
+    bins=None # <<< Cambiado para que no tenga un valor por defecto fijo
+):
+    """
+    Genera un histograma a partir de un array de errores geodésicos y lo guarda como un archivo de imagen.
+
+    Args:
+        geodesic_errors (np.ndarray): Array de valores de error geodésico en grados.
+        save_path (str, optional): Ruta y nombre del archivo para guardar la imagen. 
+                                   Por defecto es 'histograma_geodesico.png'.
+        title (str, optional): Título del gráfico.
+        xlabel (str, optional): Etiqueta del eje X.
+        ylabel (str, optional): Etiqueta del eje Y.
+        bins (int or sequence, optional): El número de bins o la secuencia de límites de los bins.
+                                         Si no se especifica, se usarán los bins por defecto de Matplotlib.
+    """
+    if not isinstance(geodesic_errors, np.ndarray):
+        raise TypeError("El input 'geodesic_errors' debe ser un array de NumPy.")
+    
+    if geodesic_errors.size == 0:
+        print("Advertencia: El array de errores está vacío. No se puede generar el histograma.")
+        return
+    
+    # Si no se especifican los bins, Matplotlib usará su valor por defecto
+    if bins is None:
+        bins = 'auto'
+        
+    plt.figure(figsize=(10, 6))
+    
+    # Crea el histograma
+    plt.hist(geodesic_errors, bins=bins, edgecolor='black', alpha=0.8)
+    
+    # Añade una línea vertical para mostrar la media del error
+    mean_error = np.mean(geodesic_errors)
+    plt.axvline(mean_error, color='red', linestyle='dashed', linewidth=2, 
+                label=f'GE Medio: {mean_error:.2f}°')
+    
+    # Personaliza el gráfico
+    plt.title(title, fontsize=16)
+    plt.xlabel(xlabel, fontsize=12)
+    plt.ylabel(ylabel, fontsize=12)
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+    plt.legend()
+    plt.tight_layout() # Ajusta el diseño para evitar que los elementos se superpongan
+    
+    # Guarda la figura en el archivo especificado y la cierra
+    plt.savefig(save_path)
+    plt.close()
+    
+    print(f"Histograma guardado exitosamente en '{save_path}'")
+
 def main():
     import argparse
     import itertools
@@ -279,23 +336,12 @@ def main():
                     pred_angles.append(pred_angle)
                 anno_angles, pred_angles = np.array(anno_angles), np.array(pred_angles)
                 ges = np.array(ges)
+                plot_geodesic_error_histogram(ges)
                 # Mean absolute error and geodesic error (pose)
                 errors = np.abs(anno_angles - pred_angles)
-                # Get 5 image index with the 5 best and 5 worst errors
-                pred_index_ordered_by_error = np.argsort(np.mean(errors, axis=1))
-                best_images_indices = pred_index_ordered_by_error[:5]
-                worst_images_indices = pred_index_ordered_by_error[-5:]
-
-                print('--- Las 5 mejores imágenes ---')
-                for i in best_images_indices:
-                    print(f"Imagen: {image_keys[i]} | Error medio: {np.mean(errors[i]):.2f} grados")
-
-                print('\n--- Las 5 peores imágenes ---')
-                for i in worst_images_indices:
-                    print(f"Imagen: {image_keys[i]} | Error medio: {np.mean(errors[i]):.2f} grados")
                     
                     
-                    
+                 
                 pred_index_ordered_by_error = np.argsort(ges)
                 best_images_indices = pred_index_ordered_by_error[:5]
                 worst_images_indices = pred_index_ordered_by_error[-5:]
@@ -307,6 +353,8 @@ def main():
                 print('\n--- Las 5 peores imágenes ---')
                 for i in worst_images_indices:
                     print(f"Imagen: {image_keys[i]} | GE: {np.mean(errors[i]):.2f} grados")
+                    
+                
 
                 mae_by_image = np.mean(errors, axis=1)
                 # Wrapped MAE, i.e. Real-time fine-grained estimation for wide range head pose (BMVC 2020)
