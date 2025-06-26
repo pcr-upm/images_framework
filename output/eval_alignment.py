@@ -212,13 +212,16 @@ def main():
         if bool(results):
             if state is States.POSE or state is States.ALL:
                 anno_mats, pred_mats = [], []
+                image_keys = []
                 for keyname in results.keys():
                     for identifier in results[keyname].keys():
                         anno_matrix = results[keyname][identifier]['annotation']['pose']
                         pred_matrix = results[keyname][identifier]['prediction']['pose']
                         anno_mats.append(anno_matrix)
                         pred_mats.append(pred_matrix)
+                        image_keys.append(keyname)
                 anno_mats, pred_mats = np.array(anno_mats), np.array(pred_mats)
+                image_keys = np.array(image_keys)
                 # Align predicted rotation matrices to remove systematic errors in cross data set evaluation
                 if align:
                     if database in Biwi().get_names():
@@ -245,6 +248,19 @@ def main():
                 anno_angles, pred_angles = np.array(anno_angles), np.array(pred_angles)
                 # Mean absolute error and geodesic error (pose)
                 errors = np.abs(anno_angles - pred_angles)
+                # Get 5 image index with the 5 best and 5 worst errors
+                pred_index_ordered_by_error = np.argsort(np.mean(errors, axis=1))
+                best_images_indices = pred_index_ordered_by_error[:5]
+                worst_images_indices = pred_index_ordered_by_error[-5:]
+
+                print('--- Las 5 mejores imágenes ---')
+                for i in best_images_indices:
+                    print(f"Imagen: {image_keys[i]} | Error medio: {np.mean(errors[i]):.2f} grados")
+
+                print('\n--- Las 5 peores imágenes ---')
+                for i in worst_images_indices:
+                    print(f"Imagen: {image_keys[i]} | Error medio: {np.mean(errors[i]):.2f} grados")
+
                 mae_by_image = np.mean(errors, axis=1)
                 # Wrapped MAE, i.e. Real-time fine-grained estimation for wide range head pose (BMVC 2020)
                 sign = np.sign(pred_angles)
