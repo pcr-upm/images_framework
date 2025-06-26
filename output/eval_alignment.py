@@ -223,10 +223,11 @@ def plot_geodesic_error_histogram(
     title='Distribución de los Errores Geodésicos',
     xlabel='Error Geodésico (grados)',
     ylabel='Frecuencia',
-    bins=None # <<< Cambiado para que no tenga un valor por defecto fijo
+    bins=None # Puede ser None, un int o una secuencia
 ):
     """
     Genera un histograma a partir de un array de errores geodésicos y lo guarda como un archivo de imagen.
+    Pinta líneas verticales para la media y la mediana.
 
     Args:
         geodesic_errors (np.ndarray): Array de valores de error geodésico en grados.
@@ -249,15 +250,22 @@ def plot_geodesic_error_histogram(
     if bins is None:
         bins = 'auto'
         
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(12, 7))
     
     # Crea el histograma
     plt.hist(geodesic_errors, bins=bins, edgecolor='black', alpha=0.8)
     
-    # Añade una línea vertical para mostrar la media del error
+    # --- AÑADIMOS LAS LÍNEAS PARA LA MEDIA Y LA MEDIANA ---
     mean_error = np.mean(geodesic_errors)
+    median_error = np.median(geodesic_errors)
+    
+    # Línea para la media (GE Medio)
     plt.axvline(mean_error, color='red', linestyle='dashed', linewidth=2, 
-                label=f'GE Medio: {mean_error:.2f}°')
+                label=f'Media: {mean_error:.2f}°')
+    
+    # Línea para la mediana
+    plt.axvline(median_error, color='green', linestyle='dashed', linewidth=2, 
+                label=f'Mediana: {median_error:.2f}°')
     
     # Personaliza el gráfico
     plt.title(title, fontsize=16)
@@ -339,20 +347,37 @@ def main():
                 plot_geodesic_error_histogram(ges)
                 # Mean absolute error and geodesic error (pose)
                 errors = np.abs(anno_angles - pred_angles)
-                    
-                    
+                # --- NUEVA LÓGICA PARA ENCONTRAR LA IMAGEN MÁS CERCANA A LA MEDIA ---
+                mean_ge = np.mean(ges)
+                # Calcula la diferencia absoluta de cada error con respecto a la media
+                abs_diff_from_mean = np.abs(ges - mean_ge)
+                # Encuentra el índice de la muestra con la diferencia más pequeña
+                index_closest_to_mean = np.argmin(abs_diff_from_mean)
+                # Obtén el nombre de la imagen y su error
+                image_closest_to_mean = image_keys[index_closest_to_mean]
+                error_closest_to_mean = ges[index_closest_to_mean]
+
+                print(f"\n--- Imagen con error geodésico más cercano a la media ---")
+                print(f"GE Medio total: {mean_ge:.2f}°")
+                print(f"Imagen: {image_closest_to_mean} | GE: {error_closest_to_mean:.2f}°")
+                # --- FIN DE LA NUEVA LÓGICA ---
+                
                  
                 pred_index_ordered_by_error = np.argsort(ges)
                 best_images_indices = pred_index_ordered_by_error[:5]
                 worst_images_indices = pred_index_ordered_by_error[-5:]
 
-                print('--- Las 5 mejores imágenes ---')
+                print('\n--- Las 5 mejores imágenes ---')
                 for i in best_images_indices:
-                    print(f"Imagen: {image_keys[i]} | GE: {np.mean(errors[i]):.2f} grados")
+                    # Nota: Aquí estás imprimiendo el error MAE (errors[i]),
+                    # pero el orden es por GE (ges). Te sugiero imprimir el GE.
+                    print(f"Imagen: {image_keys[i]} | GE: {ges[i]:.2f} grados")
 
                 print('\n--- Las 5 peores imágenes ---')
                 for i in worst_images_indices:
-                    print(f"Imagen: {image_keys[i]} | GE: {np.mean(errors[i]):.2f} grados")
+                    # Nota: Aquí estás imprimiendo el error MAE (errors[i]),
+                    # pero el orden es por GE (ges). Te sugiero imprimir el GE.
+                    print(f"Imagen: {image_keys[i]} | GE: {ges[i]:.2f} grados")
                     
                 
 
