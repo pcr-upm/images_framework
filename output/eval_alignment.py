@@ -185,6 +185,36 @@ def print_landmarks_metrics(err_images, auc_threshold, images_filter=None):
     print('AUC: ' + str(area_under_curve(base, cumulative, auc_threshold)))
     print('FR: ' + str(failure_rate(base, cumulative, auc_threshold)))
 
+def calculate_geodesic_error(anno_matrix, pred_matrix):
+    """
+    Calcula el error geodésico (GE) entre dos matrices de rotación 3x3.
+
+    Args:
+        anno_matrix (np.ndarray): Matriz de rotación de anotación (ground truth), con forma (3, 3).
+        pred_matrix (np.ndarray): Matriz de rotación de predicción, con forma (3, 3).
+
+    Returns:
+        float: El error geodésico en grados.
+    """
+    # Asegúrate de que las matrices de entrada sean 3x3
+    if anno_matrix.shape != (3, 3) or pred_matrix.shape != (3, 3):
+        raise ValueError("Las matrices de entrada deben tener la forma (3, 3).")
+
+    # Calcula el producto de la transpuesta de la anotación con la predicción.
+    # Esto es equivalente a 'anno_matrix.T @ pred_matrix'
+    product_matrix = np.matmul(anno_matrix.T, pred_matrix)
+    
+    # Calcula la traza del producto, que es '2 * cos(theta) + 1'
+    trace_value = np.trace(product_matrix)
+
+    # Aplica el clip para evitar errores de punto flotante.
+    # La fórmula es (trace - 1) / 2.
+    cos_value = np.clip((trace_value - 1) * 0.5, -1, 1)
+
+    # Calcula el ángulo en radianes y lo convierte a grados.
+    ge_degrees = np.rad2deg(np.arccos(cos_value))
+
+    return ge_degrees
 
 def main():
     import argparse
@@ -213,6 +243,7 @@ def main():
             if state is States.POSE or state is States.ALL:
                 anno_mats, pred_mats = [], []
                 image_keys = []
+                ges = []
                 for keyname in results.keys():
                     for identifier in results[keyname].keys():
                         anno_matrix = results[keyname][identifier]['annotation']['pose']
@@ -232,6 +263,7 @@ def main():
                         pred_mats = align_predictions(anno_mats, pred_mats, images_filter=range(len(anno_mats)))
                 anno_angles, pred_angles = [], []
                 for anno_matrix, pred_matrix in zip(anno_mats, pred_mats):
+                    ges.append(calculate_geodesic_error(anno_matrix, pred_matrix))
                     if database in AFLW2000().get_names() or database in Biwi().get_names():
                         # Order is pitch x yaw x roll
                         anno_angle = np.array(Rotation.from_matrix(anno_matrix).as_euler('XYZ', degrees=True))[[1, 0, 2]]
@@ -246,6 +278,7 @@ def main():
                     anno_angles.append(anno_angle)
                     pred_angles.append(pred_angle)
                 anno_angles, pred_angles = np.array(anno_angles), np.array(pred_angles)
+                ges = np.array(ges)
                 # Mean absolute error and geodesic error (pose)
                 errors = np.abs(anno_angles - pred_angles)
                 # Get 5 image index with the 5 best and 5 worst errors
@@ -260,6 +293,20 @@ def main():
                 print('\n--- Las 5 peores imágenes ---')
                 for i in worst_images_indices:
                     print(f"Imagen: {image_keys[i]} | Error medio: {np.mean(errors[i]):.2f} grados")
+                    
+                    
+                    
+                pred_index_ordered_by_error = np.argsort(ges)
+                best_images_indices = pred_index_ordered_by_error[:5]
+                worst_images_indices = pred_index_ordered_by_error[-5:]
+
+                print('--- Las 5 mejores imágenes ---')
+                for i in best_images_indices:
+                    print(f"Imagen: {image_keys[i]} | GE: {np.mean(errors[i]):.2f} grados")
+
+                print('\n--- Las 5 peores imágenes ---')
+                for i in worst_images_indices:
+                    print(f"Imagen: {image_keys[i]} | GE: {np.mean(errors[i]):.2f} grados")
 
                 mae_by_image = np.mean(errors, axis=1)
                 # Wrapped MAE, i.e. Real-time fine-grained estimation for wide range head pose (BMVC 2020)
