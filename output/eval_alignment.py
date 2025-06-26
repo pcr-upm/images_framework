@@ -354,7 +354,7 @@ def main():
                 sroted_indices_ges = np.argsort(abs_diff_from_mean)
 
                 print('\n--- Las 5 imágenes mas cercanas a la media ---')
-                for i in sroted_indices_ges:
+                for i in sroted_indices_ges[:5]:
                     # Nota: Aquí estás imprimiendo el error MAE (errors[i]),
                     # pero el orden es por GE (ges). Te sugiero imprimir el GE.
                     print(f"Imagen: {image_keys[i]} | GE: {ges[i]:.2f} grados")
