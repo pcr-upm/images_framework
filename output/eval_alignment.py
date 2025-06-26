@@ -351,16 +351,13 @@ def main():
                 mean_ge = np.mean(ges)
                 # Calcula la diferencia absoluta de cada error con respecto a la media
                 abs_diff_from_mean = np.abs(ges - mean_ge)
-                # Encuentra el índice de la muestra con la diferencia más pequeña
-                index_closest_to_mean = np.argmin(abs_diff_from_mean)
-                # Obtén el nombre de la imagen y su error
-                image_closest_to_mean = image_keys[index_closest_to_mean]
-                error_closest_to_mean = ges[index_closest_to_mean]
+                sroted_indices_ges = np.argsort(abs_diff_from_mean)
 
-                print(f"\n--- Imagen con error geodésico más cercano a la media ---")
-                print(f"GE Medio total: {mean_ge:.2f}°")
-                print(f"Imagen: {image_closest_to_mean} | GE: {error_closest_to_mean:.2f}°")
-                # --- FIN DE LA NUEVA LÓGICA ---
+                print('\n--- Las 5 imágenes mas cercanas a la media ---')
+                for i in sroted_indices_ges:
+                    # Nota: Aquí estás imprimiendo el error MAE (errors[i]),
+                    # pero el orden es por GE (ges). Te sugiero imprimir el GE.
+                    print(f"Imagen: {image_keys[i]} | GE: {ges[i]:.2f} grados")
                 
                  
                 pred_index_ordered_by_error = np.argsort(ges)
