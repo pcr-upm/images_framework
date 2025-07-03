@@ -276,7 +276,6 @@ def main():
         if bool(results):
             if state is States.POSE or state is States.ALL:
                 anno_mats, pred_mats = [], []
-                image_keys = []
                 ges = []
                 for keyname in results.keys():
                     for identifier in results[keyname].keys():
@@ -284,9 +283,7 @@ def main():
                         pred_matrix = results[keyname][identifier]['prediction']['pose']
                         anno_mats.append(anno_matrix)
                         pred_mats.append(pred_matrix)
-                        image_keys.append(keyname)
                 anno_mats, pred_mats = np.array(anno_mats), np.array(pred_mats)
-                image_keys = np.array(image_keys)
                 # Align predicted rotation matrices to remove systematic errors in cross data set evaluation
                 if align:
                     if database in Biwi().get_names():
