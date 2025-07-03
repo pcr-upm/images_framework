@@ -348,19 +348,10 @@ def main():
                 for idx in range(len(anno_angles)):
                     y_true.append(categories[(np.abs(anno_angles[idx][0] - categories)).argmin()])
                     y_pred.append(categories[(np.abs(pred_angles[idx][0] - categories)).argmin()])
-                anno_max = np.max(anno_angles, axis=0)
-                anno_min = np.min(anno_angles, axis=0)
 
-                pred_max = np.max(pred_angles, axis=0)
-                pred_min = np.min(pred_angles, axis=0)
-
-                print(f"Yaw: ({anno_min[0]}, {anno_max[0]})")
-                print(f"Pitch: ({anno_min[1]}, {anno_max[1]})")
-                print(f"Roll: ({anno_min[2]}, {anno_max[2]})")
                 cm = confusion_matrix(y_true, y_pred, labels=categories)
                 print('Confusion matrix:')
                 print(cm)
-                np.savetxt("confusion_matrix.txt", cm, fmt='%4d')
                 draw_confusion_matrix(cm, categories, True)
                 # Compute the accuracy
                 correct_samples_class = np.sum(np.diagonal(cm).astype(float))
