@@ -186,19 +186,9 @@ def print_landmarks_metrics(err_images, auc_threshold, images_filter=None):
     print('FR: ' + str(failure_rate(base, cumulative, auc_threshold)))
 
 def calculate_geodesic_error(anno_matrix, pred_matrix):
-    """
-    Calcula el error geodésico (GE) entre dos matrices de rotación 3x3.
-
-    Args:
-        anno_matrix (np.ndarray): Matriz de rotación de anotación (ground truth), con forma (3, 3).
-        pred_matrix (np.ndarray): Matriz de rotación de predicción, con forma (3, 3).
-
-    Returns:
-        float: El error geodésico en grados.
-    """
     # Asegúrate de que las matrices de entrada sean 3x3
     if anno_matrix.shape != (3, 3) or pred_matrix.shape != (3, 3):
-        raise ValueError("Las matrices de entrada deben tener la forma (3, 3).")
+        raise ValueError("(3, 3).")
 
     # Calcula el producto de la transpuesta de la anotación con la predicción.
     # Esto es equivalente a 'anno_matrix.T @ pred_matrix'
@@ -223,59 +213,38 @@ def plot_geodesic_error_histogram(
     title='Distribución de los Errores Geodésicos',
     xlabel='Error Geodésico (grados)',
     ylabel='Frecuencia',
-    bins=None # Puede ser None, un int o una secuencia
+    bins=Non
 ):
-    """
-    Genera un histograma a partir de un array de errores geodésicos y lo guarda como un archivo de imagen.
-    Pinta líneas verticales para la media y la mediana.
-
-    Args:
-        geodesic_errors (np.ndarray): Array de valores de error geodésico en grados.
-        save_path (str, optional): Ruta y nombre del archivo para guardar la imagen. 
-                                   Por defecto es 'histograma_geodesico.png'.
-        title (str, optional): Título del gráfico.
-        xlabel (str, optional): Etiqueta del eje X.
-        ylabel (str, optional): Etiqueta del eje Y.
-        bins (int or sequence, optional): El número de bins o la secuencia de límites de los bins.
-                                         Si no se especifica, se usarán los bins por defecto de Matplotlib.
-    """
     if not isinstance(geodesic_errors, np.ndarray):
         raise TypeError("El input 'geodesic_errors' debe ser un array de NumPy.")
     
     if geodesic_errors.size == 0:
-        print("Advertencia: El array de errores está vacío. No se puede generar el histograma.")
+        print("Array vacío.")
         return
     
-    # Si no se especifican los bins, Matplotlib usará su valor por defecto
     if bins is None:
         bins = 'auto'
         
     plt.figure(figsize=(12, 7))
     
-    # Crea el histograma
     plt.hist(geodesic_errors, bins=bins, edgecolor='black', alpha=0.8)
     
-    # --- AÑADIMOS LAS LÍNEAS PARA LA MEDIA Y LA MEDIANA ---
     mean_error = np.mean(geodesic_errors)
     median_error = np.median(geodesic_errors)
     
-    # Línea para la media (GE Medio)
     plt.axvline(mean_error, color='red', linestyle='dashed', linewidth=2, 
                 label=f'Media: {mean_error:.2f}°')
     
-    # Línea para la mediana
     plt.axvline(median_error, color='green', linestyle='dashed', linewidth=2, 
                 label=f'Mediana: {median_error:.2f}°')
     
-    # Personaliza el gráfico
     plt.title(title, fontsize=16)
     plt.xlabel(xlabel, fontsize=12)
     plt.ylabel(ylabel, fontsize=12)
     plt.grid(axis='y', linestyle='--', alpha=0.7)
     plt.legend()
-    plt.tight_layout() # Ajusta el diseño para evitar que los elementos se superpongan
+    plt.tight_layout() 
     
-    # Guarda la figura en el archivo especificado y la cierra
     plt.savefig(save_path)
     plt.close()
     
@@ -345,39 +314,7 @@ def main():
                 anno_angles, pred_angles = np.array(anno_angles), np.array(pred_angles)
                 ges = np.array(ges)
                 plot_geodesic_error_histogram(ges)
-                # Mean absolute error and geodesic error (pose)
                 errors = np.abs(anno_angles - pred_angles)
-                # --- NUEVA LÓGICA PARA ENCONTRAR LA IMAGEN MÁS CERCANA A LA MEDIA ---
-                mean_ge = np.mean(ges)
-                # Calcula la diferencia absoluta de cada error con respecto a la media
-                abs_diff_from_mean = np.abs(ges - mean_ge)
-                sroted_indices_ges = np.argsort(abs_diff_from_mean)
-
-                print('\n--- Las 5 imágenes mas cercanas a la media ---')
-                for i in sroted_indices_ges[:5]:
-                    # Nota: Aquí estás imprimiendo el error MAE (errors[i]),
-                    # pero el orden es por GE (ges). Te sugiero imprimir el GE.
-                    print(f"Imagen: {image_keys[i]} | GE: {ges[i]:.2f} grados")
-                
-                 
-                pred_index_ordered_by_error = np.argsort(ges)
-                best_images_indices = pred_index_ordered_by_error[:5]
-                worst_images_indices = pred_index_ordered_by_error[-5:]
-
-                print('\n--- Las 5 mejores imágenes ---')
-                for i in best_images_indices:
-                    # Nota: Aquí estás imprimiendo el error MAE (errors[i]),
-                    # pero el orden es por GE (ges). Te sugiero imprimir el GE.
-                    print(f"Imagen: {image_keys[i]} | GE: {ges[i]:.2f} grados")
-
-                print('\n--- Las 5 peores imágenes ---')
-                for i in worst_images_indices:
-                    # Nota: Aquí estás imprimiendo el error MAE (errors[i]),
-                    # pero el orden es por GE (ges). Te sugiero imprimir el GE.
-                    print(f"Imagen: {image_keys[i]} | GE: {ges[i]:.2f} grados")
-                    
-                
-
                 mae_by_image = np.mean(errors, axis=1)
                 # Wrapped MAE, i.e. Real-time fine-grained estimation for wide range head pose (BMVC 2020)
                 sign = np.sign(pred_angles)
