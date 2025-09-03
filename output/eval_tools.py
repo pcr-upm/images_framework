@@ -68,9 +68,10 @@ def draw_cumulative_curve(errors, categories, threshold=15, database=None):
                 frs.append(failure_rate(base, cumulative, threshold))
                 plt.plot(base, cumulative, color=literature[Path(i).stem][1], zorder=list(literature.keys()).index(Path(i).stem), label=literature[Path(i).stem][0])
     handles, labels = ax.get_legend_handles_labels()
-    handles = [h for (a, h) in sorted(zip(aucs, handles), reverse=True)]
-    labels = [l for (a, l) in sorted(zip(aucs, labels), reverse=True)]
-    frs = [f for (a, f) in sorted(zip(aucs, frs), reverse=True)]
+    sorted_indices = np.argsort(aucs)[::-1]
+    handles = [handles[i] for i in sorted_indices]
+    labels = [labels[i] for i in sorted_indices]
+    frs = [frs[i] for i in sorted_indices]
     plt.legend(handles, labels, loc='lower right')
     plt.xlabel('Cumulative error')
     plt.ylabel('Images proportion')

@@ -5,6 +5,7 @@ __email__ = 'roberto.valle@upm.es'
 
 import os
 import sys
+
 sys.path.append(os.getcwd())
 import cv2
 import json
@@ -14,7 +15,7 @@ from enum import Enum, unique
 from sklearn.metrics import confusion_matrix
 from scipy.spatial.transform import Rotation
 from eval_tools import draw_histogram, draw_confusion_matrix, draw_cumulative_curve
-from images_framework.src.datasets import Database, PTS68, COFW, AFLW, WFLW, AFLW2000, Biwi, Panoptic
+from images_framework.src.datasets import Database, PTS68, COFW, AFLW, WFLW, AFLW2000, Biwi, Panoptic, Agora
 
 
 @unique
@@ -186,6 +187,70 @@ def print_landmarks_metrics(err_images, auc_threshold, images_filter=None):
     print('AUC: ' + str(area_under_curve(base, cumulative, auc_threshold)))
     print('FR: ' + str(failure_rate(base, cumulative, auc_threshold)))
 
+def calculate_geodesic_error(anno_matrix, pred_matrix):
+    # Asegúrate de que las matrices de entrada sean 3x3
+    if anno_matrix.shape != (3, 3) or pred_matrix.shape != (3, 3):
+        raise ValueError("(3, 3).")
+
+    # Calcula el producto de la transpuesta de la anotación con la predicción.
+    # Esto es equivalente a 'anno_matrix.T @ pred_matrix'
+    product_matrix = np.matmul(anno_matrix.T, pred_matrix)
+    
+    # Calcula la traza del producto, que es '2 * cos(theta) + 1'
+    trace_value = np.trace(product_matrix)
+
+    # Aplica el clip para evitar errores de punto flotante.
+    # La fórmula es (trace - 1) / 2.
+    cos_value = np.clip((trace_value - 1) * 0.5, -1, 1)
+
+    # Calcula el ángulo en radianes y lo convierte a grados.
+    ge_degrees = np.rad2deg(np.arccos(cos_value))
+
+    return ge_degrees
+
+import matplotlib.pyplot as plt
+def plot_geodesic_error_histogram(
+    geodesic_errors,
+    save_path='histograma_geodesico.png',
+    title='Distribución de los Errores Geodésicos',
+    xlabel='Error Geodésico (grados)',
+    ylabel='Frecuencia',
+    bins=Non
+):
+    if not isinstance(geodesic_errors, np.ndarray):
+        raise TypeError("El input 'geodesic_errors' debe ser un array de NumPy.")
+    
+    if geodesic_errors.size == 0:
+        print("Array vacío.")
+        return
+    
+    if bins is None:
+        bins = 'auto'
+        
+    plt.figure(figsize=(12, 7))
+    
+    plt.hist(geodesic_errors, bins=bins, edgecolor='black', alpha=0.8)
+    
+    mean_error = np.mean(geodesic_errors)
+    median_error = np.median(geodesic_errors)
+    
+    plt.axvline(mean_error, color='red', linestyle='dashed', linewidth=2, 
+                label=f'Media: {mean_error:.2f}°')
+    
+    plt.axvline(median_error, color='green', linestyle='dashed', linewidth=2, 
+                label=f'Mediana: {median_error:.2f}°')
+    
+    plt.title(title, fontsize=16)
+    plt.xlabel(xlabel, fontsize=12)
+    plt.ylabel(ylabel, fontsize=12)
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+    plt.legend()
+    plt.tight_layout() 
+    
+    plt.savefig(save_path)
+    plt.close()
+    
+    print(f"Histograma guardado exitosamente en '{save_path}'")
 
 def main():
     import argparse
@@ -213,6 +278,7 @@ def main():
         if bool(results):
             if state is States.POSE or state is States.ALL:
                 anno_mats, pred_mats = [], []
+                ges = []
                 for keyname in results.keys():
                     for identifier in results[keyname].keys():
                         anno_matrix = results[keyname][identifier]['annotation']['pose']
@@ -230,10 +296,14 @@ def main():
                         pred_mats = align_predictions(anno_mats, pred_mats, images_filter=range(len(anno_mats)))
                 anno_angles, pred_angles = [], []
                 for anno_matrix, pred_matrix in zip(anno_mats, pred_mats):
-                    if database in AFLW2000().get_names() or database in Biwi().get_names() or database in Panoptic().get_names():
+                    ges.append(calculate_geodesic_error(anno_matrix, pred_matrix))
+                    if database in AFLW2000().get_names() or database in Biwi().get_names():
                         # Order is pitch x yaw x roll
                         anno_angle = np.array(Rotation.from_matrix(anno_matrix).as_euler('XYZ', degrees=True))[[1, 0, 2]]
                         pred_angle = np.array(Rotation.from_matrix(pred_matrix).as_euler('XYZ', degrees=True))[[1, 0, 2]]
+                    elif database in Panoptic().get_names():
+                        anno_angle = np.array(Rotation.from_matrix(anno_matrix).as_euler('XYZ', degrees=True))[[0, 1, 2]]
+                        pred_angle = np.array(Rotation.from_matrix(pred_matrix).as_euler('XYZ', degrees=True))[[0, 1, 2]]
                     else:
                         # Order is yaw x pitch x roll
                         anno_angle = np.array(Rotation.from_matrix(anno_matrix).as_euler('YXZ', degrees=True))
@@ -241,12 +311,13 @@ def main():
                     anno_angles.append(anno_angle)
                     pred_angles.append(pred_angle)
                 anno_angles, pred_angles = np.array(anno_angles), np.array(pred_angles)
-                # Mean absolute error and geodesic error (pose)
+                ges = np.array(ges)
+                plot_geodesic_error_histogram(ges)
                 errors = np.abs(anno_angles - pred_angles)
                 mae_by_image = np.mean(errors, axis=1)
                 # Wrapped MAE, i.e. Real-time fine-grained estimation for wide range head pose (BMVC 2020)
                 sign = np.sign(pred_angles)
-                if database in AFLW2000().get_names() or database in Biwi().get_names() or database in Panoptic().get_names():
+                if database in AFLW2000().get_names() or database in Biwi().get_names() or database in Panoptic().get_names() or database in 'agora':
                     pred_angles_wrap = np.array([180-pred_angles[:, 0], pred_angles[:, 1]-(sign[:, 1]*180), pred_angles[:, 2]-(sign[:, 2]*180)])
                 else:
                     pred_angles_wrap = np.array([pred_angles[:, 0]-(sign[:, 0]*180), 180-pred_angles[:, 1], pred_angles[:, 2]-(sign[:, 2]*180)])
@@ -268,11 +339,15 @@ def main():
                 # Draw cumulative distribution
                 draw_cumulative_curve(errors, ['Yaw', 'Pitch', 'Roll'], threshold=15)
                 # Compute the confusion matrix
-                categories = [-90, -75, -60, -45, -30, -15, 0, 15, 30, 45, 60, 75, 90]
+                if database in {'agora', 'panoptic'}:
+                    categories = np.array(list(range(-180, 181, 15)))
+                else:
+                    categories = list(range(-90, 91, 15))
                 y_true, y_pred = [], []
                 for idx in range(len(anno_angles)):
                     y_true.append(categories[(np.abs(anno_angles[idx][0] - categories)).argmin()])
                     y_pred.append(categories[(np.abs(pred_angles[idx][0] - categories)).argmin()])
+
                 cm = confusion_matrix(y_true, y_pred, labels=categories)
                 print('Confusion matrix:')
                 print(cm)

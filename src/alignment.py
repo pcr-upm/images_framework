@@ -11,6 +11,7 @@ from scipy.spatial.transform import Rotation
 from .component import Component
 from .detection import Detection
 from .datasets import Database
+import torch
 
 
 class Alignment(Component):
@@ -69,7 +70,11 @@ class Alignment(Component):
                     thickness = int(round(math.log(max(math.e, np.sqrt(cv2.contourArea(contour))), 2)))
                     if (obj.headpose != -1).any():
                         # From right-hand rule to left-hand rule
-                        euler = Rotation.from_matrix(obj.headpose).as_euler('YXZ', degrees=True)
+                        headpose = obj.headpose
+                        if isinstance(headpose, torch.Tensor):
+                            headpose = headpose.cpu().numpy()
+
+                        euler = Rotation.from_matrix(headpose).as_euler('YXZ', degrees=True)
                         obj_axis = axis @ Rotation.from_euler('YXZ', [-euler[0], -euler[1], -euler[2]], degrees=True).as_matrix()
                         obj_axis *= np.sqrt(cv2.contourArea(contour))
                         mu = cv2.moments(contour)
@@ -127,7 +132,10 @@ class Alignment(Component):
             output_json['images'].append(dict({'id': img_idx, 'file_name': os.path.basename(img_pred.filename), 'width': int(img_pred.tile[2]-img_pred.tile[0]), 'height': int(img_pred.tile[3]-img_pred.tile[1]), 'date_captured': img_pred.timestamp}))
             for obj in img_pred.objects:
                 landmarks = list(map(dict, [dict({'label': int(lnd.label), 'pos': list(map(float, lnd.pos)), 'visible': bool(lnd.visible), 'confidence': float(lnd.confidence)}) for lnds in [landmarks for lps in obj.landmarks.values() for landmarks in lps.values()] for lnd in lnds]))
-                output_json['annotations'].append(dict({'id': str(obj.id), 'image_id': img_idx, 'bbox': list(map(float, [obj.bb[0], obj.bb[1], obj.bb[2]-obj.bb[0], obj.bb[3]-obj.bb[1]])), 'pose': list(map(float, Rotation.from_matrix(obj.headpose).as_euler('YXZ', degrees=True) if hasattr(obj, 'headpose') else [-1.0, -1.0, -1.0])), 'landmarks': landmarks, 'iscrowd': int(len(img_pred.objects) > 1)}))
+                headpose = obj.headpose
+                if isinstance(headpose, torch.Tensor):
+                    headpose = headpose.cpu().numpy()
+                output_json['annotations'].append(dict({'id': str(obj.id), 'image_id': img_idx, 'bbox': list(map(float, [obj.bb[0], obj.bb[1], obj.bb[2]-obj.bb[0], obj.bb[3]-obj.bb[1]])), 'pose': list(map(float, Rotation.from_matrix(headpose).as_euler('YXZ', degrees=True) if hasattr(obj, 'headpose') else [-1.0, -1.0, -1.0])), 'landmarks': landmarks, 'iscrowd': int(len(img_pred.objects) > 1)}))
             output_json['mapping'].append(dict({str(lp.value): list(map(int, parts[lp])) for lp in parts}))
             # Save COCO annotation file
             root, extension = os.path.splitext(img_pred.filename)
