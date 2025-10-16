@@ -1,0 +1,11 @@
+include LICENSE
+recursive-include *.md
+recursive-include alignment __init__.py landmarks.py
+recursive-include categories *.py
+recursive-include detection __init__.py
+recursive-include generation __init__.py
+recursive-include output *.py *.txt *.h *.cpp *.i
+recursive-include recognition __init__.py
+recursive-include segmentation __init__.py
+recursive-include src *.py
+recursive-include test *.py *.tif
