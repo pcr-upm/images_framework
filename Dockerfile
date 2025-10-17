@@ -31,4 +31,5 @@ ENV PATH /home/username/conda/envs/framework/bin:/home/username/conda/bin:$PATH
 # Make RUN commands use the new environment (source activate framework)
 SHELL ["conda", "run", "-n", "framework", "/bin/bash", "-c"]
 # Install dependencies
-RUN pip install opencv-python==4.2.0.32 opencv-contrib-python==4.2.0.32 rasterio
+RUN pip install numpy scipy opencv-python opencv-contrib-python rasterio pillow pascal-voc-writer
+RUN conda install -c conda-forge gdal
