@@ -9,6 +9,7 @@ from images_framework.src.categories import Name, Category as Oi
 class Emotion(Oi):
     # FER-2013
     Oi.FACE.ANGER = Name('Anger')
+    Oi.FACE.CONTEMPT = Name('Contempt')
     Oi.FACE.DISGUST = Name('Disgust')
     Oi.FACE.FEAR = Name('Fear')
     Oi.FACE.HAPPINESS = Name('Happiness')
