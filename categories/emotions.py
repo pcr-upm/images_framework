@@ -16,3 +16,4 @@ class Emotion(Oi):
     Oi.FACE.NEUTRAL = Name('Neutral')
     Oi.FACE.SADNESS = Name('Sadness')
     Oi.FACE.SURPRISE = Name('Surprise')
+    Oi.FACE.OTHER = Name('Other')
