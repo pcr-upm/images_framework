@@ -76,6 +76,7 @@ class Classifiers(Enum):
     """
     RESNET15_RECOGNITION = 'resnet15_recognition'
     CVPRW26_RECOGNITION = 'cvprw26_recognition'
+    ECCV26_TAD = 'eccv26_tad'
 
 
 @unique

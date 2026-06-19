@@ -70,3 +70,6 @@
 [submodule "classification/cvprw26_recognition"]
 	path = classification/cvprw26_recognition
 	url = git@github.com:pcr-upm/cvprw26_recognition.git
+[submodule "classification/eccv26_tad"]
+	path = classification/eccv26_tad
+	url = git@github.com:pcr-upm/eccv26_tad.git
