@@ -56,6 +56,24 @@ class Database(abc.ABC):
         return self._colors
 
 
+class Thumos(Database):
+    def __init__(self):
+        from images_framework.categories.actions import Action as Oa
+        super().__init__()
+        self._names = ['thumos']
+        self._categories = {0: Oa.ACTION.BASEBALLPITCH, 1: Oa.ACTION.BASKETBALLDUNK, 2: Oa.ACTION.BILLIARDS, 3: Oa.ACTION.CLEANANDJERK, 4: Oa.ACTION.CLIFFDIVING, 5: Oa.ACTION.CRICKETBOWLING, 6: Oa.ACTION.CRICKETSHOT, 7: Oa.ACTION.DIVING, 8: Oa.ACTION.FRISBEECATCH, 9: Oa.ACTION.GOLFSWING, 10: Oa.ACTION.HAMMERTHROW, 11: Oa.ACTION.HIGHJUMP, 12: Oa.ACTION.JAVELINTHROW, 13: Oa.ACTION.LONGJUMP, 14: Oa.ACTION.POLEVAULT, 15: Oa.ACTION.SHOTPUT, 16: Oa.ACTION.SOCCERPENALTY, 17: Oa.ACTION.TENNISSWING, 18: Oa.ACTION.THROWDISCUS, 19: Oa.ACTION.VOLLEYVALLSPIKING}
+        self._colors = get_palette(len(self._categories))
+
+    def load_filename(self, path, db, line):
+        from .annotations import GenericVideo, TemporalCategory
+        seq = GenericVideo(path + line['filename'])
+        seq.duration = line['duration'].numpy()
+        segment = line['segment'].numpy()
+        label = line['label'].numpy()
+        seq.add_action(TemporalCategory(segment, self._categories[int(label)]))
+        return seq
+
+
 class Mnist(Database):
     def __init__(self):
         from images_framework.categories.characters import Character as Oc

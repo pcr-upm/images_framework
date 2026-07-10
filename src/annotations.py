@@ -20,6 +20,15 @@ class GenericCategory:
         self.score = score
 
 
+class TemporalCategory(GenericCategory):
+    """
+    Temporal category inherits from the generic category class.
+    """
+    def __init__(self, segment: tuple, label: Name, score=-1):
+        super().__init__(label, score)
+        self.segment = segment
+
+
 class GenericLandmark:
     """
     Generic landmark data.
@@ -127,3 +136,24 @@ class GenericGroup:
 
     def clear(self):
         self.images.clear()
+
+
+class GenericVideo:
+    """
+    Generic video data.
+    """
+    def __init__(self, filename):
+        self.filename = filename
+        self.duration = -1
+        self.categories = list([])
+        self.actions = list([])
+
+    def add_category(self, category: GenericCategory):
+        self.categories.append(category)
+
+    def add_action(self, action: TemporalCategory):
+        self.actions.append(action)
+
+    def clear(self):
+        self.categories.clear()
+        self.actions.clear()

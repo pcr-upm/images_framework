@@ -18,6 +18,7 @@ class Category(object):
     __metaclass__ = abc.ABCMeta
     BACKGROUND = Name('Background')
     PERSON = Name('Person')
+    ACTION = Name('Action')
     ANIMAL = Name('Animal')
     FACE = Name('Face')
     BUILDING = Name('Building')
