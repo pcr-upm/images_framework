@@ -25,14 +25,14 @@ python images_framework/test/images_framework_test.py
 Or you can use the library directly in your own Python code:
 ```python
 import numpy as np
-from images_framework.src.annotations import GenericGroup, GenericImage
+from images_framework.src.annotations import GenericVideo, GenericImage
 from images_framework.src.composite import Composite
 from images_framework.src.viewer import Viewer
 
 # Prepare annotations and predictions.
-# GenericGroup represents a set of images or a sequence of frames from a video
+# GenericVideo represents a set of images or a sequence of frames from a video
 # for solving a generic computer vision problem.
-ann, pred = GenericGroup(), GenericGroup()
+ann, pred = GenericVideo(), GenericVideo()
 
 # For example, you can split an image into smaller tiles (regions of interest)
 # and process each part separately.

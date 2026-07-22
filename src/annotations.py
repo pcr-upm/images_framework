@@ -124,29 +124,19 @@ class AerialImage(GenericImage):
         self.nadir_angle = -1
 
 
-class GenericGroup:
+class GenericVideo:
     """
-    Set of images or sequence of frames from a video.
+    Generic video data or sequence of frames.
     """
-    def __init__(self):
+    def __init__(self, filename=None):
+        self.filename = filename
+        self.duration = -1
         self.images = list([])
+        self.categories = list([])
+        self.actions = list([])
 
     def add_image(self, img: GenericImage):
         self.images.append(img)
-
-    def clear(self):
-        self.images.clear()
-
-
-class GenericVideo:
-    """
-    Generic video data.
-    """
-    def __init__(self, filename):
-        self.filename = filename
-        self.duration = -1
-        self.categories = list([])
-        self.actions = list([])
 
     def add_category(self, category: GenericCategory):
         self.categories.append(category)
@@ -155,5 +145,6 @@ class GenericVideo:
         self.actions.append(action)
 
     def clear(self):
+        self.images.clear()
         self.categories.clear()
         self.actions.clear()

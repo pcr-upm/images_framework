@@ -10,7 +10,7 @@ import cv2
 import numpy as np
 from pathlib import Path
 from images_framework.src.composite import Composite
-from images_framework.src.annotations import GenericGroup, AerialImage
+from images_framework.src.annotations import GenericVideo, AerialImage
 from images_framework.src.viewer import Viewer
 
 
@@ -20,7 +20,7 @@ def main():
     """
     print('OpenCV ' + cv2.__version__)
     # Process frame and show result
-    ann, pred = GenericGroup(), GenericGroup()
+    ann, pred = GenericVideo(), GenericVideo()
     for roi in [[0, 0, 600, 600], [0, 600, 600, 1200], [0, 1200, 600, 1800]]:
         img_pred = AerialImage('images_framework/test/example.tif')
         img_pred.tile = np.array(roi)

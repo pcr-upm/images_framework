@@ -5,7 +5,7 @@ __email__ = 'roberto.valle@upm.es'
 
 import abc
 import numpy as np
-from .annotations import GenericGroup, GenericImage, GenericObject, GenericCategory, GenericLandmark
+from .annotations import GenericVideo, GenericImage, GenericObject, GenericCategory, GenericLandmark
 from .categories import Name, Category as Oi
 
 
@@ -66,7 +66,7 @@ class Thumos(Database):
 
     def load_filename(self, path, db, line):
         from .annotations import GenericVideo, TemporalCategory
-        seq = GenericVideo(filename=path+line[0]+'.mp4')
+        seq = GenericVideo(filename=path+'/'+line[0]+'.mp4')
         info = line[1]
         seq.duration = info.get('duration', 0.0)
         for ann in info.get('annotations', []):
@@ -84,7 +84,7 @@ class ActivityNet(Database):
 
     def load_filename(self, path, db, line):
         from .annotations import GenericVideo, TemporalCategory
-        seq = GenericVideo(filename=path+line[0]+'.mp4')
+        seq = GenericVideo(filename=path+'/'+line[0]+'.mp4')
         info = line[1]
         seq.duration = info.get('duration', 0.0)
         for ann in info.get('annotations', []):
@@ -103,7 +103,7 @@ class Mnist(Database):
     def load_filename(self, path, db, line):
         import uuid
         from PIL import Image
-        seq = GenericGroup()
+        seq = GenericVideo()
         # parts = line.strip().split(';')
         # image = GenericImage(path + parts[0])
         # width, height = Image.open(image.filename).size
@@ -136,7 +136,7 @@ class Fill50K(Database):
         from PIL import Image
         from pathlib import Path
         from .annotations import DiffusionObject
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
@@ -167,7 +167,7 @@ class HPGEN(Database):
         from PIL import Image
         from scipy.spatial.transform import Rotation
         from .annotations import PersonObject
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
@@ -210,7 +210,7 @@ class COCO(Database):
         from datetime import datetime
         from .annotations import PersonObject
         from images_framework.regression.alignment.landmarks import lps
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
@@ -256,7 +256,7 @@ class Agora(Database):
         from scipy.spatial.transform import Rotation
         from .annotations import PersonObject
         from images_framework.regression.alignment.landmarks import lps, PersonLandmarkPart as Pl
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
@@ -305,7 +305,7 @@ class PTS68(Database):
         from pathlib import Path
         from .annotations import DiffusionObject
         from images_framework.regression.alignment.landmarks import lps
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
@@ -345,7 +345,7 @@ class COFW(Database):
         from pathlib import Path
         from .annotations import DiffusionObject
         from images_framework.regression.alignment.landmarks import lps
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
@@ -389,7 +389,7 @@ class AFLW(Database):
         from scipy.spatial.transform import Rotation
         from .annotations import DiffusionObject
         from images_framework.regression.alignment.landmarks import lps
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
@@ -433,7 +433,7 @@ class WFLW(Database):
         from pathlib import Path
         from .annotations import DiffusionObject
         from images_framework.regression.alignment.landmarks import lps
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(';')
         image = GenericImage(path + parts.pop(0))
         width, height = Image.open(image.filename).size
@@ -477,7 +477,7 @@ class CatHeads(Database):
         from PIL import Image
         from .annotations import PersonObject
         from images_framework.regression.alignment.landmarks import lps, PersonLandmarkPart as Pl
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(';')
         image = GenericImage(path + parts.pop(0))
         width, height = Image.open(image.filename).size
@@ -518,7 +518,7 @@ class FaceSynthetics(Database):
         from pathlib import Path
         from .annotations import DiffusionObject
         from images_framework.regression.alignment.landmarks import lps, PersonLandmarkPart as Pl
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
@@ -580,7 +580,7 @@ class DAD(Database):
         from scipy.spatial.transform import Rotation
         from .annotations import DiffusionObject
         from images_framework.regression.alignment.landmarks import lps, PersonLandmarkPart as Pl
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
@@ -642,7 +642,7 @@ class AFLW2000(Database):
         from scipy.spatial.transform import Rotation
         from .annotations import DiffusionObject
         from images_framework.regression.alignment.landmarks import lps, PersonLandmarkPart as Pl
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
@@ -693,7 +693,7 @@ class Pointing04(Database):
         from PIL import Image
         from scipy.spatial.transform import Rotation
         from .annotations import PersonObject
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
@@ -718,7 +718,7 @@ class Biwi(Database):
         from PIL import Image
         from scipy.spatial.transform import Rotation
         from .annotations import PersonObject
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
@@ -744,7 +744,7 @@ class Panoptic(Database):
         from PIL import Image
         from scipy.spatial.transform import Rotation
         from .annotations import PersonObject
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
@@ -769,7 +769,7 @@ class WIDER(Database):
         import json
         from PIL import Image
         from .annotations import PersonObject
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
@@ -796,7 +796,7 @@ class FER2013(Database):
     def load_filename(self, path, db, line):
         import uuid
         from .annotations import PersonObject
-        seq = GenericGroup()
+        seq = GenericVideo()
         temp_filename = path + str(uuid.uuid4())+'.png'
         img = line['image']
         img.save(temp_filename)
@@ -829,7 +829,7 @@ class RAF(Database):
         from PIL import Image
         from .annotations import PersonObject
         from images_framework.regression.alignment.landmarks import lps
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(';')
         image = GenericImage(path + parts.pop(0))
         width, height = Image.open(image.filename).size
@@ -871,7 +871,7 @@ class AffectNet(Database):
         from scipy.spatial.transform import Rotation
         from .annotations import PersonObject
         from images_framework.regression.alignment.landmarks import lps, PersonLandmarkPart as Pl
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(';')
         image = GenericImage(path + parts.pop(0))
         width, height = Image.open(image.filename).size
@@ -907,7 +907,7 @@ class AffWild2(Database):
     def load_filename(self, path, db, line):
         from PIL import Image
         from .annotations import PersonObject
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
@@ -930,7 +930,7 @@ class MultiPie(Database):
     def load_filename(self, path, db, line):
         from PIL import Image
         from .annotations import PersonObject
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
@@ -954,7 +954,7 @@ class ArckPadel(Database):
     def load_filename(self, path, db, line):
         import os
         from PIL import Image
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(';')
         num_images = int(parts[1])
         if len(parts) == 2:
@@ -992,7 +992,7 @@ class XView(Database):
     def load_filename(self, path, db, line):
         from PIL import Image
         from .annotations import AerialImage
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(';')
         image = AerialImage(path + parts[0])
         num_predictions = int(parts[1])
@@ -1029,7 +1029,7 @@ class XView2(Database):
         from shapely import wkt
         from .utils import geometry2numpy
         from .annotations import AerialImage
-        seq = GenericGroup()
+        seq = GenericVideo()
         for time in ['pre_', 'post_']:
             filepath = line.strip()
             pos = filepath.find('pre_')
@@ -1073,7 +1073,7 @@ class DOTA(Database):
     def load_filename(self, path, db, line):
         import rasterio
         from .annotations import AerialImage
-        seq = GenericGroup()
+        seq = GenericVideo()
         filepath = line.strip()
         image = AerialImage(path + filepath)
         pos = filepath.find('/')
@@ -1143,7 +1143,7 @@ class COWC(Database):
     def load_filename(self, path, db, line):
         import rasterio
         from .annotations import AerialImage
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(',')
         image = AerialImage(path + parts[0])
         num_vehicles = int(parts[1])
@@ -1176,7 +1176,7 @@ class CARPK(Database):
         import os
         from PIL import Image
         from .annotations import AerialImage
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(';')
         image = AerialImage(path + parts[0])
         width, height = Image.open(image.filename).size
@@ -1209,7 +1209,7 @@ class DRL(Database):
         import os
         from PIL import Image
         from .annotations import AerialImage
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(';')
         image = AerialImage(path + parts[0])
         width, height = Image.open(image.filename).size
@@ -1252,7 +1252,7 @@ class NWPU(Database):
     def load_filename(self, path, db, line):
         import os
         from PIL import Image
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(';')
         image = GenericImage(path + parts[0])
         width, height = Image.open(image.filename).size
@@ -1285,7 +1285,7 @@ class SpaceNet(Database):
         from shapely import wkt
         from .utils import geometry2numpy
         from .annotations import AerialImage
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(';')
         filepath = parts[0]
         image = AerialImage(path + filepath)
@@ -1318,7 +1318,7 @@ class Cityscapes(Database):
         from PIL import Image
         from .utils import load_geoimage, mask2contours
         label_mapping = {0: -1, 1: -1, 2: -1, 3: -1, 4: -1, 5: -1, 6: -1, 7: 0, 8: 1, 9: -1, 10: -1, 11: 2, 12: 3, 13: 4, 14: -1, 15: -1, 16: -1, 17: 5, 18: -1, 19: 6, 20: 7, 21: 8, 22: 9, 23: 10, 24: 11, 25: 12, 26: 13, 27: 14, 28: 15, 29: -1, 30: -1, 31: 16, 32: 17, 33: 18}
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split('\t')
         filepath = parts[0]
         image = GenericImage(path + filepath)
@@ -1361,7 +1361,7 @@ class LIP(Database):
         import cv2
         from PIL import Image
         from .utils import load_geoimage, mask2contours
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(' ')
         filepath = parts[0]
         image = GenericImage(path + filepath)
@@ -1401,7 +1401,7 @@ class SegESolarScene(Database):
         from shapely import wkt
         from .utils import geometry2numpy
         from .annotations import AerialImage
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(';')
         filepath = parts[0]
         image = AerialImage(path + filepath)
@@ -1433,7 +1433,7 @@ class SegGeoAIPanels(Database):
         from shapely import wkt
         from .utils import geometry2numpy
         from .annotations import AerialImage
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(';')
         filepath = parts[0]
         image = AerialImage(path + filepath)
@@ -1466,7 +1466,7 @@ class RecGeoAIPanels(Database):
         from shapely import wkt
         from .utils import geometry2numpy
         from .annotations import AerialImage
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(';')
         filepath = parts[0]
         image = AerialImage(path + filepath)
@@ -1496,7 +1496,7 @@ class StanfordCars(Database):
 
     def load_filename(self, path, db, line):
         from PIL import Image
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(';')
         filepath = parts[0]
         image = GenericImage(path + filepath)
@@ -1521,7 +1521,7 @@ class WorldView3(Database):
     def load_filename(self, path, db, line):
         import rasterio
         from .annotations import AerialImage
-        seq = GenericGroup()
+        seq = GenericVideo()
         parts = line.strip().split(';')
         filepath = parts[0]
         image = AerialImage(path + filepath)
