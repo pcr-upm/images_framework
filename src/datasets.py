@@ -68,11 +68,12 @@ class Thumos(Database):
         from .annotations import GenericVideo, TemporalCategory
         seq = GenericVideo(filename=path+'/'+line[0]+'.mp4')
         info = line[1]
+        seq.frames = info.get('frames', 0)
         seq.duration = info.get('duration', 0.0)
         for ann in info.get('annotations', []):
             seq.add_action(TemporalCategory(segment=tuple(ann['segment']), label=ann['label']))
         return seq
-    
+
 
 class ActivityNet(Database):
     def __init__(self):
@@ -86,6 +87,7 @@ class ActivityNet(Database):
         from .annotations import GenericVideo, TemporalCategory
         seq = GenericVideo(filename=path+'/'+line[0]+'.mp4')
         info = line[1]
+        seq.frames = info.get('frames', 0)
         seq.duration = info.get('duration', 0.0)
         for ann in info.get('annotations', []):
             seq.add_action(TemporalCategory(segment=tuple(ann['segment']), label=ann['label']))
@@ -913,6 +915,7 @@ class AffWild2(Database):
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
         obj = PersonObject()
+        obj.bb = (0, 0, width, height)
         obj.add_category(GenericCategory(self._categories[int(parts[3])]))
         image.add_object(obj)
         seq.add_image(image)
@@ -936,6 +939,7 @@ class MultiPie(Database):
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
         obj = PersonObject()
+        obj.bb = (0, 0, width, height)
         obj.add_attribute(GenericCategory(Name(parts[5])))  # gender
         obj.add_attribute(GenericCategory(Name(parts[7])))  # illumination
         obj.add_category(GenericCategory(self._categories[parts[9]]))

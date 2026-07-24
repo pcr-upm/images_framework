@@ -130,6 +130,7 @@ class GenericVideo:
     """
     def __init__(self, filename=None):
         self.filename = filename
+        self.frames = -1
         self.duration = -1
         self.images = list([])
         self.categories = list([])
