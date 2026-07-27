@@ -48,45 +48,44 @@ class Recognition(Component):
         pass
 
     def show(self, viewer, ann, pred):
-        def draw_categories(viewer, tile, idx, categories, bbox, current_time=None):
+        def draw_categories(viewer, img, idx, categories, bbox, current_time=None):
             from images_framework.src.annotations import TemporalCategory
-            values = [drawing[cat.label.name] if cat.label.name in names else (0, 255, 0) for cat in categories]
             margin = 2
+            values = [drawing[cat.label.name] if cat.label.name in names else (0, 255, 0) for cat in categories]
             color = np.mean(values, axis=0)
             (xmin, ymin, xmax, ymax) = bbox
             for label_idx, label_val in enumerate(categories):
                 if isinstance(label_val, TemporalCategory):
-                    if not (label_val.segment[0] <= current_time <= label_val.segment[1]):
+                    if current_time is not None and not (label_val.segment[0] <= current_time <= label_val.segment[1]):
                         continue
                 text = cv2.getTextSize(label_val.label.name, cv2.FONT_HERSHEY_SIMPLEX, 0.3, 1)[0]
                 offset = text[1]+2
-                x = max(tile[0]+margin, min(int(xmin+(xmax-xmin)/2-text[0]/2), tile[2]-text[0]-margin))
+                x = max(img.tile[0]+margin, min(int(xmin+(xmax-xmin)/2-text[0]/2), img.tile[2]-text[0]-margin))
                 if idx == 0:
-                    y = ymin+offset if ymin-text[1]-2 < tile[1]+margin else ymin-2
+                    y = ymin+offset if ymin-text[1]-2 < img.tile[1]+margin else ymin-2
                 else:
-                    y = ymax-2 if ymax+offset+1 > tile[3]-margin else ymax+offset
+                    y = ymax-2 if ymax+offset+1 > img.tile[3]-margin else ymax+offset
                 pt = (x, y+label_idx*offset)
-                viewer.rectangle(img_pred, (pt[0], pt[1]-text[1]), (pt[0]+text[0]-1, pt[1]+1), color)
-                viewer.text(img_pred, label_val.label.name, pt, 0.3, (255, 255, 255) if color[0]*0.299+color[1]*0.587+color[2]*0.114 < 186 else (0, 0, 0))
+                viewer.rectangle(img, (pt[0], pt[1]-text[1]), (pt[0]+text[0]-1, pt[1]+1), color)
+                viewer.text(img, label_val.label.name, pt, 0.3, (255, 255, 255) if color[0]*0.299+color[1]*0.587+color[2]*0.114 < 186 else (0, 0, 0))
 
+        import os
         datasets = [subclass().get_names() for subclass in Database.__subclasses__()]
         categories = Database.__subclasses__()[next((idx for idx, subset in enumerate(datasets) if self.database in subset), None)]().get_categories()
         names = list([cat.name for cat in categories.values()])
         colors = Database.__subclasses__()[next((idx for idx, subset in enumerate(datasets) if self.database in subset), None)]().get_colors()
         drawing = dict(zip(names, colors))
-        ann_order = [(img_ann.filename, img_ann.tile) for img_ann in ann.images]  # keep order among 'ann' and 'pred'
-        for frame_idx, img_pred in enumerate(pred.images):
+        self.detector.show(viewer, ann, pred)
+        for idx, seq in enumerate([ann, pred]):
+            img = seq.images[-1]
             # Image classification
-            self.detector.show(viewer, ann, pred)
-            image_idx = [np.array_equal(img_pred.filename, f) & np.array_equal(img_pred.tile, t) for f, t in ann_order].index(True)
-            for objs_idx, objs_val in enumerate([ann.images[image_idx].objects, img_pred.objects]):
-                for obj in objs_val:
-                    draw_categories(viewer, img_pred.tile, objs_idx, obj.categories, obj.bb)
+            for obj in img.objects:
+                draw_categories(viewer, img, idx, obj.categories, obj.bb)
             # Video classification
-            if pred.filename:
-                for vid_idx, vid_val in enumerate([ann, pred]):
-                    draw_categories(viewer, img_pred.tile, vid_idx, vid_val.categories, img_pred.tile)
-                    draw_categories(viewer, img_pred.tile, vid_idx, vid_val.actions, img_pred.tile, current_time=(frame_idx*vid_val.duration)/vid_val.frames)
+            if seq.filename:
+                frame_idx = int(os.path.splitext(os.path.basename(img.filename))[0])
+                draw_categories(viewer, img, idx, seq.categories, img.tile)
+                draw_categories(viewer, img, idx, seq.actions, img.tile, current_time=(frame_idx*seq.duration)/seq.frames)
 
     def evaluate(self, fs, ann, pred):
         # id_component;filename;num_ann;num_pred[;ann_id[;ann_label]][;pred_id[;pred_label;pred_score]]
