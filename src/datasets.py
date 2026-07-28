@@ -65,11 +65,29 @@ class Thumos(Database):
         self._colors = get_palette(len(self._categories))
 
     def load_filename(self, path, db, line):
+        import os
+        import cv2
+        import tempfile
         from .annotations import GenericVideo, TemporalCategory
         seq = GenericVideo(filename=path+'/'+line[0]+'.mp4')
         info = line[1]
         seq.frames = info.get('frames', 0)
         seq.duration = info.get('duration', 0.0)
+        cap = cv2.VideoCapture(seq.filename)
+        if not cap.isOpened():
+            raise RuntimeError(f'Cannot open video file: {seq.filename}')
+        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        for frame_idx in range(seq.frames):
+            ret, frame = cap.read()
+            if not ret:
+                break
+            tmp_filename = os.path.join(tempfile.gettempdir(), f'{frame_idx:06d}.jpg')
+            cv2.imwrite(tmp_filename, frame)
+            image = GenericImage(tmp_filename)
+            image.tile = np.array([0, 0, width, height])
+            seq.add_image(image)
+        cap.release()
         for ann in info.get('annotations', []):
             seq.add_action(TemporalCategory(segment=tuple(ann['segment']), label=ann['label']))
         return seq
@@ -84,11 +102,29 @@ class ActivityNet(Database):
         self._colors = get_palette(len(self._categories))
 
     def load_filename(self, path, db, line):
+        import os
+        import cv2
+        import tempfile
         from .annotations import GenericVideo, TemporalCategory
         seq = GenericVideo(filename=path+'/'+line[0]+'.mp4')
         info = line[1]
         seq.frames = info.get('frames', 0)
         seq.duration = info.get('duration', 0.0)
+        cap = cv2.VideoCapture(seq.filename)
+        if not cap.isOpened():
+            raise RuntimeError(f'Cannot open video file: {seq.filename}')
+        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        for frame_idx in range(seq.frames):
+            ret, frame = cap.read()
+            if not ret:
+                break
+            tmp_filename = os.path.join(tempfile.gettempdir(), f'{frame_idx:06d}.jpg')
+            cv2.imwrite(tmp_filename, frame)
+            image = GenericImage(tmp_filename)
+            image.tile = np.array([0, 0, width, height])
+            seq.add_image(image)
+        cap.release()
         for ann in info.get('annotations', []):
             seq.add_action(TemporalCategory(segment=tuple(ann['segment']), label=ann['label']))
         return seq
