@@ -50,16 +50,13 @@ class Recognition(Component):
         pass
 
     def show(self, viewer, ann, pred):
-        def draw_categories(viewer, img, idx, categories, bbox, current_time=None):
+        def draw_categories(viewer, img, color, idx, categories, bbox, current_time=None):
             from images_framework.src.annotations import TemporalCategory
             margin = 2
-            values = [drawing[cat.label.name] if cat.label.name in names else (0, 255, 0) for cat in categories]
-            color = np.mean(values, axis=0)
             (xmin, ymin, xmax, ymax) = bbox
             for label_idx, label_val in enumerate(categories):
-                if isinstance(label_val, TemporalCategory):
-                    if current_time is not None and not (label_val.segment[0] <= current_time <= label_val.segment[1]):
-                        continue
+                if (isinstance(label_val, TemporalCategory) and current_time is not None and not (label_val.segment[0] <= current_time <= label_val.segment[1]) and 0 <= label_val.score <= 0.15):
+                    continue
                 text = cv2.getTextSize(label_val.label.name, cv2.FONT_HERSHEY_SIMPLEX, 0.3, 1)[0]
                 offset = text[1]+2
                 x = max(img.tile[0]+margin, min(int(xmin+(xmax-xmin)/2-text[0]/2), img.tile[2]-text[0]-margin))
@@ -76,17 +73,19 @@ class Recognition(Component):
         names = list([cat.name for cat in categories.values()])
         colors = Database.__subclasses__()[next((idx for idx, subset in enumerate(datasets) if self.database in subset), None)]().get_colors()
         drawing = dict(zip(names, colors))
+        values = [drawing[cat.label.name] if cat.label.name in names else (0, 255, 0) for cat in categories]
+        color = np.mean(values, axis=0)
         self.detector.show(viewer, ann, pred)
         for idx, seq in enumerate([ann, pred]):
             for img in seq.images:
                 # Image classification
                 for obj in img.objects:
-                    draw_categories(viewer, img, idx, obj.categories, obj.bb)
+                    draw_categories(viewer, img, color, idx, obj.categories, obj.bb)
                 # Video classification
                 if seq.filename:
-                    draw_categories(viewer, img, idx, seq.categories, img.tile)
+                    draw_categories(viewer, img, color, idx, seq.categories, img.tile)
                     frame_idx = int(os.path.splitext(os.path.basename(img.filename))[0])
-                    draw_categories(viewer, img, idx, seq.actions, img.tile, current_time=(frame_idx*seq.duration)/seq.frames)
+                    draw_categories(viewer, img, color, idx, seq.actions, img.tile, current_time=(frame_idx*seq.duration)/seq.frames)
 
     def evaluate(self, fs, ann, pred):
         # id_component;filename;num_ann;num_pred[;ann_id[;ann_label]][;pred_id[;pred_label;pred_score]]
