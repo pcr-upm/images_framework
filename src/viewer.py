@@ -120,17 +120,55 @@ class Viewer:
         # cv2.destroyWindow(self._window_title)
         self._geoimages.clear()
 
-    def save(self, path):
+    def save_image(self, path):
+        # Save all frames in self._geoimages as a panorama file
         import uuid
+        if not self._geoimages:
+            raise ValueError('No frames available to save image')
         filename = str(uuid.uuid4())
+        output_file = f'{path}{filename}.tif'
+        # Get dimensions from first frame (ff) and validate all frames
+        ff_key = next(iter(self._geoimages.keys()))
+        expected_shape = self._geoimages[ff_key].img.shape
+        for key in self._geoimages:
+            frame_shape = self._geoimages[key].img.shape
+            if frame_shape != expected_shape:
+                self._geoimages.clear()
+                raise RuntimeError(f'Frame size mismatch: expected {expected_shape}, got {frame_shape} for frame {key}.')
+        # Write frames
         canvas = None
-        # h, w, c = next(iter(self._geoimages.values())).img.shape
-        # video = cv2.VideoWriter(path+filename+'.avi', fourcc=cv2.VideoWriter_fourcc(*'XVID'), fps=30, frameSize=(w, h))
         for key in self._geoimages:
             frame = cv2.cvtColor(self._geoimages[key].img, cv2.COLOR_RGB2BGR)
             canvas = frame if canvas is None else np.hstack((canvas, frame))  # stack images in sequence horizontally
-        #     video.write(frame)
-        # video.release()
         canvas = cv2.cvtColor(canvas, cv2.COLOR_BGR2RGB)
-        save_geoimage(path+filename+'.tif', canvas, self._geoimages[key].profile)
+        save_geoimage(output_file, canvas, self._geoimages[key].profile)
         self._geoimages.clear()
+        print(f"Image saved to {output_file}")
+
+    def save_video(self, path, fps=30, codec='XVID', format='avi'):
+        # Save all frames in self._geoimages as a video file
+        import uuid
+        if not self._geoimages:
+            raise ValueError('No frames available to save video')
+        filename = str(uuid.uuid4())
+        output_file = f'{path}{filename}.{format}'
+        # Get dimensions from first frame (ff) and validate all frames
+        ff_key = next(iter(self._geoimages.keys()))
+        expected_shape = self._geoimages[ff_key].img.shape
+        for key in self._geoimages:
+            frame_shape = self._geoimages[key].img.shape
+            if frame_shape != expected_shape:
+                self._geoimages.clear()
+                raise RuntimeError(f'Frame size mismatch: expected {expected_shape}, got {frame_shape} for frame {key}.')
+        # Create video writer with specified codec
+        vw = cv2.VideoWriter(output_file, fourcc=cv2.VideoWriter_fourcc(*codec), fps=fps, frameSize=expected_shape)
+        if not vw.isOpened():
+            self._geoimages.clear()
+            raise RuntimeError(f"Failed to create video writer for {output_file}. Check codec and format compatibility.")
+        # Write frames
+        for key in self._geoimages:
+            frame = cv2.cvtColor(self._geoimages[key].img, cv2.COLOR_RGB2BGR)
+            vw.write(frame)
+        vw.release()
+        self._geoimages.clear()
+        print(f"Video saved to {output_file}")

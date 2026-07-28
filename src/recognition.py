@@ -3,8 +3,10 @@
 __author__ = 'Roberto Valle'
 __email__ = 'roberto.valle@upm.es'
 
+import os
 import abc
 import cv2
+import json
 import itertools
 import numpy as np
 from .component import Component
@@ -69,7 +71,6 @@ class Recognition(Component):
                 viewer.rectangle(img, (pt[0], pt[1]-text[1]), (pt[0]+text[0]-1, pt[1]+1), color)
                 viewer.text(img, label_val.label.name, pt, 0.3, (255, 255, 255) if color[0]*0.299+color[1]*0.587+color[2]*0.114 < 186 else (0, 0, 0))
 
-        import os
         datasets = [subclass().get_names() for subclass in Database.__subclasses__()]
         categories = Database.__subclasses__()[next((idx for idx, subset in enumerate(datasets) if self.database in subset), None)]().get_categories()
         names = list([cat.name for cat in categories.values()])
@@ -77,15 +78,15 @@ class Recognition(Component):
         drawing = dict(zip(names, colors))
         self.detector.show(viewer, ann, pred)
         for idx, seq in enumerate([ann, pred]):
-            img = seq.images[-1]
-            # Image classification
-            for obj in img.objects:
-                draw_categories(viewer, img, idx, obj.categories, obj.bb)
-            # Video classification
-            if seq.filename:
-                frame_idx = int(os.path.splitext(os.path.basename(img.filename))[0])
-                draw_categories(viewer, img, idx, seq.categories, img.tile)
-                draw_categories(viewer, img, idx, seq.actions, img.tile, current_time=(frame_idx*seq.duration)/seq.frames)
+            for img in seq.images:
+                # Image classification
+                for obj in img.objects:
+                    draw_categories(viewer, img, idx, obj.categories, obj.bb)
+                # Video classification
+                if seq.filename:
+                    draw_categories(viewer, img, idx, seq.categories, img.tile)
+                    frame_idx = int(os.path.splitext(os.path.basename(img.filename))[0])
+                    draw_categories(viewer, img, idx, seq.actions, img.tile, current_time=(frame_idx*seq.duration)/seq.frames)
 
     def evaluate(self, fs, ann, pred):
         # id_component;filename;num_ann;num_pred[;ann_id[;ann_label]][;pred_id[;pred_label;pred_score]]
@@ -103,8 +104,6 @@ class Recognition(Component):
             fs.write('\n')
 
     def save(self, dirname, pred):
-        import os
-        import json
         datasets = [subclass().get_names() for subclass in Database.__subclasses__()]
         categories = Database.__subclasses__()[next((idx for idx, subset in enumerate(datasets) if self.database in subset), None)]().get_categories()
         names = list([cat.name for cat in categories.values()])
