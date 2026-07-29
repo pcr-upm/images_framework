@@ -57,7 +57,9 @@ class Recognition(Component):
             margin = 2
             (xmin, ymin, xmax, ymax) = bbox
             for label_idx, label_val in enumerate(categories):
-                if (isinstance(label_val, TemporalCategory) and current_time is not None and not (label_val.segment[0] <= current_time <= label_val.segment[1]) and 0 <= label_val.score <= 0.15):
+                if not (label_val.score == -1 or label_val.score > 0.25):
+                    continue
+                if isinstance(label_val, TemporalCategory) and current_time is not None and not (label_val.segment[0] <= current_time <= label_val.segment[1]):
                     continue
                 text = cv2.getTextSize(label_val.label.name, cv2.FONT_HERSHEY_SIMPLEX, 0.3, 1)[0]
                 offset = text[1]+2
@@ -89,13 +91,11 @@ class Recognition(Component):
 
     def evaluate(self, fs, ann, pred):
         # id_component;filename;num_ann;num_pred[;ann_id[;ann_label]][;pred_id[;pred_label;pred_score]]
-        ann_order = [(img_ann.filename, img_ann.tile) for img_ann in ann.images]  # keep order among 'ann' and 'pred'
-        for img_pred in pred.images:
-            image_idx = [np.array_equal(img_pred.filename, f) & np.array_equal(img_pred.tile, t) for f, t in ann_order].index(True)
-            ann_categories = list(itertools.chain.from_iterable([obj.categories for obj in ann.images[image_idx].objects]))
+        for img_ann, img_pred in zip(ann.images, pred.images):
+            ann_categories = list(itertools.chain.from_iterable([obj.categories for obj in img_ann.objects]))
             pred_categories = list(itertools.chain.from_iterable([obj.categories for obj in img_pred.objects]))
-            fs.write(str(self.get_component_class()) + ';' + ann.images[image_idx].filename + ';' + str(ann.images[image_idx].tile.tolist()) + ';' + str(len(ann_categories)) + ';' + str(len(pred_categories)))
-            for obj_idx, obj_val in enumerate([ann.images[image_idx].objects, img_pred.objects]):
+            fs.write(str(self.get_component_class()) + ';' + img_ann.filename + ';' + str(img_ann.tile.tolist()) + ';' + str(len(ann_categories)) + ';' + str(len(pred_categories)))
+            for obj_idx, obj_val in enumerate([img_ann.objects, img_pred.objects]):
                 for obj in obj_val:
                     fs.write(';' + str(obj.id))
                     for cat in obj.categories:
