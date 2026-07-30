@@ -1432,7 +1432,7 @@ class LIP(Database):
 class SegESolarScene(Database):
     def __init__(self):
         super().__init__()
-        self._names = ['SegESolarScene']
+        self._names = ['seg_esolar_scene']
         self._categories = {'bg': Oi.BACKGROUND, 'fg': Oi.SOLAR_PANEL}
         self._colors = [(0, 255, 255), (0, 255, 0)]
 

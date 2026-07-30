@@ -8,10 +8,11 @@ import sys
 sys.path.append(os.getcwd())
 import argparse
 import numpy as np
+from PIL import Image
 from tqdm import tqdm
 from sklearn.metrics import confusion_matrix
-from eval_tools import draw_confusion_matrix, metric_accuracy
-from images_framework.src.utils import load_geoimage, geometry2numpy, contours2mask
+from eval_tools import draw_confusion_matrix
+from images_framework.src.utils import geometry2numpy, contours2mask
 
 
 def parse_file(input_file):
@@ -82,8 +83,7 @@ def main():
             mapping['Background'] = 255
         cm = np.zeros((len(mapping), len(mapping)), dtype=np.int64)
         for filename, result in tqdm(results.items(), file=sys.stdout):
-            img, _ = load_geoimage(filename)
-            height, width, _ = np.shape(img)
+            width, height = Image.open(filename).size
             ann_contours = [geometry2numpy(ann[0][0])[0] for ann in result.annotation]
             ann_labels = [ann[1][0] for ann in result.annotation]
             annotation_mask = contours2mask(height, width, ann_contours, ann_labels, mapping)
@@ -96,7 +96,24 @@ def main():
             print('Confusion matrix:')
             print(cm)
             draw_confusion_matrix(cm, list(mapping.keys()), True)
-            metric_accuracy(cm, sorted(categories))
+            # Draw metrics for each category
+            for idx, val in enumerate(categories):
+                # True/False Positives (TP/FP) refer to the number of predicted positives that were correct/incorrect.
+                # True/False Negatives (TN/FN) refer to the number of predicted negatives that were correct/incorrect.
+                tp = cm[idx, idx]
+                fp = sum(cm[:, idx]) - tp
+                fn = sum(cm[idx, :]) - tp
+                tn = sum(np.delete(sum(cm) - cm[idx, :], idx))
+                # True Positive Rate: proportion of real positive cases that were correctly predicted as positive.
+                recall = tp / np.maximum(tp+fn, np.finfo(np.float64).eps)
+                # Precision: proportion of predicted positive cases that were truly real positives.
+                precision = tp / np.maximum(tp+fp, np.finfo(np.float64).eps)
+                # True Negative Rate: proportion of real negative cases that were correctly predicted as negative.
+                specificity = tn / np.maximum(tn+fp, np.finfo(np.float64).eps)
+                # Dice coefficient refers to two times the intersection of two sets divided by the sum of their areas.
+                # Dice = 2 |A∩B| / (|A|+|B|) = 2 TP / (2 TP + FP + FN)
+                f1_score = 2 * ((precision * recall) / np.maximum(precision+recall, np.finfo(np.float64).eps))
+                print('> %s: Recall: %.3f%% Precision: %.3f%% Specificity: %.3f%% Dice: %.3f%%' % (val, recall*100, precision*100, specificity*100, f1_score*100))
             print('='*50)
             # Jaccard index is defined as the intersection of two sets divided by their union.
             # Jaccard = |A∩B| / |A∪B| = TP / (TP + FP + FN)
