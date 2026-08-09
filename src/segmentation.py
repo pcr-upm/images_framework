@@ -51,9 +51,7 @@ class Segmentation(Component):
         colors = Database.__subclasses__()[next((idx for idx, subset in enumerate(datasets) if self.database in subset), None)]().get_colors()
         mapping = dict(zip(names, range(len(names))))
         drawing = dict(zip(range(len(names)), colors))
-        ann_order = [(img_ann.filename, img_ann.tile) for img_ann in ann.images]  # keep order among 'ann' and 'pred'
-        for img_pred in pred.images:
-            image_idx = [np.array_equal(img_pred.filename, f) & np.array_equal(img_pred.tile, t) for f, t in ann_order].index(True)
+        for img_idx, img in itertools.chain.from_iterable(zip(((0, img) for img in ann.images), ((1, img) for img in pred.images))):
             # mapping['Background'] = 255
             # drawing[255] = (255, 255, 255)
             # import matplotlib.pyplot as plt
@@ -65,21 +63,21 @@ class Segmentation(Component):
             # ax0.get_yaxis().set_ticks([])
             # ax1.get_xaxis().set_ticks([])
             # ax1.get_yaxis().set_ticks([])
-            # img = plt.imread(ann.images[0].filename)
+            # image = plt.imread(ann.images[0].filename)
             # ann_contours, ann_labels = [], []
             # for obj in ann.images[0].objects:
             #     for contour in obj.multipolygon:
             #         ann_contours.append(contour)
             #     for cat in obj.categories:
             #         ann_labels.append(str(cat.label.name))
-            # ann_mask = contours2mask(img.shape[0], img.shape[1], ann_contours, ann_labels, mapping)
+            # ann_mask = contours2mask(image.shape[0], image.shape[1], ann_contours, ann_labels, mapping)
             # pred_contours, pred_labels = [], []
             # for obj in pred.images[0].objects:
             #     for contour in obj.multipolygon:
             #         pred_contours.append(contour)
             #     for cat in obj.categories:
             #         pred_labels.append(str(cat.label.name))
-            # pred_mask = contours2mask(img.shape[0], img.shape[1], pred_contours, pred_labels, mapping)
+            # pred_mask = contours2mask(image.shape[0], image.shape[1], pred_contours, pred_labels, mapping)
             # cmap = matplotlib.colors.ListedColormap(np.array(list(drawing.values()))/255.0)
             # norm = matplotlib.colors.BoundaryNorm(list(range(len(mapping)+1)), cmap.N)
             # ax0.set_title('ann')
@@ -91,41 +89,38 @@ class Segmentation(Component):
             # for idx, val in enumerate(mapping):
             #     cbar.ax.text(len(mapping)+1, (idx+0.45), val, ha='left', va='center', )
             # plt.show()
-            for objs_idx, objs_val in enumerate([ann.images[image_idx].objects, img_pred.objects]):
-                contours, labels = [], []
-                for obj in objs_val:
-                    for contour in obj.multipolygon:
-                        contours.append(contour)
-                        labels.append(str(obj.categories[0].label.name))
-                # Draw contours to mask (draw subgroup of contours to handle connected components with holes correctly)
-                image = viewer.get_image(img_pred)
-                np_contours = np.empty((len(contours),), dtype=object)
-                for idx in range(len(np_contours)):
-                    np_contours[idx] = contours[idx]
-                np_labels = np.array(labels)
-                for key, val in mapping.items():
-                    if objs_idx == 0:
-                        cv2.drawContours(image, np_contours[np_labels == key], -1, drawing[val], thickness=1)
-                    else:
-                        mask = np.zeros((image.shape[0], image.shape[1]), np.uint8)
-                        cv2.drawContours(mask, np_contours[np_labels == key], -1, 255, thickness=cv2.FILLED)
-                        image[mask == 255] = np.array(0.2*image[mask == 255] + 0.8*np.array(drawing[val]), np.uint8)
+            contours, labels = [], []
+            for obj in img.objects:
+                for contour in obj.multipolygon:
+                    contours.append(contour)
+                    labels.append(str(obj.categories[0].label.name))
+            # Draw contours to mask (draw subgroup of contours to handle connected components with holes correctly)
+            image = viewer.get_image(img)
+            np_contours = np.empty((len(contours),), dtype=object)
+            for idx in range(len(np_contours)):
+                np_contours[idx] = contours[idx]
+            np_labels = np.array(labels)
+            for key, val in mapping.items():
+                if img_idx == 0:
+                    cv2.drawContours(image, np_contours[np_labels == key], -1, drawing[val], thickness=1)
+                else:
+                    mask = np.zeros((image.shape[0], image.shape[1]), np.uint8)
+                    cv2.drawContours(mask, np_contours[np_labels == key], -1, 255, thickness=cv2.FILLED)
+                    image[mask == 255] = np.array(0.2*image[mask == 255] + 0.8*np.array(drawing[val]), np.uint8)
 
     def evaluate(self, fs, ann, pred):
         from .utils import numpy2geometry
         # id_component;filename;num_ann;num_pred[;id_polygon;num_contours[;contour];num_labels[;label]]
-        ann_order = [(img_ann.filename, img_ann.tile) for img_ann in ann.images]  # keep order among 'ann' and 'pred'
-        for img_pred in pred.images:
-            image_idx = [np.array_equal(img_pred.filename, f) & np.array_equal(img_pred.tile, t) for f, t in ann_order].index(True)
-            fs.write(str(self.get_component_class()) + ';' + ann.images[image_idx].filename + ';' + str(ann.images[image_idx].tile.tolist()) + ';' + str(len(ann.images[image_idx].objects)) + ';' + str(len(img_pred.objects)))
-            for objs_idx, objs_val in enumerate([ann.images[image_idx].objects, img_pred.objects]):
-                for obj in objs_val:
+        for img_ann, img_pred in zip(ann.images, pred.images):
+            fs.write(str(self.get_component_class()) + ';' + img_ann.filename + ';' + str(img_ann.tile.tolist()) + ';' + str(len(img_ann.objects)) + ';' + str(len(img_pred.objects)))
+            for obj_idx, obj_val in enumerate([img_ann.objects, img_pred.objects]):
+                for obj in obj_val:
                     fs.write(';' + str(obj.id) + ';' + str(len(obj.multipolygon)))
                     for contour in obj.multipolygon:
                         fs.write(';' + str(numpy2geometry(contour)))
                     fs.write(';' + str(len(obj.categories)))
                     for cat in obj.categories:
-                        fs.write(';' + str(cat.label.name))
+                        fs.write(';' + cat.label.name) if obj_idx == 0 else fs.write(';' + cat.label.name + ';' + str(cat.score))
             fs.write('\n')
 
     def save(self, dirname, pred):

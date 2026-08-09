@@ -59,6 +59,7 @@ def parse_file(input_file):
                 num_labels = int(parts.pop(0))
                 for _ in range(int(num_labels)):
                     category = parts.pop(0)
+                    score = float(parts.pop(0))
                     categories.add(category)
                     pred_labels.append(category)
                 pred_result.append([pred_geometries, pred_labels])
