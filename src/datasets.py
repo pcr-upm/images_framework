@@ -113,7 +113,8 @@ class ActivityNet(Database):
         import cv2
         import tempfile
         from .annotations import GenericVideo, TemporalCategory
-        seq = GenericVideo(filename=path+'/'+line[0]+'.mp4')
+        # ActivityNet annotation keys omit the 'v_' prefix used by the raw video filenames
+        seq = GenericVideo(filename=path+'/v_'+line[0]+'.mp4')
         info = line[1]
         seq.frames = info.get('frame', 0)
         seq.duration = info.get('duration', 0.0)
@@ -134,6 +135,54 @@ class ActivityNet(Database):
                 seq.add_image(image)
             cap.release()
         # Annotation files spell the class names without separators, e.g. 'CleanAndJerk'
+        normalize = lambda text: re.sub(r'[^a-z0-9]', '', str(text).lower())
+        names = {normalize(cat.name): cat for cat in self._categories.values()}
+        for ann in info.get('annotations', []):
+            label = names.get(normalize(ann['label']), Name(str(ann['label'])))
+            seq.add_action(TemporalCategory(segment=tuple(ann['segment']), label=label))
+        return seq
+
+
+class Attach(Database):
+    def __init__(self):
+        from images_framework.categories.actions import Action as Oa
+        super().__init__()
+        self._names = ['attach']
+        self._categories = {0: Oa.ACTION.BOARD_HOLD_BOTH, 1: Oa.ACTION.BOARD_HOLD_LEFT, 2: Oa.ACTION.BOARD_HOLD_RIGHT, 3: Oa.ACTION.BOARD_LIFT_BOTH, 4: Oa.ACTION.BOARD_LIFT_LEFT, 5: Oa.ACTION.BOARD_LIFT_RIGHT, 6: Oa.ACTION.BOARD_MOVE_BOTH, 7: Oa.ACTION.BOARD_MOVE_LEFT, 8: Oa.ACTION.BOARD_MOVE_RIGHT, 9: Oa.ACTION.BOARD_PLACE_BOTH, 10: Oa.ACTION.BOARD_PLACE_LEFT, 11: Oa.ACTION.BOARD_PLACE_RIGHT, 12: Oa.ACTION.BOARD_PLUG_BOTH, 13: Oa.ACTION.BOARD_PLUG_LEFT, 14: Oa.ACTION.BOARD_PLUG_RIGHT, 15: Oa.ACTION.BOARD_ROTATE_BOTH, 16: Oa.ACTION.BOARD_ROTATE_LEFT, 17: Oa.ACTION.BOARD_ROTATE_RIGHT, 18: Oa.ACTION.OBJECT_ATTACH_HAND_BOTH, 19: Oa.ACTION.OBJECT_ATTACH_HAND_LEFT, 20: Oa.ACTION.OBJECT_ATTACH_HAND_RIGHT, 21: Oa.ACTION.OBJECT_ATTACH_SKREWDRIVER_BOTH, 22: Oa.ACTION.OBJECT_ATTACH_SKREWDRIVER_LEFT, 23: Oa.ACTION.OBJECT_ATTACH_SKREWDRIVER_RIGHT, 24: Oa.ACTION.OBJECT_ATTACH_WRENCH_BOTH, 25: Oa.ACTION.OBJECT_ATTACH_WRENCH_LEFT, 26: Oa.ACTION.OBJECT_ATTACH_WRENCH_RIGHT, 27: Oa.ACTION.OBJECT_HOLD_BOTH, 28: Oa.ACTION.OBJECT_HOLD_LEFT, 29: Oa.ACTION.OBJECT_HOLD_RIGHT, 30: Oa.ACTION.OBJECT_LIFT_LEFT, 31: Oa.ACTION.OBJECT_LIFT_RIGHT, 32: Oa.ACTION.OBJECT_PLACE_BOTH, 33: Oa.ACTION.OBJECT_PLACE_LEFT, 34: Oa.ACTION.OBJECT_PLACE_RIGHT, 35: Oa.ACTION.OBJECT_PLUG_BOTH, 36: Oa.ACTION.OBJECT_PLUG_LEFT, 37: Oa.ACTION.OBJECT_PLUG_RIGHT, 38: Oa.ACTION.OTHER_BROWSE_INSTRUCTIONS_UNDEFINED, 39: Oa.ACTION.OTHER_READ_INSTRUCTIONS_UNDEFINED, 40: Oa.ACTION.TOOL_HOLD_LEFT, 41: Oa.ACTION.TOOL_HOLD_RIGHT, 42: Oa.ACTION.TOOL_LIFT_LEFT, 43: Oa.ACTION.TOOL_LIFT_RIGHT, 44: Oa.ACTION.TOOL_PLACE_LEFT, 45: Oa.ACTION.TOOL_PLACE_RIGHT, 46: Oa.ACTION.WORKPIECE_HOLD_BOTH, 47: Oa.ACTION.WORKPIECE_MOVE_BOTH, 48: Oa.ACTION.WORKPIECE_PRESS_HAMMER_BOTH, 49: Oa.ACTION.WORKPIECE_PRESS_HAND_BOTH, 50: Oa.ACTION.WORKPIECE_ROTATE_BOTH}
+        self._colors = get_palette(len(self._categories))
+
+    def load_filename(self, path, db, line, load_images=True):
+        import os
+        import re
+        import cv2
+        import tempfile
+        from .annotations import GenericVideo, TemporalCategory
+        # Each video lives in its own subfolder, e.g. path/00__0__shuttleFront/<name>.mp4
+        video_directory = os.path.join(path, line[0])
+        video_files = [f for f in os.listdir(video_directory) if f.lower().endswith('.mp4')] if os.path.isdir(video_directory) else []
+        if not video_files:
+            raise RuntimeError(f'Cannot find video file in directory: {video_directory}')
+        seq = GenericVideo(filename=os.path.join(video_directory, video_files[0]))
+        info = line[1]
+        seq.frames = info.get('frame', 0)
+        seq.duration = info.get('duration', 0.0)
+        if load_images:
+            cap = cv2.VideoCapture(seq.filename)
+            if not cap.isOpened():
+                raise RuntimeError(f'Cannot open video file: {seq.filename}')
+            width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+            height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            for frame_idx in range(seq.frames):
+                ret, frame = cap.read()
+                if not ret:
+                    break
+                tmp_filename = os.path.join(tempfile.gettempdir(), f'{frame_idx:06d}.jpg')
+                cv2.imwrite(tmp_filename, frame)
+                image = GenericImage(tmp_filename)
+                image.tile = np.array([0, 0, width, height])
+                seq.add_image(image)
+            cap.release()
+        # Annotation files spell the labels as 'object__action__hand', e.g. 'board__hold__both'
         normalize = lambda text: re.sub(r'[^a-z0-9]', '', str(text).lower())
         names = {normalize(cat.name): cat for cat in self._categories.values()}
         for ann in info.get('annotations', []):
