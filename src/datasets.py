@@ -134,11 +134,16 @@ class ActivityNet(Database):
                 image.tile = np.array([0, 0, width, height])
                 seq.add_image(image)
             cap.release()
-        # Annotation files spell the class names without separators, e.g. 'CleanAndJerk'
+        # Normalize class names: remove spaces/separators and convert to lowercase for matching
+        label_variants = {'Playing flauta': 'Playing flute', 'Playing guitarra': 'Playing guitar', 'Mooping floor': 'Mopping floor', 'Plataform diving': 'Platform diving', 'Playing rubik cube': 'Playing Rubik cube', 'Polishing forniture': 'Polishing furniture'}
         normalize = lambda text: re.sub(r'[^a-z0-9]', '', str(text).lower())
         names = {normalize(cat.name): cat for cat in self._categories.values()}
         for ann in info.get('annotations', []):
-            label = names.get(normalize(ann['label']), Name(str(ann['label'])))
+            # Apply variant mapping to handle typos/variations in the JSON
+            annotation_label = ann['label']
+            if annotation_label in label_variants:
+                annotation_label = label_variants[annotation_label]
+            label = names.get(normalize(annotation_label), Name(str(ann['label'])))
             seq.add_action(TemporalCategory(segment=tuple(ann['segment']), label=label))
         return seq
 
