@@ -606,16 +606,17 @@ class Pointing04(Database):
 class Biwi(Database):
     def __init__(self):
         super().__init__()
-        self._namespaces = {'biwi': {}}
+        self._namespaces = {'biwi': {Sources.HUGFACE: 'ETHZurich/biwi_kinect_head_pose'}}
         self._categories = {0: Oi.FACE}
         self._colors = [(0, 255, 0)]
 
     def load_line(self, source, ref, path, line):
         from scipy.spatial.transform import Rotation
         seq = GenericVideo()
-        parts = line.strip().split(';')
-        if parts[0] == '#':
-            return seq
+        if source is Sources.TXT:
+            parts = line.strip().split(';')
+            if parts[0] == '#':
+                return seq
         filename = os.path.join(path, parts[0])
         image = GenericImage(filename)
         width, height = Image.open(image.filename).size
@@ -875,7 +876,7 @@ class DOTA(Database):
     def __init__(self):
         from pcr_framework.categories.vehicles import Vehicle as Ov
         super().__init__()
-        self._namespaces = {'dota_1.0': {}, 'dota_1.5': {}, 'dota_2.0': {}, 'dota': {}}
+        self._namespaces = {'dota': {}}
         self._categories = {'ship': Ov.VEHICLE.SHIP, 'storage-tank': Oi.STORAGE_TANK, 'baseball-diamond': Oi.BASEBALL_DIAMOND, 'tennis-court': Oi.TENNIS_COURT, 'basketball-court': Oi.BASKETBALL_COURT, 'ground-track-field': Oi.GROUND_TRACK_FIELD, 'bridge': Oi.BRIDGE, 'large-vehicle': Ov.VEHICLE.LARGE_VEHICLE, 'small-vehicle': Ov.VEHICLE.SMALL_VEHICLE, 'helicopter': Ov.VEHICLE.HELICOPTER, 'swimming-pool': Oi.SWIMMING_POOL, 'roundabout': Oi.ROUNDABOUT, 'soccer-ball-field': Oi.SOCCER_BALL_FIELD, 'plane': Ov.VEHICLE.PLANE, 'harbor': Oi.HARBOR, 'container-crane': Ov.VEHICLE.ENGINEERING_VEHICLE.CONTAINER_CRANE, 'airport': Oi.AIRPORT, 'helipad': Oi.HELIPAD}
         self._colors = get_palette(len(self._categories))
 
@@ -883,42 +884,36 @@ class DOTA(Database):
         import rasterio
         seq = GenericVideo()
         filepath = line.strip()
-        image = AerialImage(path + filepath)
+        filename = os.path.join(path, filepath)
+        image = AerialImage(filename)
         pos = filepath.find('/')
         mid = filepath[:pos]
         end = filepath[pos:]
         if mid == 'train' or mid == 'val':
-            if ref in 'dota_1.0':
-                obb = '/labelTxt-v1.0/labelTxt'
-                hbb = '/labelTxt-v1.0/' + mid.capitalize() + '_Task2_gt/' + mid +'set_reclabelTxt'
-            elif ref in 'dota_1.5':
-                obb = '/labelTxt-v1.5/DOTA-v1.5_' + mid
-                hbb = '/labelTxt-v1.5/DOTA-v1.5_' + mid + '_hbb'
-            else:
-                obb = '/labelTxt-v2.0/DOTA-v2.0_' + mid
-                hbb = '/labelTxt-v2.0/DOTA-v2.0_' + mid + '_hbb'
-            with open(path + mid + obb + end[7:-3] + 'txt') as ifs:
+            # obb = '/labelTxt-v1.0/labelTxt'
+            # hbb = '/labelTxt-v1.0/' + mid.capitalize() + '_Task2_gt/' + mid +'set_reclabelTxt'
+            # obb = '/labelTxt-v1.5/DOTA-v1.5_' + mid
+            # hbb = '/labelTxt-v1.5/DOTA-v1.5_' + mid + '_hbb'
+            obb = '/labelTxt-v2.0/DOTA-v2.0_' + mid
+            hbb = '/labelTxt-v2.0/DOTA-v2.0_' + mid + '_hbb'
+            with open(path + '/' + mid + obb + end[7:-3] + 'txt') as ifs:
                 lines_obb = ifs.readlines()
             ifs.close()
-            with open(path + mid + hbb + end[7:-3] + 'txt') as ifs:
+            with open(path + '/' + mid + hbb + end[7:-3] + 'txt') as ifs:
                 lines_hbb = ifs.readlines()
             ifs.close()
-            if ref in 'dota_1.0':
-                gsd = lines_obb[1].strip()
-                lines_obb = lines_obb[2:]
-            elif ref in 'dota_1.5':
-                gsd = lines_obb[1].strip()
-                lines_obb, lines_hbb = lines_obb[2:], lines_hbb[2:]
-            else:
-                meta = '/labelTxt-v2.0/' + mid + '_meta/meta'
-                with open(path + mid + meta + end[7:-3] + 'txt') as ifs:
-                    lines_meta = ifs.readlines()
-                ifs.close()
-                gsd = lines_meta[2].strip()
+            # gsd = lines_obb[1].strip()
+            # lines_obb = lines_obb[2:]
+            # lines_obb, lines_hbb = lines_obb[2:], lines_hbb[2:]
+            meta = '/labelTxt-v2.0/' + mid + '_meta/meta'
+            with open(path + '/' + mid + meta + end[7:-3] + 'txt') as ifs:
+                lines_meta = ifs.readlines()
+            ifs.close()
+            gsd = lines_meta[2].strip()
         else:
             lines_obb, lines_hbb = [], []
             meta = '/test-dev_meta/meta'
-            with open(path + mid + meta + end[7:-3] + 'txt') as ifs:
+            with open(path + '/' + mid + meta + end[7:-3] + 'txt') as ifs:
                 lines_meta = ifs.readlines()
             ifs.close()
             gsd = lines_meta[2].strip()
