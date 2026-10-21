@@ -78,6 +78,7 @@ class Classifiers(Enum):
     CVPRW26_RECOGNITION = 'cvprw26_recognition'
     ECCVW26_RECOGNITION = 'eccvw26_recognition'
     BMVC26_RECOGNITION = 'bmvc26_recognition'
+    KIMOI26_RECOGNITION = 'kimoi26_recognition'
     ECCV26_TAD = 'eccv26_tad'
 
 

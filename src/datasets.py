@@ -109,12 +109,8 @@ class Shapes3D(Database):
         image.tile = np.array([0, 0, width, height])
         obj = GenericObject()
         obj.bb = (0, 0, width, height)
-        obj.add_category(GenericCategory(int(line['label_floor_hue'])))
-        obj.add_category(GenericCategory(int(line['label_object_hue'])))
-        obj.add_category(GenericCategory(int(line['label_orientation'])))
-        obj.add_category(GenericCategory(int(line['label_scale'])))
-        obj.add_category(GenericCategory(int(line['label_shape'])))
-        obj.add_category(GenericCategory(int(line['label_wall_hue'])))
+        names = ['label_floor_hue', 'label_object_hue', 'label_orientation', 'label_scale', 'label_shape', 'label_wall_hue']
+        [obj.add_attribute(GenericCategory(Name(int(line[name])))) for name in names]
         image.add_object(obj)
         seq.add_image(image)
         return seq

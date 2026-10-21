@@ -73,3 +73,6 @@
 [submodule "classification/bmvc26_recognition"]
 	path = classification/bmvc26_recognition
 	url = git@github.com:pcr-upm/bmvc26_recognition.git
+[submodule "classification/kimoi26_recognition"]
+	path = classification/kimoi26_recognition
+	url = git@github.com:pcr-upm/kimoi26_recognition.git
