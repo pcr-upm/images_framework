@@ -107,7 +107,7 @@ class Shapes3D(Database):
         image = GenericImage(filename)
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
-        obj = GenericObject()
+        obj = PersonObject()
         obj.bb = (0, 0, width, height)
         names = ['label_floor_hue', 'label_object_hue', 'label_orientation', 'label_scale', 'label_shape', 'label_wall_hue']
         [obj.add_attribute(GenericCategory(Name(int(line[name])))) for name in names]
