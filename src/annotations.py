@@ -29,6 +29,27 @@ class TemporalCategory(GenericCategory):
         self.segment = segment
 
 
+class GenericAnnotation:
+    """
+    Mixin for any element (video, image, object) that can have one or several categories.
+    """
+    def __init__(self):
+        self.id = uuid.uuid4()
+        self.categories = list([])
+
+    def add_category(self, category: GenericCategory):
+        self.categories.append(category)
+
+    def has_category(self, label: Name):
+        return any(category.label is label for category in self.categories)
+
+    def get_category(self, label: Name):
+        return next((category for category in self.categories if category.label is label), None)
+
+    def clear(self):
+        self.categories.clear()
+
+
 class GenericLandmark:
     """
     Generic landmark data.
@@ -41,22 +62,15 @@ class GenericLandmark:
         self.confidence = confidence
 
 
-class GenericObject:
+class GenericObject(GenericAnnotation):
     """
     Generic object data.
     """
     def __init__(self):
-        self.id = uuid.uuid4()
+        super().__init__()
         self.bb = (-1, -1, -1, -1)
         self.obb = (-1, -1, -1, -1, -1, -1, -1, -1)
         self.multipolygon = [np.array([[[-1, -1]], [[-1, -1]], [[-1, -1]]])]
-        self.categories = list([])
-
-    def add_category(self, category: GenericCategory):
-        self.categories.append(category)
-
-    def clear(self):
-        self.categories.clear()
 
 
 class PersonObject(GenericObject):
@@ -67,21 +81,16 @@ class PersonObject(GenericObject):
         from pcr_framework.regression.alignment.landmarks import FaceLandmarkPart as Pf, HandLandmarkPart as Ph, BodyLandmarkPart as Pb
         super().__init__()
         self.headpose = Rotation.from_euler('YXZ', [-1, -1, -1], degrees=True).as_matrix()
-        self.attributes = list([])
         self.landmarks = {part.value: {} for part in Pl}
         self.landmarks[Pl.FACE.value] = {part.value: list([]) for part in Pf}
         self.landmarks[Pl.HAND.value] = {part.value: list([]) for part in Ph}
         self.landmarks[Pl.BODY.value] = {part.value: list([]) for part in Pb}
-
-    def add_attribute(self, attribute: GenericCategory):
-        self.attributes.append(attribute)
 
     def add_landmark(self, lnd: GenericLandmark, part: Pl):
         self.landmarks[part.value].setdefault(lnd.part.value, list([])).append(lnd)
 
     def clear(self):
         super().clear()
-        self.attributes.clear()
         self.landmarks[Pl.FACE.value].clear()
         self.landmarks[Pl.HAND.value].clear()
         self.landmarks[Pl.BODY.value].clear()
@@ -97,11 +106,12 @@ class DiffusionObject(PersonObject):
         self.prompt = ''
 
 
-class GenericImage:
+class GenericImage(GenericAnnotation):
     """
     Generic image data.
     """
     def __init__(self, filename):
+        super().__init__()
         self.filename = filename
         self.tile = np.array([-1, -1, -1, -1])  # (pt_x, pt_y, pt_x+width, pt_y+height)
         self.timestamp = ''
@@ -111,6 +121,7 @@ class GenericImage:
         self.objects.append(obj)
 
     def clear(self):
+        super().clear()
         self.objects.clear()
 
 
@@ -124,28 +135,25 @@ class AerialImage(GenericImage):
         self.nadir_angle = -1
 
 
-class GenericVideo:
+class GenericVideo(GenericAnnotation):
     """
     Generic video data or sequence of frames.
     """
     def __init__(self, filename=None):
+        super().__init__()
         self.filename = filename
         self.frames = -1
         self.duration = -1
         self.images = list([])
-        self.categories = list([])
         self.actions = list([])
 
     def add_image(self, img: GenericImage):
         self.images.append(img)
 
-    def add_category(self, category: GenericCategory):
-        self.categories.append(category)
-
     def add_action(self, action: TemporalCategory):
         self.actions.append(action)
 
     def clear(self):
+        super().clear()
         self.images.clear()
-        self.categories.clear()
         self.actions.clear()
