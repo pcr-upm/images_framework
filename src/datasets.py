@@ -11,7 +11,7 @@ from PIL import Image
 from pathlib import Path
 from enum import Enum, unique
 from .annotations import GenericVideo, GenericImage, AerialImage, GenericObject, PersonObject, DiffusionObject, GenericCategory, TemporalCategory, GenericLandmark
-from .categories import Name, Category as Oi
+from .categories import Category as Oi
 from .constants import Modes
 
 
@@ -110,7 +110,7 @@ class Shapes3D(Database):
         obj = PersonObject()
         obj.bb = (0, 0, width, height)
         names = ['label_floor_hue', 'label_object_hue', 'label_orientation', 'label_scale', 'label_shape', 'label_wall_hue']
-        [obj.add_attribute(GenericCategory(Name(int(line[name])))) for name in names]
+        [obj.add_attribute(GenericCategory(str(int(line[name])))) for name in names]
         image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -135,7 +135,7 @@ class HPGEN(Database):
         image.tile = np.array([0, 0, width, height])
         obj = PersonObject()
         obj.bb = (float(parts[2]), float(parts[3]), float(parts[2])+float(parts[4]), float(parts[3])+float(parts[5]))
-        obj.add_category(GenericCategory(Name(parts[1])))  # Set identity as category to split the validation set
+        obj.add_category(GenericCategory(parts[1]))  # Set identity as category to split the validation set
         # obj.headpose = Rotation.from_euler('YXZ', [float(parts[6]), float(parts[7]), float(parts[8])], degrees=True).as_matrix()
         obj.headpose = Rotation.from_euler('YXZ', [-float(parts[6]), float(parts[7]), 0.0], degrees=True).as_matrix()
         image.add_object(obj)
@@ -280,8 +280,8 @@ class AFLW(Database):
         super().__init__()
         self._namespaces = {'aflw': {}}
         self._landmarks = {Pf.LEYEBROW: (1, 2, 3), Pf.REYEBROW: (4, 5, 6), Pf.LEYE: (7, 101, 8), Pf.REYE: (11, 102, 12), Pf.NOSE: (16, 17, 18), Pf.TMOUTH: (20, 103, 21), Pf.LEAR: (15,), Pf.REAR: (19,), Pf.CHIN: (24,)}
-        self._gender = {'m': Name('Male'), 'f': Name('Female')}
-        self._glasses = {True: Name('Glasses'), False: Name('No glasses')}
+        self._gender = {'m': 'Male', 'f': 'Female'}
+        self._glasses = {True: 'Glasses', False: 'No glasses'}
         self._categories = {0: Oi.FACE}
         self._colors = [(0, 255, 0)]
 
@@ -405,7 +405,7 @@ class FaceSynthetics(Database):
         super().__init__()
         self._namespaces = {'face_synthetics': {Sources.HUGFACE: 'pcuenq/face_synthetics_spiga'}}
         self._landmarks = {Pf.LEYEBROW: (1, 119, 2, 121, 3), Pf.REYEBROW: (4, 124, 5, 126, 6), Pf.LEYE: (7, 138, 139, 8, 141, 142, 169), Pf.REYE: (11, 144, 145, 12, 147, 148, 170), Pf.NOSE: (128, 129, 130, 17, 16, 133, 134, 135, 18), Pf.TMOUTH: (20, 150, 151, 22, 153, 154, 21, 165, 164, 163, 162, 161), Pf.BMOUTH: (156, 157, 23, 159, 160, 168, 167, 166), Pf.LEAR: (101, 102, 103, 104, 105, 106), Pf.REAR: (112, 113, 114, 115, 116, 117), Pf.CHIN: (107, 108, 24, 110, 111)}
-        self._parts = {0: Name('BACKGROUND'), 1: Name('SKIN'), 2: Name('NOSE'), 3: Name('RIGHT_EYE'), 4: Name('LEFT_EYE'), 5: Name('RIGHT_BROW'), 6: Name('LEFT_BROW'), 7: Name('RIGHT_EAR'), 8: Name('LEFT_EAR'), 9: Name('MOUTH_INTERIOR'), 10: Name('TOP_LIP'), 11: Name('BOTTOM_LIP'), 12: Name('NECK'), 13: Name('HAIR'), 14: Name('BEARD'), 15: Name('CLOTHING'), 16: Name('GLASSES'), 17: Name('HEADWEAR'), 18: Name('FACEWEAR'), 255: Name('IGNORE')}
+        self._parts = {0: 'BACKGROUND', 1: 'SKIN', 2: 'NOSE', 3: 'RIGHT_EYE', 4: 'LEFT_EYE', 5: 'RIGHT_BROW', 6: 'LEFT_BROW', 7: 'RIGHT_EAR', 8: 'LEFT_EAR', 9: 'MOUTH_INTERIOR', 10: 'TOP_LIP', 11: 'BOTTOM_LIP', 12: 'NECK', 13: 'HAIR', 14: 'BEARD', 15: 'CLOTHING', 16: 'GLASSES', 17: 'HEADWEAR', 18: 'FACEWEAR', 255: 'IGNORE'}
         self._categories = {0: Oi.FACE}
         self._colors = get_palette(len(self._categories))
 
@@ -459,13 +459,13 @@ class DAD(Database):
         super().__init__()
         self._namespaces = {'dad': {}}
         self._landmarks = {Pf.LEYEBROW: (1983, 2189, 3708, 336, 335, 3153, 3705, 2178, 3684, 3741, 3148, 3696, 2585, 2565, 2567, 3764), Pf.REYEBROW: (570, 694, 3865, 17, 16, 2134, 3863, 673, 3851, 3880, 2121, 3859, 1448, 1428, 1430, 3893), Pf.LEYE: (2441, 2446, 2382, 2381, 2383, 2496, 3690, 2493, 2491, 2465, 3619, 3632, 2505, 2273, 2276, 2355, 2295, 2359, 2267, 2271, 2403, 2437), Pf.REYE: (1183, 1194, 1033, 1023, 1034, 1345, 3856, 1342, 1340, 1243, 3827, 3833, 1354, 824, 827, 991, 883, 995, 814, 822, 1096, 1175), Pf.NOSE: (3540, 3704, 3555, 3560, 3561, 3501, 3526, 3563, 2793, 2751, 3092, 3099, 3102, 2205, 2193, 2973, 2868, 2921, 2920, 1676, 1623, 2057, 2064, 2067, 723, 702, 1895, 1757, 1818, 1817, 3515, 3541), Pf.TMOUTH: (2828, 2832, 2833, 2850, 2813, 2811, 2774, 3546, 1657, 1694, 1696, 1735, 1716, 1715, 1711, 1719, 1748, 1740, 1667, 1668, 3533, 2785, 2784, 2855, 2863, 2836), Pf.BMOUTH: (2891, 2890, 2892, 2928, 2937, 3509, 1848, 1826, 1789, 1787, 1788, 1579, 1773, 1774, 1795, 1802, 1865, 3503, 2948, 2905, 2898, 2881, 2880, 2715), Pf.LEAR: (3386, 3381, 1962, 2213, 2259, 2257, 2954, 3171, 2003), Pf.REAR: (3554, 576, 2159, 1872, 798, 802, 731, 567, 3577, 3582), Pf.CHIN: (3390, 3391, 3396, 3400, 3599, 3593, 3588), Pf.FOREHEAD: (3068, 2196, 2091, 3524, 628, 705, 2030)}
-        self._quality = {0: Name('HQ'), 1: Name('LQ')}
-        self._gender = {0: Name('Female'), 1: Name('Male'), 2: Name('Undefined')}
-        self._expression = {True: Name('Expression'), False: Name('No expression')}
-        self._age = {0: Name('Child'), 1: Name('Young'), 2: Name('Middle aged'), 3: Name('Senior')}
-        self._occlusion = {True: Name('Occlusion'), False: Name('No occlusion')}
-        self._pose = {0: Name('Front'), 1: Name('Sided'), 2: Name('Atypical')}
-        self._light = {True: Name('Light'), False: Name('No light')}
+        self._quality = {0: 'HQ', 1: 'LQ'}
+        self._gender = {0: 'Female', 1: 'Male', 2: 'Undefined'}
+        self._expression = {True: 'Expression', False: 'No expression'}
+        self._age = {0: 'Child', 1: 'Young', 2: 'Middle aged', 3: 'Senior'}
+        self._occlusion = {True: 'Occlusion', False: 'No occlusion'}
+        self._pose = {0: 'Front', 1: 'Sided', 2: 'Atypical'}
+        self._light = {True: 'Light', False: 'No light'}
         self._categories = {0: Oi.FACE}
         self._colors = [(0, 255, 0)]
 
@@ -545,7 +545,7 @@ class AFLW2000(Database):
         obj = DiffusionObject()
         indices = [101, 102, 103, 104, 105, 106, 107, 108, 24, 110, 111, 112, 113, 114, 115, 116, 117, 1, 119, 2, 121, 3, 4, 124, 5, 126, 6, 128, 129, 130, 17, 16, 133, 134, 135, 18, 7, 138, 139, 8, 141, 142, 11, 144, 145, 12, 147, 148, 20, 150, 151, 22, 153, 154, 21, 156, 157, 23, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168]
         if source is Sources.TXT:
-            obj.add_category(GenericCategory(Name(parts[1])))  # Set identity as category to split the validation set
+            obj.add_category(GenericCategory(parts[1]))  # Set identity as category to split the validation set
             obj.headpose = Rotation.from_euler('XYZ', [float(parts[3]), float(parts[2]), float(parts[4])], degrees=True).as_matrix()
             lnds = [[int(round(float(parts[2*idx+5]))), int(round(float(parts[2*idx+6])))] for idx in range(len(indices))]
         else:
@@ -591,7 +591,7 @@ class Pointing04(Database):
         width, height = Image.open(image.filename).size
         image.tile = np.array([0, 0, width, height])
         obj = PersonObject()
-        obj.add_category(GenericCategory(Name(parts[1])))  # Set identity as category to split the validation set
+        obj.add_category(GenericCategory(parts[1]))  # Set identity as category to split the validation set
         obj.bb = (int(parts[2]), int(parts[3]), int(parts[2])+int(parts[4]), int(parts[3])+int(parts[5]))
         obj.headpose = Rotation.from_euler('YXZ', [-float(parts[6]), float(parts[7]), 0.0], degrees=True).as_matrix()
         image.add_object(obj)
@@ -660,9 +660,9 @@ class RAF(Database):
         super().__init__()
         self._namespaces = {'raf': {}}
         self._landmarks = {Pf.LEYE: (101,), Pf.REYE: (102,), Pf.NOSE: (17,), Pf.TMOUTH: (20, 21)}
-        self._gender = {0: Name('Male'), 1: Name('Female'), 2: Name('Unsure')}
-        self._race = {0: Name('Caucasian'), 1: Name('African-American'), 2: Name('Asian')}
-        self._age = {0: Name('0-3'), 1: Name('4-19'), 2: Name('20-39'), 3: Name('40-69'), 4: Name('70+')}
+        self._gender = {0: 'Male', 1: 'Female', 2: 'Unsure'}
+        self._race = {0: 'Caucasian', 1: 'African-American', 2: 'Asian'}
+        self._age = {0: '0-3', 1: '4-19', 2: '20-39', 3: '40-69', 4: '70+'}
         self._categories = {1: Oe.FACE.SURPRISE, 2: Oe.FACE.FEAR, 3: Oe.FACE.DISGUST, 4: Oe.FACE.HAPPINESS, 5: Oe.FACE.SADNESS, 6: Oe.FACE.ANGER, 7: Oe.FACE.NEUTRAL}
         self._colors = get_palette(len(self._categories))
 
@@ -700,9 +700,9 @@ class AffectNet(Database):
         super().__init__()
         self._namespaces = {'affectnet': {}}
         self._landmarks = {Pf.LEYEBROW: (1, 119, 2, 121, 3), Pf.REYEBROW: (4, 124, 5, 126, 6), Pf.LEYE: (7, 138, 139, 8, 141, 142), Pf.REYE: (11, 144, 145, 12, 147, 148), Pf.NOSE: (128, 129, 130, 17, 16, 133, 134, 135, 18), Pf.TMOUTH: (20, 150, 151, 22, 153, 154, 21, 165, 164, 163, 162, 161), Pf.BMOUTH: (156, 157, 23, 159, 160, 168, 167, 166), Pf.LEAR: (101, 102, 103, 104, 105, 106), Pf.REAR: (112, 113, 114, 115, 116, 117), Pf.CHIN: (107, 108, 24, 110, 111)}
-        self._gender = {0: Name('Female'), 1: Name('Male')}
-        self._race = {0: Name('Asian'), 1: Name('Indian'), 2: Name('Black'), 3: Name('White'), 4: Name('Middle-Eastern'), 5: Name('Latino-Hispanic')}
-        self._age = {0: Name('0-3'), 1: Name('4-19'), 2: Name('20-39'), 3: Name('40-69'), 4: Name('70+')}
+        self._gender = {0: 'Female', 1: 'Male'}
+        self._race = {0: 'Asian', 1: 'Indian', 2: 'Black', 3: 'White', 4: 'Middle-Eastern', 5: 'Latino-Hispanic'}
+        self._age = {0: '0-3', 1: '4-19', 2: '20-39', 3: '40-69', 4: '70+'}
         self._categories = {0: Oe.FACE.NEUTRAL, 1: Oe.FACE.HAPPINESS, 2: Oe.FACE.SADNESS, 3: Oe.FACE.SURPRISE, 4: Oe.FACE.FEAR, 5: Oe.FACE.DISGUST, 6: Oe.FACE.ANGER, 7: Oe.FACE.CONTEMPT}
         self._colors = get_palette(len(self._categories))
 
@@ -757,8 +757,8 @@ class MultiPie(Database):
         image.tile = np.array([0, 0, width, height])
         obj = PersonObject()
         obj.bb = (0, 0, width, height)
-        obj.add_attribute(GenericCategory(Name(parts[5])))  # gender
-        obj.add_attribute(GenericCategory(Name(parts[7])))  # illumination
+        obj.add_attribute(GenericCategory(parts[5]))  # gender
+        obj.add_attribute(GenericCategory(parts[7]))  # illumination
         obj.add_category(GenericCategory(self._categories[parts[9]]))
         image.add_object(obj)
         seq.add_image(image)
@@ -1184,7 +1184,7 @@ class Cityscapes(Database):
     def __init__(self):
         super().__init__()
         self._namespaces = {'cityscapes': {Sources.HUGFACE: 'Chris1/cityscapes'}}
-        self._categories = {num: Name(str(num)) for num in range(19)}
+        self._categories = {num: str(num) for num in range(19)}
         self._colors = [(128, 64, 128), (244, 35, 232), (70, 70, 70), (102, 102, 156), (190, 153, 153), (153, 153, 153), (250, 170, 30), (220, 220, 0), (107, 142, 35), (152, 251, 152), (70, 130, 180), (220, 20, 60), (255, 0, 0), (0, 0, 142), (0, 0, 70), (0, 60, 100), (0, 80, 100), (0, 0, 230), (119, 11, 32)]
 
     def get_namespace(self, mode, source, ref):
@@ -1228,7 +1228,7 @@ class Cityscapes(Database):
             bbox = cv2.boundingRect(contours[index])
             obj.bb = (bbox[0], bbox[1], bbox[2]+bbox[0], bbox[3]+bbox[1])
             obj.multipolygon = [contours[index]]
-            obj.add_category(GenericCategory(Name(labels[index])))
+            obj.add_category(GenericCategory(str(labels[index])))
             image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -1238,7 +1238,7 @@ class LIP(Database):
     def __init__(self):
         super().__init__()
         self._namespaces = {'lip': {}}
-        self._categories = {num: Name(str(num)) for num in range(20)}
+        self._categories = {num: str(num) for num in range(20)}
         self._colors = [(0.0, 0.0, 0.0), (127.5, 0.0, 0.0), (254.00390625, 0.0, 0.0), (0.0, 84.66796875, 0.0), (169.3359375, 0.0, 50.80078125), (254.00390625, 84.66796875, 0.0), (0.0, 0.0, 84.66796875), (0.0, 118.53515625, 220.13671875), (84.66796875, 84.66796875, 0.0), (0.0, 84.66796875, 84.66796875), (84.66796875, 50.80078125, 0.0), (51.796875, 85.6640625, 127.5), (0.0, 127.5, 0.0), (0.0, 0.0, 254.00390625), (50.80078125, 169.3359375, 220.13671875), (0.0, 254.00390625, 254.00390625), (84.66796875, 254.00390625, 169.3359375), (169.3359375, 254.00390625, 84.66796875), (254.00390625, 254.00390625, 0.0), (254.00390625, 169.3359375, 0.0)]
 
     def load_line(self, source, ref, path, line):
@@ -1268,7 +1268,7 @@ class LIP(Database):
             bbox = cv2.boundingRect(contours[index])
             obj.bb = (bbox[0], bbox[1], bbox[2]+bbox[0], bbox[3]+bbox[1])
             obj.multipolygon = [contours[index]]
-            obj.add_category(GenericCategory(Name(labels[index])))
+            obj.add_category(GenericCategory(str(labels[index])))
             image.add_object(obj)
         seq.add_image(image)
         return seq
@@ -1416,7 +1416,7 @@ class Thumos(Database):
         normalize = lambda text: re.sub(r'[^a-z0-9]', '', str(text).lower())
         names = {normalize(cat.name): cat for cat in self._categories.values()}
         for ann in anns:
-            label = names.get(normalize(ann['label']), Name(str(ann['label'])))
+            label = names.get(normalize(ann['label']), str(ann['label']))
             seq.add_action(TemporalCategory(segment=tuple(ann['segment']), label=label))
         return seq
 
@@ -1463,7 +1463,7 @@ class ActivityNet(Database):
             annotation_label = ann['label']
             if annotation_label in label_variants:
                 annotation_label = label_variants[annotation_label]
-            label = names.get(normalize(annotation_label), Name(str(ann['label'])))
+            label = names.get(normalize(annotation_label), str(ann['label']))
             seq.add_action(TemporalCategory(segment=tuple(ann['segment']), label=label))
         return seq
 
@@ -1508,7 +1508,7 @@ class Attach(Database):
         normalize = lambda text: re.sub(r'[^a-z0-9]', '', str(text).lower())
         names = {normalize(cat.name): cat for cat in self._categories.values()}
         for ann in info.get('annotations', []):
-            label = names.get(normalize(ann['label']), Name(str(ann['label'])))
+            label = names.get(normalize(ann['label']), str(ann['label']))
             seq.add_action(TemporalCategory(segment=tuple(ann['segment']), label=label))
         return seq
 
@@ -1634,10 +1634,10 @@ class Celeba(Database):
             lp = list(self._landmarks.keys())[next((ids for ids, xs in enumerate(self._landmarks.values()) for x in xs if x == label), None)]
             pos = (int(landmarks[idx_lnd][0]), int(landmarks[idx_lnd][1]))
             obj.add_landmark(GenericLandmark(label, lp, pos, True), lps[type(lp)])
-        obj.add_category(GenericCategory(Name(int(line['identity']))))
+        obj.add_category(GenericCategory(line['identity']))
         names = ['5_o_Clock_Shadow', 'Arched_Eyebrows', 'Attractive', 'Bags_Under_Eyes', 'Bald', 'Bangs', 'Big_Lips', 'Big_Nose', 'Black_Hair', 'Blond_Hair', 'Blurry', 'Brown_Hair', 'Bushy_Eyebrows', 'Chubby', 'Double_Chin', 'Eyeglasses', 'Goatee', 'Gray_Hair', 'Heavy_Makeup', 'High_Cheekbones', 'Male', 'Mouth_Slightly_Open', 'Mustache', 'Narrow_Eyes', 'No_Beard', 'Oval_Face', 'Pale_Skin', 'Pointy_Nose', 'Receding_Hairline', 'Rosy_Cheeks', 'Sideburns', 'Smiling', 'Straight_Hair', 'Wavy_Hair', 'Wearing_Earrings', 'Wearing_Hat', 'Wearing_Lipstick', 'Wearing_Necklace', 'Wearing_Necktie', 'Young']
         attributes = np.array(line['attributes'], dtype=int)
-        [obj.add_attribute(GenericCategory(Name(name))) for name, attribute in zip(names, attributes) if attribute == 1]
+        [obj.add_attribute(GenericCategory(name)) for name, attribute in zip(names, attributes) if attribute == 1]
         image.add_object(obj)
         seq.add_image(image)
         return seq

@@ -3,14 +3,14 @@
 __author__ = 'Roberto Valle'
 __email__ = 'roberto.valle@upm.es'
 
-from pcr_framework.src.categories import Name, Category as Oi
+from pcr_framework.src.categories import Category as Oi
 
 
 class Appliance(Oi):
     # COCO
-    Oi.APPLIANCE.MICROWAVE = Name('Microwave')
-    Oi.APPLIANCE.OVEN = Name('Oven')
-    Oi.APPLIANCE.TOASTER = Name('Toaster')
-    Oi.APPLIANCE.SINK = Name('Sink')
-    Oi.APPLIANCE.REFRIGERATOR = Name('Refrigerator')
-    Oi.APPLIANCE.BLENDER = Name('Blender')
+    Oi.APPLIANCE.MICROWAVE = 'Microwave'
+    Oi.APPLIANCE.OVEN = 'Oven'
+    Oi.APPLIANCE.TOASTER = 'Toaster'
+    Oi.APPLIANCE.SINK = 'Sink'
+    Oi.APPLIANCE.REFRIGERATOR = 'Refrigerator'
+    Oi.APPLIANCE.BLENDER = 'Blender'

@@ -6,26 +6,34 @@ __email__ = 'roberto.valle@upm.es'
 import uuid
 import numpy as np
 from enum import Enum
+from typing import Any, NamedTuple
 from scipy.spatial.transform import Rotation
-from .categories import Name
 from pcr_framework.regression.alignment.landmarks import PersonLandmarkPart as Pl
+
+
+class Prediction(NamedTuple):
+    """
+    Predicted value with its confidence (-1 if not evaluated).
+    """
+    name: Any
+    confidence: float = -1
 
 
 class GenericCategory:
     """
     Generic category data.
     """
-    def __init__(self, label: Name, score=-1):
-        self.label = label
-        self.score = score
+    def __init__(self, label: str, label_confidence=-1, fake=False, fake_confidence=-1):
+        self.label = Prediction(label, label_confidence)
+        self.fake = Prediction(fake, fake_confidence)
 
 
 class TemporalCategory(GenericCategory):
     """
     Temporal category inherits from the generic category class.
     """
-    def __init__(self, segment: tuple, label: Name, score=-1):
-        super().__init__(label, score)
+    def __init__(self, segment: tuple, label: str, label_confidence=-1, fake=False, fake_confidence=-1):
+        super().__init__(label, label_confidence, fake, fake_confidence)
         self.segment = segment
 
 
@@ -40,11 +48,8 @@ class GenericAnnotation:
     def add_category(self, category: GenericCategory):
         self.categories.append(category)
 
-    def has_category(self, label: Name):
-        return any(category.label is label for category in self.categories)
-
-    def get_category(self, label: Name):
-        return next((category for category in self.categories if category.label is label), None)
+    def has_category(self, label: str):
+        return any(category.label.name == label for category in self.categories)
 
     def clear(self):
         self.categories.clear()

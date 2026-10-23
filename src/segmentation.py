@@ -120,7 +120,7 @@ class Segmentation(Component):
                         fs.write(';' + str(numpy2geometry(contour)))
                     fs.write(';' + str(len(obj.categories)))
                     for cat in obj.categories:
-                        fs.write(';' + cat.label.name) if obj_idx == 0 else fs.write(';' + cat.label.name + ';' + str(cat.score))
+                        fs.write(';' + cat.label.name) if obj_idx == 0 else fs.write(';' + cat.label.name + ';' + str(cat.label.confidence))
             fs.write('\n')
 
     def save(self, dirname, pred):

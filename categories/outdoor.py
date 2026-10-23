@@ -3,14 +3,14 @@
 __author__ = 'Roberto Valle'
 __email__ = 'roberto.valle@upm.es'
 
-from pcr_framework.src.categories import Name, Category as Oi
+from pcr_framework.src.categories import Category as Oi
 
 
 class Outdoor(Oi):
     # COCO
-    Oi.OUTDOOR.TRAFFIC_LIGHT = Name('Traffic light')
-    Oi.OUTDOOR.FIRE_HYDRANT = Name('Fire hydrant')
-    Oi.OUTDOOR.STREET_SIGN = Name('Street sign')
-    Oi.OUTDOOR.STOP_SIGN = Name('Stop sign')
-    Oi.OUTDOOR.PARKING_METER = Name('Parking meter')
-    Oi.OUTDOOR.BENCH = Name('Bench')
+    Oi.OUTDOOR.TRAFFIC_LIGHT = 'Traffic light'
+    Oi.OUTDOOR.FIRE_HYDRANT = 'Fire hydrant'
+    Oi.OUTDOOR.STREET_SIGN = 'Street sign'
+    Oi.OUTDOOR.STOP_SIGN = 'Stop sign'
+    Oi.OUTDOOR.PARKING_METER = 'Parking meter'
+    Oi.OUTDOOR.BENCH = 'Bench'

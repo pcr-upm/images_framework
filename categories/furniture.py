@@ -3,18 +3,18 @@
 __author__ = 'Roberto Valle'
 __email__ = 'roberto.valle@upm.es'
 
-from pcr_framework.src.categories import Name, Category as Oi
+from pcr_framework.src.categories import Category as Oi
 
 
 class Furniture(Oi):
     # COCO
-    Oi.FURNITURE.CHAIR = Name('Chair')
-    Oi.FURNITURE.COUCH = Name('Couch')
-    Oi.FURNITURE.POTTED_PLANT = Name('Potted plant')
-    Oi.FURNITURE.BED = Name('Bed')
-    Oi.FURNITURE.MIRROR = Name('Mirror')
-    Oi.FURNITURE.DINING_TABLE = Name('Dining table')
-    Oi.FURNITURE.WINDOW = Name('Window')
-    Oi.FURNITURE.DESK = Name('Desk')
-    Oi.FURNITURE.TOILET = Name('Toilet')
-    Oi.FURNITURE.DOOR = Name('Door')
+    Oi.FURNITURE.CHAIR = 'Chair'
+    Oi.FURNITURE.COUCH = 'Couch'
+    Oi.FURNITURE.POTTED_PLANT = 'Potted plant'
+    Oi.FURNITURE.BED = 'Bed'
+    Oi.FURNITURE.MIRROR = 'Mirror'
+    Oi.FURNITURE.DINING_TABLE = 'Dining table'
+    Oi.FURNITURE.WINDOW = 'Window'
+    Oi.FURNITURE.DESK = 'Desk'
+    Oi.FURNITURE.TOILET = 'Toilet'
+    Oi.FURNITURE.DOOR = 'Door'

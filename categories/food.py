@@ -3,18 +3,18 @@
 __author__ = 'Roberto Valle'
 __email__ = 'roberto.valle@upm.es'
 
-from pcr_framework.src.categories import Name, Category as Oi
+from pcr_framework.src.categories import Category as Oi
 
 
 class Food(Oi):
     # COCO
-    Oi.FOOD.BANANA = Name('Banana')
-    Oi.FOOD.APPLE = Name('Apple')
-    Oi.FOOD.SANDWICH = Name('Sandwich')
-    Oi.FOOD.ORANGE = Name('Orange')
-    Oi.FOOD.BROCCOLI = Name('Broccoli')
-    Oi.FOOD.CARROT = Name('Carrot')
-    Oi.FOOD.HOT_DOG = Name('Hot dog')
-    Oi.FOOD.PIZZA = Name('Pizza')
-    Oi.FOOD.DONUT = Name('Donut')
-    Oi.FOOD.CAKE = Name('Cake')
+    Oi.FOOD.BANANA = 'Banana'
+    Oi.FOOD.APPLE = 'Apple'
+    Oi.FOOD.SANDWICH = 'Sandwich'
+    Oi.FOOD.ORANGE = 'Orange'
+    Oi.FOOD.BROCCOLI = 'Broccoli'
+    Oi.FOOD.CARROT = 'Carrot'
+    Oi.FOOD.HOT_DOG = 'Hot dog'
+    Oi.FOOD.PIZZA = 'Pizza'
+    Oi.FOOD.DONUT = 'Donut'
+    Oi.FOOD.CAKE = 'Cake'

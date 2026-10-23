@@ -57,7 +57,7 @@ class Recognition(Component):
             margin = 2
             (xmin, ymin, xmax, ymax) = bbox
             for label_idx, label_val in enumerate(categories):
-                if not (label_val.score == -1 or label_val.score > 0.25):
+                if not (label_val.label.confidence == -1 or label_val.label.confidence > 0.25):
                     continue
                 if isinstance(label_val, TemporalCategory) and current_time is not None and not (label_val.segment[0] <= current_time <= label_val.segment[1]):
                     continue
@@ -99,7 +99,7 @@ class Recognition(Component):
                 for obj in obj_val:
                     fs.write(';' + str(obj.id))
                     for cat in obj.categories:
-                        fs.write(';' + cat.label.name) if obj_idx == 0 else fs.write(';' + cat.label.name + ';' + str(cat.score))
+                        fs.write(';' + cat.label.name) if obj_idx == 0 else fs.write(';' + cat.label.name + ';' + str(cat.label.confidence))
             fs.write('\n')
 
     def save(self, dirname, pred):

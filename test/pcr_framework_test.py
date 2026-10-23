@@ -19,6 +19,7 @@ def main():
     PCR framework test script.
     """
     print('OpenCV ' + cv2.__version__)
+    print('NumPy ' + np.__version__)
     # Process frame and show result
     ann, pred = GenericVideo(), GenericVideo()
     for roi in [[0, 0, 600, 600], [0, 600, 600, 1200], [0, 1200, 600, 1800]]:

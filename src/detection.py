@@ -85,7 +85,7 @@ class Detection(Component):
                 for obj in objs_val:
                     fs.write(';' + str(obj.id) + ';' + str(obj.bb) + ';' + str(obj.obb))
                     for cat in obj.categories:
-                        fs.write(';' + cat.label.name) if objs_idx == 0 else fs.write(';' + cat.label.name + ';' + str(cat.score))
+                        fs.write(';' + cat.label.name) if objs_idx == 0 else fs.write(';' + cat.label.name + ';' + str(cat.label.confidence))
             fs.write('\n')
 
     def save(self, dirname, pred):

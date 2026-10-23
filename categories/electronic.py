@@ -3,14 +3,14 @@
 __author__ = 'Roberto Valle'
 __email__ = 'roberto.valle@upm.es'
 
-from pcr_framework.src.categories import Name, Category as Oi
+from pcr_framework.src.categories import Category as Oi
 
 
 class Electronic(Oi):
     # COCO
-    Oi.ELECTRONIC.TV = Name('Tv')
-    Oi.ELECTRONIC.LAPTOP = Name('Laptop')
-    Oi.ELECTRONIC.MOUSE = Name('Mouse')
-    Oi.ELECTRONIC.REMOTE = Name('Remote')
-    Oi.ELECTRONIC.KEYBOARD = Name('Keyboard')
-    Oi.ELECTRONIC.CELL_PHONE = Name('Cell phone')
+    Oi.ELECTRONIC.TV = 'Tv'
+    Oi.ELECTRONIC.LAPTOP = 'Laptop'
+    Oi.ELECTRONIC.MOUSE = 'Mouse'
+    Oi.ELECTRONIC.REMOTE = 'Remote'
+    Oi.ELECTRONIC.KEYBOARD = 'Keyboard'
+    Oi.ELECTRONIC.CELL_PHONE = 'Cell phone'

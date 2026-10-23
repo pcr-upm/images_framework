@@ -3,18 +3,18 @@
 __author__ = 'Roberto Valle'
 __email__ = 'roberto.valle@upm.es'
 
-from pcr_framework.src.categories import Name, Category as Oi
+from pcr_framework.src.categories import Category as Oi
 
 
 class Animal(Oi):
     # COCO
-    Oi.ANIMAL.BIRD = Name('Bird')
-    Oi.ANIMAL.CAT = Name('Cat')
-    Oi.ANIMAL.DOG = Name('Dog')
-    Oi.ANIMAL.HORSE = Name('Horse')
-    Oi.ANIMAL.SHEEP = Name('Sheep')
-    Oi.ANIMAL.COW = Name('Cow')
-    Oi.ANIMAL.ELEPHANT = Name('Elephant')
-    Oi.ANIMAL.BEAR = Name('Bear')
-    Oi.ANIMAL.ZEBRA = Name('Zebra')
-    Oi.ANIMAL.GIRAFFE = Name('Giraffe')
+    Oi.ANIMAL.BIRD = 'Bird'
+    Oi.ANIMAL.CAT = 'Cat'
+    Oi.ANIMAL.DOG = 'Dog'
+    Oi.ANIMAL.HORSE = 'Horse'
+    Oi.ANIMAL.SHEEP = 'Sheep'
+    Oi.ANIMAL.COW = 'Cow'
+    Oi.ANIMAL.ELEPHANT = 'Elephant'
+    Oi.ANIMAL.BEAR = 'Bear'
+    Oi.ANIMAL.ZEBRA = 'Zebra'
+    Oi.ANIMAL.GIRAFFE = 'Giraffe'

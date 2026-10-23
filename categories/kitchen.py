@@ -3,16 +3,16 @@
 __author__ = 'Roberto Valle'
 __email__ = 'roberto.valle@upm.es'
 
-from pcr_framework.src.categories import Name, Category as Oi
+from pcr_framework.src.categories import Category as Oi
 
 
 class Kitchen(Oi):
     # COCO
-    Oi.KITCHEN.BOTTLE = Name('Bottle')
-    Oi.KITCHEN.PLATE = Name('Plate')
-    Oi.KITCHEN.WINE_GLASS = Name('Wine glass')
-    Oi.KITCHEN.CUP = Name('Cup')
-    Oi.KITCHEN.FORK = Name('Fork')
-    Oi.KITCHEN.KNIFE = Name('Knife')
-    Oi.KITCHEN.SPOON = Name('Spoon')
-    Oi.KITCHEN.BOWL = Name('Bowl')
+    Oi.KITCHEN.BOTTLE = 'Bottle'
+    Oi.KITCHEN.PLATE = 'Plate'
+    Oi.KITCHEN.WINE_GLASS = 'Wine glass'
+    Oi.KITCHEN.CUP = 'Cup'
+    Oi.KITCHEN.FORK = 'Fork'
+    Oi.KITCHEN.KNIFE = 'Knife'
+    Oi.KITCHEN.SPOON = 'Spoon'
+    Oi.KITCHEN.BOWL = 'Bowl'

@@ -3,18 +3,18 @@
 __author__ = 'Roberto Valle'
 __email__ = 'roberto.valle@upm.es'
 
-from pcr_framework.src.categories import Name, Category as Oi
+from pcr_framework.src.categories import Category as Oi
 
 
 class Sport(Oi):
     # COCO
-    Oi.SPORTS.FRISBEE = Name('Frisbee')
-    Oi.SPORTS.SKIS = Name('Skis')
-    Oi.SPORTS.SNOWBOARD = Name('Snowboard')
-    Oi.SPORTS.SPORTS_BALL = Name('Sports ball')
-    Oi.SPORTS.KITE = Name('Kite')
-    Oi.SPORTS.BASEBALL_BAT = Name('Baseball bat')
-    Oi.SPORTS.BASEBALL_GLOVE = Name('Baseball glove')
-    Oi.SPORTS.SKATEBOARD = Name('Skateboard')
-    Oi.SPORTS.SURFBOARD = Name('Surfboard')
-    Oi.SPORTS.TENNIS_RACKET = Name('Tennis racket')
+    Oi.SPORTS.FRISBEE = 'Frisbee'
+    Oi.SPORTS.SKIS = 'Skis'
+    Oi.SPORTS.SNOWBOARD = 'Snowboard'
+    Oi.SPORTS.SPORTS_BALL = 'Sports ball'
+    Oi.SPORTS.KITE = 'Kite'
+    Oi.SPORTS.BASEBALL_BAT = 'Baseball bat'
+    Oi.SPORTS.BASEBALL_GLOVE = 'Baseball glove'
+    Oi.SPORTS.SKATEBOARD = 'Skateboard'
+    Oi.SPORTS.SURFBOARD = 'Surfboard'
+    Oi.SPORTS.TENNIS_RACKET = 'Tennis racket'
