@@ -47,7 +47,7 @@ class Segmentation(Component):
     def show(self, viewer, ann, pred):
         datasets = [subclass().get_names() for subclass in Database.__subclasses__()]
         categories = Database.__subclasses__()[next((idx for idx, subset in enumerate(datasets) if self.database in subset), None)]().get_categories()
-        names = list([cat.name for cat in categories.values()])
+        names = list([cat for cat in categories.values()])
         colors = Database.__subclasses__()[next((idx for idx, subset in enumerate(datasets) if self.database in subset), None)]().get_colors()
         mapping = dict(zip(names, range(len(names))))
         drawing = dict(zip(range(len(names)), colors))
@@ -128,7 +128,7 @@ class Segmentation(Component):
         import json
         datasets = [subclass().get_names() for subclass in Database.__subclasses__()]
         categories = Database.__subclasses__()[next((idx for idx, subset in enumerate(datasets) if self.database in subset), None)]().get_categories()
-        names = list([cat.name for cat in categories.values()])
+        names = list([cat for cat in categories.values()])
         for img_pred in pred.images:
             # Create a blank json that matched the labeler provided jsons with default values
             output_json = dict({'images': [], 'annotations': [], 'categories': []})

@@ -51,7 +51,7 @@ class Detection(Component):
     def show(self, viewer, ann, pred):
         datasets = [subclass().get_names() for subclass in Database.__subclasses__()]
         categories = Database.__subclasses__()[next((idx for idx, subset in enumerate(datasets) if self.database in subset), None)]().get_categories()
-        names = list([cat.name for cat in categories.values()])
+        names = list([cat for cat in categories.values()])
         colors = Database.__subclasses__()[next((idx for idx, subset in enumerate(datasets) if self.database in subset), None)]().get_colors()
         drawing = dict(zip(names, colors))
         ann_order = [(img_ann.filename, img_ann.tile) for img_ann in ann.images]  # keep order among 'ann' and 'pred'

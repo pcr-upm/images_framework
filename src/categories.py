@@ -3,14 +3,30 @@
 __author__ = 'Roberto Valle'
 __email__ = 'roberto.valle@upm.es'
 
-import abc
+
+class Label(str):
+    """
+    Category label: a string that can contain subcategories (e.g. Category.FACE.ANGER == 'Anger').
+    """
+    def __setattr__(self, key, value):
+        super().__setattr__(key, Label(value) if isinstance(value, str) else value)
 
 
-class Category(object):
+class Taxonomy(type):
+    """
+    Metaclass that turns every uppercase string attribute into a Label.
+    """
+    def __init__(cls, name, bases, namespace):
+        super().__init__(name, bases, namespace)
+        for key, value in namespace.items():
+            if key.isupper() and isinstance(value, str):
+                setattr(cls, key, Label(value))
+
+
+class Category(metaclass=Taxonomy):
     """
     Category label.
     """
-    __metaclass__ = abc.ABCMeta
     BACKGROUND = 'Background'
     PERSON = 'Person'
     ACTION = 'Action'

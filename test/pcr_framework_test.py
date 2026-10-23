@@ -5,7 +5,7 @@ __email__ = 'roberto.valle@upm.es'
 
 import os
 import sys
-sys.path.append(os.getcwd())
+sys.path.insert(0, os.getcwd())
 import cv2
 import numpy as np
 from pathlib import Path
